@@ -32,6 +32,14 @@
       </div>
 
       <div class="kpi-card">
+        <div class="label">CA du mois</div>
+        <div class="value"><?= number_format((float)($annual['monthly_revenue'] ?? 0), 0, ',', ' ') ?> €</div>
+        <div class="sub" style="color:<?= ((float)($annual['monthly_growth_pct'] ?? 0)) >= 0 ? 'var(--success)' : 'var(--error)' ?>;">
+          <?= ((float)($annual['monthly_growth_pct'] ?? 0) >= 0 ? '+' : '') . number_format((float)($annual['monthly_growth_pct'] ?? 0), 1, ',', ' ') ?> % vs mois dernier
+        </div>
+      </div>
+
+      <div class="kpi-card">
         <div class="label">Charges annuelles</div>
         <div class="value" style="color:var(--error);"><?= number_format((float)($annual['annual_expenses'] ?? 0), 0, ',', ' ') ?> €</div>
         <div class="sub">Mensualisé: <?= number_format((float)($annual['monthly_expenses'] ?? 0), 0, ',', ' ') ?> €/mois</div>
@@ -42,6 +50,12 @@
         <?php $profit = (float)($annual['annual_profit'] ?? 0); ?>
         <div class="value"><?= ($profit >= 0 ? '+' : '') . number_format($profit, 0, ',', ' ') ?> €</div>
         <div class="sub"><?= $profit >= 0 ? 'Rentable' : 'Déficitaire' ?></div>
+      </div>
+
+      <div class="kpi-card <?= ((float)($annual['monthly_profit'] ?? 0) >= 0) ? 'success' : 'danger' ?>">
+        <div class="label">Résultat mensuel</div>
+        <div class="value"><?= ((float)($annual['monthly_profit'] ?? 0) >= 0 ? '+' : '') . number_format((float)($annual['monthly_profit'] ?? 0), 0, ',', ' ') ?> €</div>
+        <div class="sub"><?= ((float)($annual['monthly_profit'] ?? 0) >= 0) ? 'Mois rentable' : 'Mois déficitaire' ?></div>
       </div>
 
       <div class="kpi-card">
@@ -61,6 +75,12 @@
         <div class="label">Taux de factures payées</div>
         <div class="value"><?= number_format((float)($annual['paid_rate_pct'] ?? 0), 1, ',', ' ') ?> %</div>
         <div class="sub"><?= (int)($kpis['invoice_counts']['paid'] ?? 0) ?> payées / <?= (int)($kpis['invoice_counts']['total'] ?? 0) ?> total</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="label">Conversion encaissement</div>
+        <div class="value"><?= number_format((float)($annual['collection_rate_amount_pct'] ?? 0), 1, ',', ' ') ?> %</div>
+        <div class="sub">Encaissé / (encaissé + impayé)</div>
       </div>
     </div>
 
@@ -94,6 +114,61 @@
         <span>Retard: <strong style="color:#202124;"><?= number_format((float)($annual['overdue_amount'] ?? 0), 0, ',', ' ') ?> €</strong></span>
         <span>Panier moyen: <strong style="color:#202124;"><?= number_format((float)($kpis['average_basket'] ?? 0), 0, ',', ' ') ?> €</strong></span>
       </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.25rem;">
+      <p class="card-title">
+        <span class="material-icons" style="vertical-align:middle;margin-right:0.25rem;font-size:1rem;">insights</span>
+        Indicateurs de précision
+      </p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Indicateur</th>
+            <th>Valeur</th>
+            <th>Lecture</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Run-rate annuel (12 mois glissants)</td>
+            <td style="font-weight:600;"><?= number_format((float)($annual['run_rate_annual'] ?? 0), 0, ',', ' ') ?> €</td>
+            <td>Projection annuelle au rythme actuel</td>
+          </tr>
+          <tr>
+            <td>CA mensuel moyen (12 mois)</td>
+            <td style="font-weight:600;"><?= number_format((float)($annual['avg_monthly_revenue'] ?? 0), 0, ',', ' ') ?> €</td>
+            <td>Niveau moyen d'encaissement par mois</td>
+          </tr>
+          <tr>
+            <td>Volatilité du CA</td>
+            <td style="font-weight:600;"><?= number_format((float)($annual['volatility_pct'] ?? 0), 1, ',', ' ') ?> %</td>
+            <td><?= ((float)($annual['volatility_pct'] ?? 0) <= 15) ? 'Stable' : ((((float)($annual['volatility_pct'] ?? 0) <= 30) ? 'Modérée' : 'Élevée')) ?></td>
+          </tr>
+          <tr>
+            <td>Concentration client top 1</td>
+            <td style="font-weight:600;"><?= number_format((float)($annual['top1_share_pct'] ?? 0), 1, ',', ' ') ?> %</td>
+            <td>Part du meilleur client dans le CA annuel</td>
+          </tr>
+          <tr>
+            <td>Concentration client top 3</td>
+            <td style="font-weight:600;"><?= number_format((float)($annual['top3_share_pct'] ?? 0), 1, ',', ' ') ?> %</td>
+            <td>Risque de dépendance au portefeuille principal</td>
+          </tr>
+          <tr>
+            <td>Part du retard dans les impayés</td>
+            <td style="font-weight:600;"><?= number_format((float)($annual['overdue_on_open_pct'] ?? 0), 1, ',', ' ') ?> %</td>
+            <td>Priorité de recouvrement sur les dossiers en retard</td>
+          </tr>
+          <?php if ($annual['runway_months'] !== null): ?>
+          <tr>
+            <td>Couverture estimée des charges</td>
+            <td style="font-weight:600;"><?= number_format((float)$annual['runway_months'], 1, ',', ' ') ?> mois</td>
+            <td>Approximation selon CA actuel et charges mensuelles</td>
+          </tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
     </div>
 
     <!-- Charts -->
