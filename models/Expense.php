@@ -22,7 +22,7 @@ class Expense extends BaseModel
         return (int)$this->pdo->lastInsertId();
     }
 
-    public function update(int $id, string $label, float $amount, string $category, string $recurrence, ?string $expenseDate, ?string $note): void
+    public function updateExpense(int $id, string $label, float $amount, string $category, string $recurrence, ?string $expenseDate, ?string $note): void
     {
         $stmt = $this->pdo->prepare(
             'UPDATE expenses SET label=?, amount=?, category=?, recurrence=?, expense_date=?, note=?, updated_at=NOW()

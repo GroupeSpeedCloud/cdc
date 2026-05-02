@@ -85,7 +85,7 @@ class ExpensesController
             $recurrence = 'monthly';
         }
 
-        $this->model->update($id, $label, $amount, $category ?: 'Autre', $recurrence, $expenseDate ?: null, $note);
+        $this->model->updateExpense($id, $label, $amount, $category ?: 'Autre', $recurrence, $expenseDate ?: null, $note);
         header('Location: ' . APP_URL . '/expenses?message=' . urlencode('Dépense mise à jour.'));
         exit;
     }
