@@ -25,7 +25,7 @@ if (file_exists($envFile)) {
 $required = [
     'DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS',
     'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET',
-    'AUTHORIZED_USERS', 'DOLIBARR_URL', 'DOLIBARR_API_KEY', 'APP_URL',
+    'DOLIBARR_URL', 'DOLIBARR_API_KEY', 'APP_URL',
 ];
 foreach ($required as $var) {
     if (getenv($var) === false) {
@@ -41,7 +41,6 @@ define('DB_USER',              getenv('DB_USER'));
 define('DB_PASS',              getenv('DB_PASS'));
 define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID'));
 define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET'));
-define('AUTHORIZED_USERS',     getenv('AUTHORIZED_USERS'));
 define('DOLIBARR_URL',         rtrim(getenv('DOLIBARR_URL'), '/'));
 define('DOLIBARR_API_KEY',     getenv('DOLIBARR_API_KEY'));
 

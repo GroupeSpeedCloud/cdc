@@ -51,12 +51,11 @@ class AuthService
             return ['success' => false, 'error' => 'Accès réservé à la direction'];
         }
 
-        // Validate whitelist
-        $allowedUsers = array_map(
-            fn($u) => strtolower(trim($u)),
-            explode(',', AUTHORIZED_USERS)
-        );
-        if (!in_array($email, $allowedUsers, true)) {
+        // Validate against DB whitelist
+        $pdo  = getDB();
+        $stmt = $pdo->prepare('SELECT 1 FROM users WHERE LOWER(email) = ?');
+        $stmt->execute([$email]);
+        if (!$stmt->fetch()) {
             return ['success' => false, 'error' => 'Accès réservé à la direction'];
         }
 
