@@ -23,14 +23,43 @@
       </div>
     <?php endif; ?>
 
-    <!-- KPI Cards annuelles -->
+    <?php
+      $statusColor = [
+        'solide' => 'var(--success)',
+        'fragile' => 'var(--warning)',
+        'critique' => 'var(--error)',
+      ];
+      $marginStatus = $annual['margin_status'] ?? 'fragile';
+      $collectionStatus = $annual['collection_status'] ?? 'fragile';
+      $volatilityStatus = $annual['volatility_status'] ?? 'fragile';
+      $concentrationStatus = $annual['concentration_status'] ?? 'fragile';
+    ?>
+
+    <div class="card" style="margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span class="material-icons" style="font-size:1.1rem;color:var(--primary);">query_stats</span>
+        <strong>Vue exécutive <?= (int)($annual['year'] ?? date('Y')) ?></strong>
+      </div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <span style="background:#e8f0fe;color:#174ea6;padding:0.25rem 0.55rem;border-radius:999px;font-size:0.8rem;">Marge: <?= htmlspecialchars($marginStatus, ENT_QUOTES, 'UTF-8') ?></span>
+        <span style="background:#f1f3f4;color:#202124;padding:0.25rem 0.55rem;border-radius:999px;font-size:0.8rem;">Encaissement: <?= htmlspecialchars($collectionStatus, ENT_QUOTES, 'UTF-8') ?></span>
+        <span style="background:#fef7e0;color:#8a6d1d;padding:0.25rem 0.55rem;border-radius:999px;font-size:0.8rem;">Volatilité: <?= htmlspecialchars($volatilityStatus, ENT_QUOTES, 'UTF-8') ?></span>
+        <span style="background:#fce8e6;color:#b3261e;padding:0.25rem 0.55rem;border-radius:999px;font-size:0.8rem;">Concentration: <?= htmlspecialchars($concentrationStatus, ENT_QUOTES, 'UTF-8') ?></span>
+      </div>
+    </div>
+
+    <p style="font-size:0.9rem;font-weight:600;color:#5f6368;margin:0.3rem 0 0.8rem;">Performance financière</p>
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="label">CA annuel encaissé</div>
         <div class="value"><?= number_format((float)($annual['annual_revenue'] ?? 0), 0, ',', ' ') ?> €</div>
         <div class="sub">Année <?= (int)($annual['year'] ?? date('Y')) ?></div>
       </div>
-
+      <div class="kpi-card">
+        <div class="label">Run-rate annuel</div>
+        <div class="value"><?= number_format((float)($annual['run_rate_annual'] ?? 0), 0, ',', ' ') ?> €</div>
+        <div class="sub">Projection à rythme actuel (12 mois)</div>
+      </div>
       <div class="kpi-card">
         <div class="label">CA du mois</div>
         <div class="value"><?= number_format((float)($annual['monthly_revenue'] ?? 0), 0, ',', ' ') ?> €</div>
@@ -38,49 +67,46 @@
           <?= ((float)($annual['monthly_growth_pct'] ?? 0) >= 0 ? '+' : '') . number_format((float)($annual['monthly_growth_pct'] ?? 0), 1, ',', ' ') ?> % vs mois dernier
         </div>
       </div>
-
-      <div class="kpi-card">
-        <div class="label">Charges annuelles</div>
-        <div class="value" style="color:var(--error);"><?= number_format((float)($annual['annual_expenses'] ?? 0), 0, ',', ' ') ?> €</div>
-        <div class="sub">Mensualisé: <?= number_format((float)($annual['monthly_expenses'] ?? 0), 0, ',', ' ') ?> €/mois</div>
-      </div>
-
       <div class="kpi-card <?= ((float)($annual['annual_profit'] ?? 0) >= 0) ? 'success' : 'danger' ?>">
         <div class="label">Résultat annuel</div>
         <?php $profit = (float)($annual['annual_profit'] ?? 0); ?>
         <div class="value"><?= ($profit >= 0 ? '+' : '') . number_format($profit, 0, ',', ' ') ?> €</div>
         <div class="sub"><?= $profit >= 0 ? 'Rentable' : 'Déficitaire' ?></div>
       </div>
-
       <div class="kpi-card <?= ((float)($annual['monthly_profit'] ?? 0) >= 0) ? 'success' : 'danger' ?>">
         <div class="label">Résultat mensuel</div>
         <div class="value"><?= ((float)($annual['monthly_profit'] ?? 0) >= 0 ? '+' : '') . number_format((float)($annual['monthly_profit'] ?? 0), 0, ',', ' ') ?> €</div>
         <div class="sub"><?= ((float)($annual['monthly_profit'] ?? 0) >= 0) ? 'Mois rentable' : 'Mois déficitaire' ?></div>
       </div>
-
       <div class="kpi-card">
         <div class="label">Marge nette</div>
         <?php $margin = (float)($annual['margin_pct'] ?? 0); ?>
-        <div class="value" style="color:<?= $margin >= 0 ? 'var(--success)' : 'var(--error)' ?>;"><?= ($margin >= 0 ? '+' : '') . number_format($margin, 1, ',', ' ') ?> %</div>
+        <div class="value" style="color:<?= $statusColor[$marginStatus] ?? 'var(--warning)' ?>;"><?= ($margin >= 0 ? '+' : '') . number_format($margin, 1, ',', ' ') ?> %</div>
         <div class="sub">Résultat / CA</div>
       </div>
+    </div>
 
+    <p style="font-size:0.9rem;font-weight:600;color:#5f6368;margin:1rem 0 0.8rem;">Cash et risque</p>
+    <div class="kpi-grid">
       <div class="kpi-card warning">
         <div class="label">Taux de charges</div>
         <div class="value"><?= number_format((float)($annual['expense_rate_pct'] ?? 0), 1, ',', ' ') ?> %</div>
         <div class="sub">Charges / CA</div>
       </div>
-
       <div class="kpi-card">
         <div class="label">Taux de factures payées</div>
         <div class="value"><?= number_format((float)($annual['paid_rate_pct'] ?? 0), 1, ',', ' ') ?> %</div>
         <div class="sub"><?= (int)($kpis['invoice_counts']['paid'] ?? 0) ?> payées / <?= (int)($kpis['invoice_counts']['total'] ?? 0) ?> total</div>
       </div>
-
       <div class="kpi-card">
         <div class="label">Conversion encaissement</div>
-        <div class="value"><?= number_format((float)($annual['collection_rate_amount_pct'] ?? 0), 1, ',', ' ') ?> %</div>
+        <div class="value" style="color:<?= $statusColor[$collectionStatus] ?? 'var(--warning)' ?>;"><?= number_format((float)($annual['collection_rate_amount_pct'] ?? 0), 1, ',', ' ') ?> %</div>
         <div class="sub">Encaissé / (encaissé + impayé)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Concentration Top 3</div>
+        <div class="value" style="color:<?= $statusColor[$concentrationStatus] ?? 'var(--warning)' ?>;"><?= number_format((float)($annual['top3_share_pct'] ?? 0), 1, ',', ' ') ?> %</div>
+        <div class="sub">Part CA des 3 plus gros clients</div>
       </div>
     </div>
 
@@ -143,7 +169,7 @@
           <tr>
             <td>Volatilité du CA</td>
             <td style="font-weight:600;"><?= number_format((float)($annual['volatility_pct'] ?? 0), 1, ',', ' ') ?> %</td>
-            <td><?= ((float)($annual['volatility_pct'] ?? 0) <= 15) ? 'Stable' : ((((float)($annual['volatility_pct'] ?? 0) <= 30) ? 'Modérée' : 'Élevée')) ?></td>
+            <td style="color:<?= $statusColor[$volatilityStatus] ?? 'var(--warning)' ?>;"><?= ((float)($annual['volatility_pct'] ?? 0) <= 15) ? 'Stable' : ((((float)($annual['volatility_pct'] ?? 0) <= 30) ? 'Modérée' : 'Élevée')) ?></td>
           </tr>
           <tr>
             <td>Concentration client top 1</td>
@@ -170,6 +196,20 @@
         </tbody>
       </table>
     </div>
+
+    <?php if (!empty($annual['alerts'])): ?>
+    <div class="card" style="margin-bottom:1.25rem;border-left:4px solid var(--warning);">
+      <p class="card-title">
+        <span class="material-icons" style="vertical-align:middle;margin-right:0.25rem;font-size:1rem;">notification_important</span>
+        Points d'attention prioritaires
+      </p>
+      <ul style="margin:0;padding-left:1.25rem;color:#444;display:flex;flex-direction:column;gap:0.5rem;">
+        <?php foreach ($annual['alerts'] as $alert): ?>
+          <li><?= htmlspecialchars((string)$alert, ENT_QUOTES, 'UTF-8') ?></li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+    <?php endif; ?>
 
     <!-- Charts -->
     <div class="charts-grid">

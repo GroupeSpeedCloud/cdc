@@ -81,6 +81,28 @@ class DashboardController
             $runwayMonths = round($annualRevenue / $monthlyExpenses, 1);
         }
 
+        $marginStatus = $marginPct >= 20 ? 'solide' : ($marginPct >= 5 ? 'fragile' : 'critique');
+        $collectionStatus = $collectionRateAmountPct >= 90 ? 'solide' : ($collectionRateAmountPct >= 75 ? 'fragile' : 'critique');
+        $volatilityStatus = $volatilityPct <= 15 ? 'solide' : ($volatilityPct <= 30 ? 'fragile' : 'critique');
+        $concentrationStatus = $top3SharePct <= 40 ? 'solide' : ($top3SharePct <= 65 ? 'fragile' : 'critique');
+
+        $alerts = [];
+        if ($annualProfit < 0) {
+            $alerts[] = 'Résultat annuel négatif: ajuster les charges ou augmenter le CA.';
+        }
+        if ($collectionRateAmountPct < 80) {
+            $alerts[] = 'Encaissement faible: accélérer les relances sur les impayés.';
+        }
+        if ($overdueOnOpenPct > 50) {
+            $alerts[] = 'Part des retards élevée dans les impayés: risque cash court terme.';
+        }
+        if ($top3SharePct > 65) {
+            $alerts[] = 'Forte dépendance clients (top 3): diversifier le portefeuille.';
+        }
+        if ($volatilityPct > 30) {
+            $alerts[] = 'CA instable: lisser la facturation et sécuriser des revenus récurrents.';
+        }
+
         $kpis['annual_summary'] = [
             'year'              => $year,
             'annual_revenue'    => $annualRevenue,
@@ -99,12 +121,17 @@ class DashboardController
             'avg_monthly_revenue' => $avgMonthlyRevenue,
             'run_rate_annual'  => $runRateAnnual,
             'volatility_pct'   => $volatilityPct,
+            'volatility_status'=> $volatilityStatus,
             'top1_share_pct'   => $top1SharePct,
             'top3_share_pct'   => $top3SharePct,
+            'concentration_status' => $concentrationStatus,
             'runway_months'    => $runwayMonths,
             'unpaid_amount'     => $unpaidAmount,
             'overdue_amount'    => $overdueAmount,
             'overdue_risk_pct'  => $overdueRiskPct,
+            'margin_status'     => $marginStatus,
+            'collection_status' => $collectionStatus,
+            'alerts'            => $alerts,
             'expenses_available'=> $expensesAvailable,
             'expense_categories'=> $expenseCategories,
         ];
