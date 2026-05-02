@@ -21,6 +21,20 @@
     </div>
     <?php endif; ?>
 
+    <?php if (!empty($_GET['error'])): ?>
+    <div class="alert alert-danger" style="margin-bottom:1.5rem;">
+      <span class="material-icons" style="font-size:1.125rem;">error</span>
+      <?= htmlspecialchars($_GET['error'], ENT_QUOTES, 'UTF-8') ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($_GET['warning'])): ?>
+    <div class="alert alert-warning" style="margin-bottom:1.5rem;">
+      <span class="material-icons" style="font-size:1.125rem;">warning</span>
+      <?= htmlspecialchars($_GET['warning'], ENT_QUOTES, 'UTF-8') ?>
+    </div>
+    <?php endif; ?>
+
     <!-- Status cards -->
     <div class="kpi-grid" style="margin-bottom:2rem;">
       <?php

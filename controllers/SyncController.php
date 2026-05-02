@@ -22,9 +22,31 @@ class SyncController
     public function forceSync(): void
     {
         $results = $this->dolibarr->forceSync();
-        $message = 'Synchronisation complète effectuée.';
+        $hasError = false;
+        $hasWarning = false;
+        $summary = [];
 
-        header('Location: ' . APP_URL . '/sync?message=' . urlencode($message));
+        foreach ($results as $entity => $result) {
+            $status = $result['status'] ?? 'error';
+            if ($status === 'error') {
+                $hasError = true;
+            } elseif ($status === 'warning') {
+                $hasWarning = true;
+            }
+
+            $summary[] = sprintf(
+                '%s: %s traités, %s erreurs',
+                $entity,
+                (int)($result['processed'] ?? 0),
+                (int)($result['failed'] ?? 0)
+            );
+        }
+
+        $message = ($hasError ? 'Synchronisation terminée avec erreurs. ' : ($hasWarning ? 'Synchronisation partielle effectuée. ' : 'Synchronisation complète effectuée. '))
+            . implode(' | ', $summary);
+        $queryKey = $hasError ? 'error' : ($hasWarning ? 'warning' : 'message');
+
+        header('Location: ' . APP_URL . '/sync?' . $queryKey . '=' . urlencode($message));
         exit;
     }
 

@@ -8,7 +8,10 @@ class DolibarrService
 
     public function __construct()
     {
-        $this->baseUrl = DOLIBARR_URL . '/api/index.php';
+        $dolibarrUrl = rtrim(DOLIBARR_URL, '/');
+        $this->baseUrl = str_ends_with($dolibarrUrl, '/api/index.php')
+            ? $dolibarrUrl
+            : $dolibarrUrl . '/api/index.php';
         $this->apiKey  = DOLIBARR_API_KEY;
         $this->pdo     = getDB();
     }
@@ -35,6 +38,8 @@ class DolibarrService
         $logId = $this->startLog('tiers');
         $processed = 0;
         $failed    = 0;
+        $status    = 'success';
+        $message   = 'Sync tiers OK';
 
         try {
             $lastSync = $this->getLastSync('tiers');
@@ -48,14 +53,13 @@ class DolibarrService
                 }
 
                 $data = $this->apiGet('/thirdparties', $params);
-                if ($data === null) break;
                 if (empty($data)) break;
 
                 foreach ($data as $item) {
                     try {
                         $this->upsertTiers($item);
                         $processed++;
-                    } catch (Exception $e) {
+                    } catch (Throwable $e) {
                         error_log('syncThirdParties item error: ' . $e->getMessage());
                         $failed++;
                     }
@@ -63,14 +67,19 @@ class DolibarrService
                 $page++;
             } while (count($data) === $limit);
 
+            if ($failed > 0) {
+                $status = 'warning';
+                $message = "Sync tiers terminée avec $failed erreur(s)";
+            }
             $this->setLastSync('tiers');
-            $this->endLog($logId, 'success', "Sync tiers OK", $processed, $failed);
-        } catch (Exception $e) {
-            $this->endLog($logId, 'error', $e->getMessage(), $processed, $failed);
+        } catch (Throwable $e) {
+            $status = 'error';
+            $message = $e->getMessage();
             error_log('syncThirdParties error: ' . $e->getMessage());
         }
 
-        return ['processed' => $processed, 'failed' => $failed];
+        $this->endLog($logId, $status, $message, $processed, $failed);
+        return ['status' => $status, 'message' => $message, 'processed' => $processed, 'failed' => $failed];
     }
 
     public function syncProducts(): array
@@ -78,6 +87,8 @@ class DolibarrService
         $logId = $this->startLog('products');
         $processed = 0;
         $failed    = 0;
+        $status    = 'success';
+        $message   = 'Sync products OK';
 
         try {
             $page  = 0;
@@ -85,25 +96,32 @@ class DolibarrService
 
             do {
                 $data = $this->apiGet('/products', ['limit' => $limit, 'page' => $page]);
-                if ($data === null || empty($data)) break;
+                if (empty($data)) break;
 
                 foreach ($data as $item) {
                     try {
                         $this->upsertProduct($item);
                         $processed++;
-                    } catch (Exception $e) {
+                    } catch (Throwable $e) {
+                        error_log('syncProducts item error: ' . $e->getMessage());
                         $failed++;
                     }
                 }
                 $page++;
             } while (count($data) === $limit);
 
-            $this->endLog($logId, 'success', "Sync products OK", $processed, $failed);
-        } catch (Exception $e) {
-            $this->endLog($logId, 'error', $e->getMessage(), $processed, $failed);
+            if ($failed > 0) {
+                $status = 'warning';
+                $message = "Sync products terminée avec $failed erreur(s)";
+            }
+        } catch (Throwable $e) {
+            $status = 'error';
+            $message = $e->getMessage();
+            error_log('syncProducts error: ' . $e->getMessage());
         }
 
-        return ['processed' => $processed, 'failed' => $failed];
+        $this->endLog($logId, $status, $message, $processed, $failed);
+        return ['status' => $status, 'message' => $message, 'processed' => $processed, 'failed' => $failed];
     }
 
     public function syncInvoices(): array
@@ -111,6 +129,8 @@ class DolibarrService
         $logId = $this->startLog('invoices');
         $processed = 0;
         $failed    = 0;
+        $status    = 'success';
+        $message   = 'Sync invoices OK';
 
         try {
             $lastSync = $this->getLastSync('invoices');
@@ -124,13 +144,13 @@ class DolibarrService
                 }
 
                 $data = $this->apiGet('/invoices', $params);
-                if ($data === null || empty($data)) break;
+                if (empty($data)) break;
 
                 foreach ($data as $item) {
                     try {
                         $this->upsertInvoice($item);
                         $processed++;
-                    } catch (Exception $e) {
+                    } catch (Throwable $e) {
                         error_log('syncInvoices item error: ' . $e->getMessage());
                         $failed++;
                     }
@@ -138,13 +158,19 @@ class DolibarrService
                 $page++;
             } while (count($data) === $limit);
 
+            if ($failed > 0) {
+                $status = 'warning';
+                $message = "Sync invoices terminée avec $failed erreur(s)";
+            }
             $this->setLastSync('invoices');
-            $this->endLog($logId, 'success', "Sync invoices OK", $processed, $failed);
-        } catch (Exception $e) {
-            $this->endLog($logId, 'error', $e->getMessage(), $processed, $failed);
+        } catch (Throwable $e) {
+            $status = 'error';
+            $message = $e->getMessage();
+            error_log('syncInvoices error: ' . $e->getMessage());
         }
 
-        return ['processed' => $processed, 'failed' => $failed];
+        $this->endLog($logId, $status, $message, $processed, $failed);
+        return ['status' => $status, 'message' => $message, 'processed' => $processed, 'failed' => $failed];
     }
 
     public function syncPayments(): array
@@ -152,6 +178,8 @@ class DolibarrService
         $logId = $this->startLog('payments');
         $processed = 0;
         $failed    = 0;
+        $status    = 'success';
+        $message   = 'Sync payments OK';
 
         try {
             $page  = 0;
@@ -159,29 +187,36 @@ class DolibarrService
 
             do {
                 $data = $this->apiGet('/invoices/payments', ['limit' => $limit, 'page' => $page]);
-                if ($data === null || empty($data)) break;
+                if (empty($data)) break;
 
                 foreach ($data as $item) {
                     try {
                         $this->upsertPayment($item);
                         $processed++;
-                    } catch (Exception $e) {
+                    } catch (Throwable $e) {
+                        error_log('syncPayments item error: ' . $e->getMessage());
                         $failed++;
                     }
                 }
                 $page++;
             } while (count($data) === $limit);
 
+            if ($failed > 0) {
+                $status = 'warning';
+                $message = "Sync payments terminée avec $failed erreur(s)";
+            }
             $this->setLastSync('payments');
-            $this->endLog($logId, 'success', "Sync payments OK", $processed, $failed);
-        } catch (Exception $e) {
-            $this->endLog($logId, 'error', $e->getMessage(), $processed, $failed);
+        } catch (Throwable $e) {
+            $status = 'error';
+            $message = $e->getMessage();
+            error_log('syncPayments error: ' . $e->getMessage());
         }
 
-        return ['processed' => $processed, 'failed' => $failed];
+        $this->endLog($logId, $status, $message, $processed, $failed);
+        return ['status' => $status, 'message' => $message, 'processed' => $processed, 'failed' => $failed];
     }
 
-    private function apiGet(string $endpoint, array $params = []): ?array
+    private function apiGet(string $endpoint, array $params = []): array
     {
         $url = $this->baseUrl . $endpoint;
         if ($params) {
@@ -208,7 +243,23 @@ class DolibarrService
 
             if ($response !== false && $httpCode === 200) {
                 $decoded = json_decode($response, true);
-                return is_array($decoded) ? $decoded : [];
+                if (!is_array($decoded)) {
+                    throw new RuntimeException("Réponse Dolibarr invalide sur $endpoint");
+                }
+
+                if (isset($decoded['error']) || isset($decoded['errors'])) {
+                    throw new RuntimeException('Erreur Dolibarr sur ' . $endpoint . ' : ' . $this->summarizeApiResponse($decoded));
+                }
+
+                if ($this->isList($decoded)) {
+                    return $decoded;
+                }
+
+                if ($this->isAssociativeList($decoded)) {
+                    return array_values($decoded);
+                }
+
+                return [];
             }
 
             $attempt++;
@@ -217,8 +268,40 @@ class DolibarrService
             }
         }
 
-        error_log("Dolibarr API failed after {$this->maxRetries} attempts: $url");
-        return null;
+        $details = $response === false ? 'aucune réponse' : $this->summarizeApiResponse(json_decode($response, true) ?: $response);
+        throw new RuntimeException("Dolibarr API $endpoint indisponible ou refusée (HTTP $httpCode, $details)");
+    }
+
+    private function summarizeApiResponse(mixed $data): string
+    {
+        if (is_array($data)) {
+            $message = $data['message'] ?? $data['errors'] ?? $data;
+            if (isset($data['error'])) {
+                $message = is_array($data['error'])
+                    ? ($data['error']['message'] ?? $data['error'])
+                    : $data['error'];
+            }
+
+            return substr(json_encode($message, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: 'réponse JSON', 0, 300);
+        }
+
+        return substr((string)$data, 0, 300);
+    }
+
+    private function isList(array $data): bool
+    {
+        return $data === [] || array_keys($data) === range(0, count($data) - 1);
+    }
+
+    private function isAssociativeList(array $data): bool
+    {
+        foreach ($data as $value) {
+            if (!is_array($value)) {
+                return false;
+            }
+        }
+
+        return $data !== [];
     }
 
     private function upsertTiers(array $data): void

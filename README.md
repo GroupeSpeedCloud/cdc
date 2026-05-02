@@ -104,6 +104,8 @@ Ils sont ignorés par `.gitignore`. Sur un serveur, créez ou laissez l'applicat
 3. Générer une clé API pour l'utilisateur administrateur
 4. Renseigner `DOLIBARR_URL` et `DOLIBARR_API_KEY` dans `.env`
 
+`DOLIBARR_URL` peut être l'URL racine de Dolibarr (`https://dolibarr.example.com`) ou l'URL API complète (`https://dolibarr.example.com/api/index.php`). L'application normalise automatiquement le chemin API.
+
 La synchronisation récupère :
 - Tiers (clients/fournisseurs)
 - Produits et services
