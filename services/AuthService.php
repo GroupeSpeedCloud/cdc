@@ -154,14 +154,20 @@ class AuthService
             $name     = $info['name'] ?? $email;
             $avatar   = $info['picture'] ?? '';
 
-            $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
+            $stmt = $pdo->prepare('SELECT id, google_id FROM users WHERE email = ?');
             $stmt->execute([$email]);
             $existing = $stmt->fetch();
 
             if ($existing) {
-                $pdo->prepare(
-                    'UPDATE users SET google_id=?, name=?, avatar=?, last_login=NOW() WHERE email=?'
-                )->execute([$googleId, $name, $avatar, $email]);
+                if (empty($existing['google_id'])) {
+                    $pdo->prepare(
+                        'UPDATE users SET google_id=?, name=?, avatar=?, last_login=NOW() WHERE email=?'
+                    )->execute([$googleId, $name, $avatar, $email]);
+                } else {
+                    $pdo->prepare(
+                        'UPDATE users SET name=?, avatar=?, last_login=NOW() WHERE email=?'
+                    )->execute([$name, $avatar, $email]);
+                }
                 return ['id' => $existing['id']];
             } else {
                 $pdo->prepare(
