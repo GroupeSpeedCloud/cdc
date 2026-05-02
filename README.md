@@ -58,6 +58,16 @@ php database/seed.php
 
 Le fichier `.htaccess` est déjà configuré. Assurez-vous que `mod_rewrite` est activé.
 
+## Fichiers locaux non versionnés
+
+Les dossiers et fichiers suivants ne doivent pas être commités :
+
+- `.env` : configuration et secrets propres à chaque environnement
+- `vendor/` : dépendances installées localement si Composer est utilisé
+- `storage/` : logs, cache, sessions et fichiers générés par l'application
+
+Ils sont ignorés par `.gitignore`. Sur un serveur, créez ou laissez l'application créer `storage/` avec les permissions d'écriture nécessaires.
+
 ## Configuration `.env`
 
 | Variable | Description |
