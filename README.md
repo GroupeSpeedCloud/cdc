@@ -114,7 +114,7 @@ La synchronisation récupère :
 - Factures et leurs lignes
 - Paiements
 
-La synchronisation relit toutes les pages disponibles côté Dolibarr et met à jour la base locale par upsert. Les lignes de factures sont remplacées à chaque resynchronisation de la facture afin d'éviter les doublons dans les indicateurs. Les services sont récupérés via l'endpoint Dolibarr `/products` avec `type=1`. Si cet endpoint est refusé par Dolibarr, l'application crée quand même les services nécessaires à partir des lignes de factures lorsque Dolibarr fournit `fk_product`.
+La synchronisation relit toutes les pages disponibles côté Dolibarr et met à jour la base locale par upsert. Les lignes de factures sont remplacées à chaque resynchronisation de la facture afin d'éviter les doublons dans les indicateurs. Les services sont récupérés via l'endpoint Dolibarr `/products` avec `type=1`. Si cet endpoint est refusé par Dolibarr, la synchronisation continue et l'application crée les services nécessaires à partir des lignes de factures lorsque Dolibarr fournit `fk_product`.
 
 ## Tâches Cron
 

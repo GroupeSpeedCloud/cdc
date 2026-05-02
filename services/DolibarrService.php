@@ -113,7 +113,9 @@ class DolibarrService
             }
         } catch (Throwable $e) {
             $status = $this->isOptionalAccessError($e) ? 'warning' : 'error';
-            $message = $e->getMessage();
+            $message = $this->isOptionalAccessError($e)
+                ? 'Endpoint services refusé par Dolibarr; les services seront construits depuis les lignes de factures.'
+                : $e->getMessage();
             error_log('syncServices error: ' . $e->getMessage());
         }
 
