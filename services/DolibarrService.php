@@ -228,7 +228,7 @@ class DolibarrService
             $context = stream_context_create([
                 'http' => [
                     'method'  => 'GET',
-                    'header'  => "DOLAPIKEY: {$this->apiKey}\r\nAccept: application/json\r\n",
+                    'header'  => "User-Agent: FlowSync/1.0 (+Dolibarr API)\r\nDOLAPIKEY: {$this->apiKey}\r\nAccept: application/json\r\n",
                     'timeout' => 30,
                     'ignore_errors' => true,
                 ],
@@ -277,7 +277,7 @@ class DolibarrService
     {
         return match ($httpCode) {
             401 => 'Vérifiez DOLIBARR_API_KEY.',
-            403 => 'Vérifiez que l’API REST est activée dans Dolibarr, que la clé API appartient à un utilisateur autorisé, et que cet utilisateur a les droits de lecture sur les modules à synchroniser.',
+            403 => 'Vérifiez que l’API REST est activée dans Dolibarr, que la clé API appartient à un utilisateur autorisé, et que cPanel/o2switch ne bloque pas la requête.',
             404 => 'Vérifiez DOLIBARR_URL : l’URL doit pointer vers la racine Dolibarr ou vers /api/index.php.',
             default => 'Vérifiez la configuration Dolibarr et les logs serveur.',
         };

@@ -106,6 +106,8 @@ Ils sont ignorés par `.gitignore`. Sur un serveur, créez ou laissez l'applicat
 
 `DOLIBARR_URL` peut être l'URL racine de Dolibarr (`https://dolibarr.example.com`) ou l'URL API complète (`https://dolibarr.example.com/api/index.php`). L'application normalise automatiquement le chemin API.
 
+Les appels API envoient un `User-Agent` explicite (`FlowSync/1.0`) afin d'éviter les blocages cPanel/o2switch de type `Security_Rule = "emptyua"`.
+
 La synchronisation récupère :
 - Tiers (clients/fournisseurs)
 - Produits et services
