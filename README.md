@@ -69,6 +69,7 @@ Le fichier `.htaccess` est déjà configuré. Assurez-vous que `mod_rewrite` est
 | `DB_PASS` | Mot de passe MySQL |
 | `GOOGLE_CLIENT_ID` | Client ID OAuth Google |
 | `GOOGLE_CLIENT_SECRET` | Client Secret OAuth Google |
+| `ALLOWED_DOMAIN` | Domaine Google Workspace autorisé |
 | `AUTHORIZED_USERS` | Emails autorisés séparés par virgule |
 | `DOLIBARR_URL` | URL de l'instance Dolibarr |
 | `DOLIBARR_API_KEY` | Clé API Dolibarr (REST) |

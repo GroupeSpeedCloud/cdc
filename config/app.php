@@ -12,6 +12,12 @@ if (file_exists($envFile)) {
             [$key, $value] = explode('=', $line, 2);
             $key   = trim($key);
             $value = trim($value);
+            if (
+                strlen($value) >= 2
+                && (($value[0] === '"' && substr($value, -1) === '"') || ($value[0] === "'" && substr($value, -1) === "'"))
+            ) {
+                $value = substr($value, 1, -1);
+            }
             if (!array_key_exists($key, $_ENV)) {
                 putenv("$key=$value");
                 $_ENV[$key]    = $value;
@@ -41,6 +47,7 @@ define('DB_USER',              getenv('DB_USER'));
 define('DB_PASS',              getenv('DB_PASS'));
 define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID'));
 define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET'));
+define('AUTHORIZED_USERS',     getenv('AUTHORIZED_USERS') ?: '');
 define('DOLIBARR_URL',         rtrim(getenv('DOLIBARR_URL'), '/'));
 define('DOLIBARR_API_KEY',     getenv('DOLIBARR_API_KEY'));
 

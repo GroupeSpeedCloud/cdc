@@ -21,60 +21,65 @@ class AuthService
 
     public function handleCallback(string $code, string $state): array
     {
-        // Validate state
-        if (!isset($_SESSION['oauth_state']) || !hash_equals($_SESSION['oauth_state'], $state)) {
-            return ['success' => false, 'error' => 'Invalid OAuth state.'];
-        }
-        unset($_SESSION['oauth_state']);
+        try {
+            // Validate state
+            if (!isset($_SESSION['oauth_state']) || !hash_equals($_SESSION['oauth_state'], $state)) {
+                return ['success' => false, 'error' => 'Session de connexion expirée. Veuillez réessayer.'];
+            }
+            unset($_SESSION['oauth_state']);
 
-        // Exchange code for token
-        $tokenData = $this->fetchToken($code);
-        if (!isset($tokenData['access_token'])) {
-            return ['success' => false, 'error' => 'Failed to obtain access token.'];
-        }
+            // Exchange code for token
+            $tokenData = $this->fetchToken($code);
+            if (empty($tokenData['access_token'])) {
+                return ['success' => false, 'error' => 'Impossible de valider la connexion Google.'];
+            }
 
-        // Get user info
-        $userInfo = $this->fetchUserInfo($tokenData['access_token']);
-        if (empty($userInfo['email'])) {
-            return ['success' => false, 'error' => 'Failed to obtain user info.'];
-        }
+            // Get user info
+            $userInfo = $this->fetchUserInfo($tokenData['access_token']);
+            if (empty($userInfo['email'])) {
+                return ['success' => false, 'error' => 'Impossible de récupérer votre profil Google.'];
+            }
 
-        // Validate email_verified
-        if (empty($userInfo['email_verified'])) {
-            return ['success' => false, 'error' => 'Accès réservé à la direction'];
-        }
+            // Validate email_verified
+            if (empty($userInfo['email_verified'])) {
+                return ['success' => false, 'error' => 'Accès réservé à la direction'];
+            }
 
-        // Validate domain
-        $email = strtolower(trim($userInfo['email']));
-        $domain = substr($email, strpos($email, '@') + 1);
-        if ($domain !== ALLOWED_DOMAIN) {
-            return ['success' => false, 'error' => 'Accès réservé à la direction'];
-        }
+            // Validate domain
+            $email = strtolower(trim($userInfo['email']));
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return ['success' => false, 'error' => 'Adresse email Google invalide.'];
+            }
 
-        // Validate against DB whitelist
-        $pdo  = getDB();
-        $stmt = $pdo->prepare('SELECT 1 FROM users WHERE LOWER(email) = ?');
-        $stmt->execute([$email]);
-        if (!$stmt->fetch()) {
-            return ['success' => false, 'error' => 'Accès réservé à la direction'];
-        }
+            $domain = substr(strrchr($email, '@') ?: '', 1);
+            if ($domain !== ALLOWED_DOMAIN) {
+                return ['success' => false, 'error' => 'Accès réservé à la direction'];
+            }
 
-        // Upsert user in DB
-        $user = $this->upsertUser($userInfo);
-        if (empty($user['id'])) {
+            if (!$this->isAuthorizedEmail($email)) {
+                return ['success' => false, 'error' => 'Accès réservé à la direction'];
+            }
+
+            // Upsert user in DB
+            $user = $this->upsertUser($userInfo);
+            if (empty($user['id'])) {
+                return ['success' => false, 'error' => 'Erreur lors de la connexion. Veuillez réessayer.'];
+            }
+
+            // Set session
+            session_regenerate_id(true);
+            $_SESSION['user'] = [
+                'id'     => $user['id'],
+                'email'  => $email,
+                'name'   => $userInfo['name'] ?? $email,
+                'avatar' => $userInfo['picture'] ?? '',
+            ];
+
+            return ['success' => true, 'user' => $_SESSION['user']];
+        } catch (Throwable $e) {
+            error_log('AuthService::handleCallback error: ' . $e->getMessage());
             return ['success' => false, 'error' => 'Erreur lors de la connexion. Veuillez réessayer.'];
         }
-
-        // Set session
-        session_regenerate_id(true);
-        $_SESSION['user'] = [
-            'id'     => $user['id'],
-            'email'  => $email,
-            'name'   => $userInfo['name'] ?? $email,
-            'avatar' => $userInfo['picture'] ?? '',
-        ];
-
-        return ['success' => true, 'user' => $_SESSION['user']];
     }
 
     public function isLoggedIn(): bool
@@ -117,14 +122,20 @@ class AuthService
                 'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
                 'content' => $postData,
                 'timeout' => 10,
+                'ignore_errors' => true,
             ],
         ]);
 
         $response = @file_get_contents(GOOGLE_TOKEN_URL, false, $context);
         if ($response === false) {
+            error_log('AuthService::fetchToken failed to contact Google token endpoint');
             return [];
         }
-        return json_decode($response, true) ?? [];
+        $data = json_decode($response, true) ?? [];
+        if (empty($data['access_token'])) {
+            error_log('AuthService::fetchToken response error: ' . json_encode($data));
+        }
+        return $data;
     }
 
     private function fetchUserInfo(string $accessToken): array
@@ -134,14 +145,38 @@ class AuthService
                 'method'  => 'GET',
                 'header'  => "Authorization: Bearer $accessToken\r\n",
                 'timeout' => 10,
+                'ignore_errors' => true,
             ],
         ]);
 
         $response = @file_get_contents(GOOGLE_USERINFO_URL, false, $context);
         if ($response === false) {
+            error_log('AuthService::fetchUserInfo failed to contact Google userinfo endpoint');
             return [];
         }
-        return json_decode($response, true) ?? [];
+        $data = json_decode($response, true) ?? [];
+        if (empty($data['email'])) {
+            error_log('AuthService::fetchUserInfo response error: ' . json_encode($data));
+        }
+        return $data;
+    }
+
+    private function isAuthorizedEmail(string $email): bool
+    {
+        $authorizedUsers = array_filter(array_map(
+            static fn(string $value): string => strtolower(trim($value)),
+            explode(',', AUTHORIZED_USERS)
+        ));
+
+        if ($authorizedUsers) {
+            return in_array($email, $authorizedUsers, true);
+        }
+
+        $pdo  = getDB();
+        $stmt = $pdo->prepare('SELECT 1 FROM users WHERE LOWER(email) = ?');
+        $stmt->execute([$email]);
+
+        return (bool) $stmt->fetch();
     }
 
     private function upsertUser(array $info): array
