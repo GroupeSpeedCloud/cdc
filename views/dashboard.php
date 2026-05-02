@@ -33,6 +33,8 @@
       $collectionStatus = $annual['collection_status'] ?? 'fragile';
       $volatilityStatus = $annual['volatility_status'] ?? 'fragile';
       $concentrationStatus = $annual['concentration_status'] ?? 'fragile';
+      $cashCoverageStatus = $annual['cash_coverage_status'] ?? 'fragile';
+      $delayRiskStatus = $annual['delay_risk_status'] ?? 'fragile';
     ?>
 
     <div class="card" style="margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;justify-content:space-between;">
@@ -107,6 +109,23 @@
         <div class="label">Concentration Top 3</div>
         <div class="value" style="color:<?= $statusColor[$concentrationStatus] ?? 'var(--warning)' ?>;"><?= number_format((float)($annual['top3_share_pct'] ?? 0), 1, ',', ' ') ?> %</div>
         <div class="sub">Part CA des 3 plus gros clients</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Couverture charges (mois)</div>
+        <div class="value" style="color:<?= $statusColor[$cashCoverageStatus] ?? 'var(--warning)' ?>;">
+          <?= $annual['cash_coverage_ratio'] !== null ? number_format((float)$annual['cash_coverage_ratio'], 2, ',', ' ') . 'x' : 'n/a' ?>
+        </div>
+        <div class="sub">CA mensuel / charges mensuelles</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Retard moyen</div>
+        <div class="value" style="color:<?= $statusColor[$delayRiskStatus] ?? 'var(--warning)' ?>;"><?= number_format((float)($annual['avg_overdue_days'] ?? 0), 1, ',', ' ') ?> j</div>
+        <div class="sub">Sur factures en retard</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Clients actifs ce mois</div>
+        <div class="value"><?= (int)($annual['active_clients_month'] ?? 0) ?></div>
+        <div class="sub">Clients avec paiement sur le mois</div>
       </div>
     </div>
 
@@ -185,6 +204,11 @@
             <td>Part du retard dans les impayés</td>
             <td style="font-weight:600;"><?= number_format((float)($annual['overdue_on_open_pct'] ?? 0), 1, ',', ' ') ?> %</td>
             <td>Priorité de recouvrement sur les dossiers en retard</td>
+          </tr>
+          <tr>
+            <td>Échéances à 15 jours</td>
+            <td style="font-weight:600;"><?= number_format((float)($annual['due_soon_amount'] ?? 0), 0, ',', ' ') ?> €</td>
+            <td>Montant ouvert à sécuriser à court terme</td>
           </tr>
           <?php if ($annual['runway_months'] !== null): ?>
           <tr>

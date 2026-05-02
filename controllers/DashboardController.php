@@ -81,6 +81,50 @@ class DashboardController
             $runwayMonths = round($annualRevenue / $monthlyExpenses, 1);
         }
 
+        $cashCoverageRatio = $monthlyExpenses > 0 ? round($monthlyRevenue / $monthlyExpenses, 2) : null;
+        $cashCoverageStatus = $cashCoverageRatio === null
+            ? 'solide'
+            : ($cashCoverageRatio >= 1.2 ? 'solide' : ($cashCoverageRatio >= 1.0 ? 'fragile' : 'critique'));
+
+        $activeClientsMonth = 0;
+        $avgOverdueDays = 0.0;
+        $dueSoonAmount = 0.0;
+        try {
+            $pdo = getDB();
+
+            $stmt = $pdo->query(
+                'SELECT COUNT(DISTINCT tiers_id)
+                 FROM payments
+                 WHERE tiers_id IS NOT NULL
+                   AND YEAR(date_payment) = YEAR(CURDATE())
+                   AND MONTH(date_payment) = MONTH(CURDATE())'
+            );
+            $activeClientsMonth = (int)$stmt->fetchColumn();
+
+            $stmt = $pdo->query(
+                'SELECT COALESCE(AVG(DATEDIFF(CURDATE(), date_due)), 0)
+                 FROM invoices
+                 WHERE is_overdue = 1
+                   AND status IN (0,1)
+                   AND date_due IS NOT NULL'
+            );
+            $avgOverdueDays = (float)$stmt->fetchColumn();
+
+            $stmt = $pdo->query(
+                'SELECT COALESCE(SUM(total_ttc), 0)
+                 FROM invoices
+                 WHERE status IN (0,1)
+                   AND date_due IS NOT NULL
+                   AND date_due >= CURDATE()
+                   AND date_due <= DATE_ADD(CURDATE(), INTERVAL 15 DAY)'
+            );
+            $dueSoonAmount = (float)$stmt->fetchColumn();
+        } catch (Throwable $e) {
+            error_log('Dashboard operational KPI error: ' . $e->getMessage());
+        }
+
+        $delayRiskStatus = $avgOverdueDays <= 10 ? 'solide' : ($avgOverdueDays <= 30 ? 'fragile' : 'critique');
+
         $marginStatus = $marginPct >= 20 ? 'solide' : ($marginPct >= 5 ? 'fragile' : 'critique');
         $collectionStatus = $collectionRateAmountPct >= 90 ? 'solide' : ($collectionRateAmountPct >= 75 ? 'fragile' : 'critique');
         $volatilityStatus = $volatilityPct <= 15 ? 'solide' : ($volatilityPct <= 30 ? 'fragile' : 'critique');
@@ -101,6 +145,12 @@ class DashboardController
         }
         if ($volatilityPct > 30) {
             $alerts[] = 'CA instable: lisser la facturation et sécuriser des revenus récurrents.';
+        }
+        if ($cashCoverageRatio !== null && $cashCoverageRatio < 1) {
+            $alerts[] = 'Couverture des charges inférieure à 1: le mois en cours ne couvre pas les coûts.';
+        }
+        if ($avgOverdueDays > 30) {
+            $alerts[] = 'Retard moyen de paiement élevé: action de recouvrement ciblée recommandée.';
         }
 
         $kpis['annual_summary'] = [
@@ -126,6 +176,12 @@ class DashboardController
             'top3_share_pct'   => $top3SharePct,
             'concentration_status' => $concentrationStatus,
             'runway_months'    => $runwayMonths,
+            'cash_coverage_ratio' => $cashCoverageRatio,
+            'cash_coverage_status' => $cashCoverageStatus,
+            'active_clients_month' => $activeClientsMonth,
+            'avg_overdue_days' => round($avgOverdueDays, 1),
+            'delay_risk_status' => $delayRiskStatus,
+            'due_soon_amount' => $dueSoonAmount,
             'unpaid_amount'     => $unpaidAmount,
             'overdue_amount'    => $overdueAmount,
             'overdue_risk_pct'  => $overdueRiskPct,

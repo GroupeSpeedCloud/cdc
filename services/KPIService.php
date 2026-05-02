@@ -29,11 +29,10 @@ class KPIService
         $month = $month ?? (int)date('m');
 
         $stmt = $this->pdo->prepare(
-            'SELECT COALESCE(SUM(total_ht), 0) AS revenue
-             FROM invoices
-             WHERE status = 2
-               AND YEAR(date_invoice) = ?
-               AND MONTH(date_invoice) = ?'
+            'SELECT COALESCE(SUM(amount), 0) AS revenue
+             FROM payments
+             WHERE YEAR(date_payment) = ?
+               AND MONTH(date_payment) = ?'
         );
         $stmt->execute([$year, $month]);
         return (float)$stmt->fetchColumn();
@@ -43,8 +42,9 @@ class KPIService
     {
         $year = $year ?? (int)date('Y');
         $stmt = $this->pdo->prepare(
-            'SELECT COALESCE(SUM(total_ht), 0) AS revenue
-             FROM invoices WHERE status = 2 AND YEAR(date_invoice) = ?'
+            'SELECT COALESCE(SUM(amount), 0) AS revenue
+             FROM payments
+             WHERE YEAR(date_payment) = ?'
         );
         $stmt->execute([$year]);
         return (float)$stmt->fetchColumn();
