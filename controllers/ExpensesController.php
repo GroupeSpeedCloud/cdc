@@ -56,7 +56,7 @@ class ExpensesController
             $recurrence = 'monthly';
         }
 
-        $this->model->create($label, $amount, $category ?: 'Autre', $recurrence, $expenseDate ?: null, $note);
+        $this->model->createExpense($label, $amount, $category ?: 'Autre', $recurrence, $expenseDate ?: null, $note);
         header('Location: ' . APP_URL . '/expenses?message=' . urlencode('Dépense ajoutée.'));
         exit;
     }

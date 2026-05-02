@@ -12,28 +12,28 @@ class Expense extends BaseModel
         )->fetchAll();
     }
 
-    public function create(string $label, float $amount, string $category, string $recurrence, ?string $expenseDate, ?string $note): int
+    public function createExpense(string $label, float $amount, string $category, string $recurrence, ?string $expenseDate, ?string $note): int
     {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO expenses (label, amount, category, recurrence, expense_date, note)
-             VALUES (?, ?, ?, ?, ?, ?)'
-        );
-        $stmt->execute([$label, $amount, $category, $recurrence, $expenseDate ?: null, $note ?: null]);
-        return (int)$this->pdo->lastInsertId();
+        return $this->insert([
+            'label'        => $label,
+            'amount'       => $amount,
+            'category'     => $category,
+            'recurrence'   => $recurrence,
+            'expense_date' => $expenseDate ?: null,
+            'note'         => $note ?: null,
+        ]);
     }
 
     public function updateExpense(int $id, string $label, float $amount, string $category, string $recurrence, ?string $expenseDate, ?string $note): void
     {
-        $stmt = $this->pdo->prepare(
-            'UPDATE expenses SET label=?, amount=?, category=?, recurrence=?, expense_date=?, note=?, updated_at=NOW()
-             WHERE id=?'
-        );
-        $stmt->execute([$label, $amount, $category, $recurrence, $expenseDate ?: null, $note ?: null, $id]);
-    }
-
-    public function delete(int $id): void
-    {
-        $this->pdo->prepare('DELETE FROM expenses WHERE id=?')->execute([$id]);
+        $this->update($id, [
+            'label'        => $label,
+            'amount'       => $amount,
+            'category'     => $category,
+            'recurrence'   => $recurrence,
+            'expense_date' => $expenseDate ?: null,
+            'note'         => $note ?: null,
+        ]);
     }
 
     /**
