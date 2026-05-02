@@ -20,9 +20,10 @@ class DolibarrService
     {
         $results = [];
         $results['tiers']    = $this->syncThirdParties();
-        $results['products'] = $this->syncProducts();
+        $results['services'] = $this->syncServices();
         $results['invoices'] = $this->syncInvoices();
         $results['payments'] = $this->syncPayments();
+        $results['kpis']     = $this->recalculateKpis();
         return $results;
     }
 
@@ -42,15 +43,11 @@ class DolibarrService
         $message   = 'Sync tiers OK';
 
         try {
-            $lastSync = $this->getLastSync('tiers');
             $page     = 0;
             $limit    = 100;
 
             do {
                 $params = ['limit' => $limit, 'page' => $page, 'sortfield' => 't.rowid', 'sortorder' => 'ASC'];
-                if ($lastSync) {
-                    $params['sqlfilters'] = "(t.tms:>:'" . $lastSync . "')";
-                }
 
                 $data = $this->apiGet('/thirdparties', $params);
                 if (empty($data)) break;
@@ -73,7 +70,7 @@ class DolibarrService
             }
             $this->setLastSync('tiers');
         } catch (Throwable $e) {
-            $status = 'error';
+            $status = $this->isOptionalAccessError($e) ? 'warning' : 'error';
             $message = $e->getMessage();
             error_log('syncThirdParties error: ' . $e->getMessage());
         }
@@ -82,28 +79,28 @@ class DolibarrService
         return ['status' => $status, 'message' => $message, 'processed' => $processed, 'failed' => $failed];
     }
 
-    public function syncProducts(): array
+    public function syncServices(): array
     {
-        $logId = $this->startLog('products');
+        $logId = $this->startLog('services');
         $processed = 0;
         $failed    = 0;
         $status    = 'success';
-        $message   = 'Sync products OK';
+        $message   = 'Sync services OK';
 
         try {
             $page  = 0;
             $limit = 100;
 
             do {
-                $data = $this->apiGet('/products', ['limit' => $limit, 'page' => $page]);
+                $data = $this->apiGet('/products', ['limit' => $limit, 'page' => $page, 'type' => 1]);
                 if (empty($data)) break;
 
                 foreach ($data as $item) {
                     try {
-                        $this->upsertProduct($item);
+                        $this->upsertService($item);
                         $processed++;
                     } catch (Throwable $e) {
-                        error_log('syncProducts item error: ' . $e->getMessage());
+                        error_log('syncServices item error: ' . $e->getMessage());
                         $failed++;
                     }
                 }
@@ -112,12 +109,12 @@ class DolibarrService
 
             if ($failed > 0) {
                 $status = 'warning';
-                $message = "Sync products terminée avec $failed erreur(s)";
+                $message = "Sync services terminée avec $failed erreur(s)";
             }
         } catch (Throwable $e) {
-            $status = 'error';
+            $status = $this->isOptionalAccessError($e) ? 'warning' : 'error';
             $message = $e->getMessage();
-            error_log('syncProducts error: ' . $e->getMessage());
+            error_log('syncServices error: ' . $e->getMessage());
         }
 
         $this->endLog($logId, $status, $message, $processed, $failed);
@@ -133,15 +130,17 @@ class DolibarrService
         $message   = 'Sync invoices OK';
 
         try {
-            $lastSync = $this->getLastSync('invoices');
             $page     = 0;
             $limit    = 100;
 
             do {
-                $params = ['limit' => $limit, 'page' => $page, 'sortfield' => 'f.rowid', 'sortorder' => 'ASC'];
-                if ($lastSync) {
-                    $params['sqlfilters'] = "(f.tms:>:'" . $lastSync . "')";
-                }
+                $params = [
+                    'limit' => $limit,
+                    'page' => $page,
+                    'sortfield' => 't.rowid',
+                    'sortorder' => 'ASC',
+                    'loadlinkedobjects' => 1,
+                ];
 
                 $data = $this->apiGet('/invoices', $params);
                 if (empty($data)) break;
@@ -182,24 +181,41 @@ class DolibarrService
         $message   = 'Sync payments OK';
 
         try {
-            $page  = 0;
-            $limit = 100;
+            $stmt = $this->pdo->query(
+                'SELECT id, dolibarr_id, tiers_id FROM invoices WHERE dolibarr_id IS NOT NULL ORDER BY dolibarr_id ASC'
+            );
+            $invoices = $stmt->fetchAll();
 
-            do {
-                $data = $this->apiGet('/invoices/payments', ['limit' => $limit, 'page' => $page]);
-                if (empty($data)) break;
+            if (empty($invoices)) {
+                $status = 'warning';
+                $message = 'Aucune facture locale disponible pour synchroniser les paiements';
+            }
+
+            foreach ($invoices as $invoice) {
+                try {
+                    $data = $this->apiGet('/invoices/' . (int)$invoice['dolibarr_id'] . '/payments');
+                } catch (Throwable $e) {
+                    if ($this->isMissingPaymentList($e)) {
+                        continue;
+                    }
+
+                    throw $e;
+                }
+
+                if (empty($data)) {
+                    continue;
+                }
 
                 foreach ($data as $item) {
                     try {
-                        $this->upsertPayment($item);
+                        $this->upsertPayment($item, (int)$invoice['id'], $invoice['tiers_id'] ? (int)$invoice['tiers_id'] : null);
                         $processed++;
                     } catch (Throwable $e) {
                         error_log('syncPayments item error: ' . $e->getMessage());
                         $failed++;
                     }
                 }
-                $page++;
-            } while (count($data) === $limit);
+            }
 
             if ($failed > 0) {
                 $status = 'warning';
@@ -315,6 +331,38 @@ class DolibarrService
         return $data !== [];
     }
 
+    private function isOptionalAccessError(Throwable $e): bool
+    {
+        return str_contains($e->getMessage(), 'HTTP 403');
+    }
+
+    private function isMissingPaymentList(Throwable $e): bool
+    {
+        return str_contains($e->getMessage(), 'HTTP 404')
+            || str_contains($e->getMessage(), 'HTTP 405');
+    }
+
+    private function recalculateKpis(): array
+    {
+        try {
+            require_once __DIR__ . '/KPIService.php';
+
+            $kpis = (new KPIService())->getAll();
+            foreach ($kpis as $key => $value) {
+                $this->pdo->prepare(
+                    'INSERT INTO kpi_cache (key_name, value, period, calculated_at)
+                     VALUES (?, ?, "current", NOW())
+                     ON DUPLICATE KEY UPDATE value=VALUES(value), calculated_at=NOW()'
+                )->execute([$key, json_encode($value)]);
+            }
+
+            return ['status' => 'success', 'message' => 'KPI recalculés', 'processed' => count($kpis), 'failed' => 0];
+        } catch (Throwable $e) {
+            error_log('recalculateKpis error: ' . $e->getMessage());
+            return ['status' => 'warning', 'message' => $e->getMessage(), 'processed' => 0, 'failed' => 1];
+        }
+    }
+
     private function upsertTiers(array $data): void
     {
         if (empty($data['id'])) return;
@@ -336,7 +384,7 @@ class DolibarrService
         ]);
     }
 
-    private function upsertProduct(array $data): void
+    private function upsertService(array $data): void
     {
         if (empty($data['id'])) return;
 
@@ -352,7 +400,7 @@ class DolibarrService
             'ref'   => substr($data['ref'] ?? '', 0, 100),
             'label' => substr($data['label'] ?? '', 0, 255),
             'price' => (float)($data['price'] ?? 0),
-            'type'  => (int)($data['type'] ?? 0),
+            'type'  => 1,
         ]);
     }
 
@@ -369,7 +417,7 @@ class DolibarrService
             $tiersId = $t ? $t['id'] : null;
         }
 
-        $dateInvoice = $data['date'] ? date('Y-m-d', (int)$data['date']) : null;
+        $dateInvoice = !empty($data['date']) ? date('Y-m-d', (int)$data['date']) : null;
         $dateDue     = !empty($data['date_lim_reglement']) ? date('Y-m-d', (int)$data['date_lim_reglement']) : null;
         $datePaid    = !empty($data['date_closing']) ? date('Y-m-d', (int)$data['date_closing']) : null;
         $isOverdue   = ($dateDue && $dateDue < date('Y-m-d') && ($data['statut'] ?? 0) != 2) ? 1 : 0;
@@ -396,15 +444,29 @@ class DolibarrService
         ]);
 
         // Sync invoice lines
-        if (!empty($data['lines'])) {
-            $invStmt = $this->pdo->prepare('SELECT id FROM invoices WHERE dolibarr_id = ?');
-            $invStmt->execute([$data['id']]);
-            $inv = $invStmt->fetch();
-            if ($inv) {
-                foreach ($data['lines'] as $line) {
-                    $this->upsertInvoiceLine($inv['id'], $line);
-                }
+        $invStmt = $this->pdo->prepare('SELECT id FROM invoices WHERE dolibarr_id = ?');
+        $invStmt->execute([$data['id']]);
+        $inv = $invStmt->fetch();
+        if ($inv) {
+            $this->syncInvoiceLines((int)$data['id'], (int)$inv['id'], $data['lines'] ?? null);
+        }
+    }
+
+    private function syncInvoiceLines(int $dolibarrInvoiceId, int $localInvoiceId, ?array $lines): void
+    {
+        if ($lines === null) {
+            try {
+                $lines = $this->apiGet('/invoices/' . $dolibarrInvoiceId . '/lines');
+            } catch (Throwable $e) {
+                error_log('syncInvoiceLines error for invoice ' . $dolibarrInvoiceId . ': ' . $e->getMessage());
+                return;
             }
+        }
+
+        $this->pdo->prepare('DELETE FROM invoice_lines WHERE invoice_id = ?')->execute([$localInvoiceId]);
+
+        foreach ($lines as $line) {
+            $this->upsertInvoiceLine($localInvoiceId, $line);
         }
     }
 
@@ -416,6 +478,10 @@ class DolibarrService
             $s->execute([$line['fk_product']]);
             $p = $s->fetch();
             $productId = $p ? $p['id'] : null;
+
+            if (!$productId) {
+                $productId = $this->upsertServiceFromInvoiceLine($line);
+            }
         }
 
         $stmt = $this->pdo->prepare(
@@ -433,17 +499,49 @@ class DolibarrService
         ]);
     }
 
-    private function upsertPayment(array $data): void
+    private function upsertServiceFromInvoiceLine(array $line): ?int
     {
-        if (empty($data['id'])) return;
+        $dolibarrProductId = (int)($line['fk_product'] ?? 0);
+        if ($dolibarrProductId <= 0) {
+            return null;
+        }
 
-        $invoiceId = null;
-        if (!empty($data['fk_facture'])) {
+        $label = $line['product_label'] ?? $line['label'] ?? $line['desc'] ?? ('Service #' . $dolibarrProductId);
+        $ref = $line['product_ref'] ?? $line['ref'] ?? ('DOL-' . $dolibarrProductId);
+
+        $this->pdo->prepare(
+            'INSERT INTO products (dolibarr_id, ref, label, price, type, created_at, updated_at)
+             VALUES (:did, :ref, :label, :price, :type, NOW(), NOW())
+             ON DUPLICATE KEY UPDATE
+               ref=VALUES(ref), label=VALUES(label), price=VALUES(price), type=VALUES(type), updated_at=NOW()'
+        )->execute([
+            'did'   => $dolibarrProductId,
+            'ref'   => substr($ref, 0, 100),
+            'label' => substr($label, 0, 255),
+            'price' => (float)($line['subprice'] ?? 0),
+            'type'  => 1,
+        ]);
+
+        $stmt = $this->pdo->prepare('SELECT id FROM products WHERE dolibarr_id = ?');
+        $stmt->execute([$dolibarrProductId]);
+        $id = $stmt->fetchColumn();
+
+        return $id ? (int)$id : null;
+    }
+
+    private function upsertPayment(array $data, ?int $localInvoiceId = null, ?int $localTiersId = null): void
+    {
+        if (empty($data['id']) && empty($data['rowid'])) return;
+
+        $invoiceId = $localInvoiceId;
+        $tiersId = $localTiersId;
+        if (!$invoiceId && !empty($data['fk_facture'])) {
             $s = $this->pdo->prepare('SELECT id, tiers_id FROM invoices WHERE dolibarr_id = ?');
             $s->execute([$data['fk_facture']]);
             $inv = $s->fetch();
             if ($inv) {
                 $invoiceId = $inv['id'];
+                $tiersId = $inv['tiers_id'] ? (int)$inv['tiers_id'] : null;
             }
         }
 
@@ -457,13 +555,14 @@ class DolibarrService
 
         $methodLabel = $data['payment_code'] ?? $data['type_libelle'] ?? '';
         $method = $this->detectMethod($data['payment_code'] ?? '', $methodLabel);
+        $datePayment = $data['datepaye'] ?? $data['date'] ?? $data['date_payment'] ?? null;
 
         $stmt->execute([
-            'did'    => $data['id'],
+            'did'    => $data['id'] ?? $data['rowid'],
             'inv'    => $invoiceId,
-            'tiers'  => $inv['tiers_id'] ?? null,
-            'amount' => (float)($data['amount'] ?? 0),
-            'date'   => !empty($data['datepaye']) ? date('Y-m-d', (int)$data['datepaye']) : null,
+            'tiers'  => $tiersId,
+            'amount' => (float)($data['amount'] ?? $data['amount_payment'] ?? 0),
+            'date'   => $datePayment ? date('Y-m-d', (int)$datePayment) : null,
             'method' => $method,
             'mlabel' => $methodLabel,
         ]);

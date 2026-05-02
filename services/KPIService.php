@@ -23,7 +23,7 @@ class KPIService
         ];
     }
 
-    public function getMonthlyRevenue(int $year = null, int $month = null): float
+    public function getMonthlyRevenue(?int $year = null, ?int $month = null): float
     {
         $year  = $year  ?? (int)date('Y');
         $month = $month ?? (int)date('m');
@@ -39,7 +39,7 @@ class KPIService
         return (float)$stmt->fetchColumn();
     }
 
-    public function getAnnualRevenue(int $year = null): float
+    public function getAnnualRevenue(?int $year = null): float
     {
         $year = $year ?? (int)date('Y');
         $stmt = $this->pdo->prepare(
@@ -101,11 +101,12 @@ class KPIService
     public function getTopProducts(int $limit = 10): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT p.id, p.label, COALESCE(SUM(il.total_ht), 0) AS revenue,
-                    COALESCE(SUM(il.qty), 0) AS qty_sold
+            'SELECT p.id, p.label,
+                    COALESCE(SUM(CASE WHEN i.status = 2 THEN il.total_ht ELSE 0 END), 0) AS revenue,
+                    COALESCE(SUM(CASE WHEN i.status = 2 THEN il.qty ELSE 0 END), 0) AS qty_sold
              FROM products p
              LEFT JOIN invoice_lines il ON il.product_id = p.id
-             LEFT JOIN invoices i ON i.id = il.invoice_id AND i.status = 2
+             LEFT JOIN invoices i ON i.id = il.invoice_id
              GROUP BY p.id, p.label
              ORDER BY revenue DESC
              LIMIT ?'

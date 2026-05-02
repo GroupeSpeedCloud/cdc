@@ -38,7 +38,7 @@
     <!-- Status cards -->
     <div class="kpi-grid" style="margin-bottom:2rem;">
       <?php
-        $entities = ['tiers' => 'Tiers', 'products' => 'Produits', 'invoices' => 'Factures', 'payments' => 'Paiements'];
+        $entities = ['tiers' => 'Tiers', 'services' => 'Services', 'invoices' => 'Factures', 'payments' => 'Paiements', 'kpis' => 'KPI'];
         foreach ($entities as $key => $label):
           $lastSync = $lastSyncs[$key] ?? null;
       ?>
