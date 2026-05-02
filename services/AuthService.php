@@ -62,6 +62,9 @@ class AuthService
 
         // Upsert user in DB
         $user = $this->upsertUser($userInfo);
+        if (empty($user['id'])) {
+            return ['success' => false, 'error' => 'Erreur lors de la connexion. Veuillez réessayer.'];
+        }
 
         // Set session
         session_regenerate_id(true);
