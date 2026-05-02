@@ -160,4 +160,3 @@ Sur cPanel : **Tâches Cron** dans le panneau de contrôle.
 - MySQL 5.7+ / MariaDB 10.3+
 - Apache 2.4+ avec mod_rewrite
 - Hébergement cPanel mutualisé compatible
-Logiciel de gestion pour la direction de l'association afin d'optimiser les logiques métier dans un optique d'amélioration des points managériale
