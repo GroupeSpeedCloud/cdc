@@ -212,19 +212,12 @@ class ForecastService
 
         $recurring = [];
         foreach ($groups as $rows) {
-            if (count($rows) < 2) {
-                continue;
-            }
-
             $intervals = [];
             for ($i = 1; $i < count($rows); $i++) {
                 $intervals[] = (strtotime($rows[$i]['date_invoice']) - strtotime($rows[$i - 1]['date_invoice'])) / 86400;
             }
 
-            $period = $this->classifyPeriod($intervals);
-            if ($period === null) {
-                continue;
-            }
+            $period = $this->classifyPeriod($intervals) ?? 'annual';
 
             $amounts = array_map(static fn(array $row): float => (float)$row['total_ht'], $rows);
             $last = end($rows);
@@ -232,7 +225,7 @@ class ForecastService
                 'tiers_name' => $last['tiers_name'],
                 'service_label' => $last['service_label'],
                 'period' => $period,
-                'period_label' => ['monthly' => 'Mensuelle', 'quarterly' => 'Trimestrielle', 'annual' => 'Annuelle'][$period],
+                'period_label' => ['monthly' => 'Mensuelle', 'annual' => 'Annuelle'][$period],
                 'amount' => round(array_sum($amounts) / count($amounts), 2),
                 'last_date' => $last['date_invoice'],
                 'next_date' => $this->nextOccurrenceDate($last['date_invoice'], $period),
@@ -271,18 +264,14 @@ class ForecastService
 
     private function classifyPeriod(array $intervals): ?string
     {
-        if (!$intervals) {
-            return null;
-        }
+        if (!$intervals) return 'annual';
 
         $avg = array_sum($intervals) / count($intervals);
         $spread = max($intervals) - min($intervals);
 
         if ($avg >= 24 && $avg <= 38 && $spread <= 20) return 'monthly';
-        if ($avg >= 75 && $avg <= 105 && $spread <= 35) return 'quarterly';
-        if ($avg >= 330 && $avg <= 400 && $spread <= 70) return 'annual';
 
-        return null;
+        return 'annual';
     }
 
     private function nextOccurrenceDate(string $date, string $period): string

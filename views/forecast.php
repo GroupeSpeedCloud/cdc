@@ -79,7 +79,7 @@
       <div class="card" style="grid-column:1/-1;">
         <p class="card-title">
           <span class="material-icons" style="vertical-align:middle;font-size:1rem;">repeat</span>
-          Factures récurrentes détectées
+          Échéances prévisionnelles détectées
         </p>
         <table class="data-table">
           <thead>
@@ -96,7 +96,7 @@
             <?php if (empty($data['recurring'])): ?>
             <tr>
               <td colspan="6" style="text-align:center;color:#5f6368;padding:2rem;">
-                Aucune récurrence mensuelle, trimestrielle ou annuelle détectée.
+                Aucune facture payée disponible pour calculer les échéances.
               </td>
             </tr>
             <?php else: ?>
