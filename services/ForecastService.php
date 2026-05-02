@@ -3,6 +3,7 @@ class ForecastService
 {
     private PDO $pdo;
     private ?array $recurringCache = null;
+    private ?array $expenseInputs = null;
 
     public function __construct()
     {
@@ -162,17 +163,180 @@ class ForecastService
         $proj6  = $this->getProjections($revenues, 6);
         $proj12 = $this->getProjections($revenues, 12);
 
+        $expenseProjection12 = $this->getExpenseProjection(12);
+        $historicalExpenses  = $this->getHistoricalExpenseSeries($revenues);
+
+        $proj3  = $this->mergeRevenueAndExpenses($proj3, $expenseProjection12['values']);
+        $proj6  = $this->mergeRevenueAndExpenses($proj6, $expenseProjection12['values']);
+        $proj12 = $this->mergeRevenueAndExpenses($proj12, $expenseProjection12['values']);
+
         return [
             'historical'  => $revenues,
+            'historical_expenses' => $historicalExpenses,
             'ma3'         => $ma3,
             'ma6'         => $ma6,
             'proj3'       => $proj3,
             'proj6'       => $proj6,
             'proj12'      => $proj12,
+            'expenses_available' => $expenseProjection12['available'],
+            'expenses_monthly_base' => $expenseProjection12['monthly_base'],
+            'expenses_annual_equivalent' => $expenseProjection12['annual_equivalent'],
             'recurring'   => $this->detectRecurringInvoices(),
             'trend'       => $this->getTrendIndicator($revenues),
             'health'      => $this->getFinancialHealthScore(),
         ];
+    }
+
+    private function mergeRevenueAndExpenses(array $projection, array $expenseProjection12): array
+    {
+        $count = count($projection['values'] ?? []);
+        $expenseValues = array_slice($expenseProjection12, 0, $count);
+        if (count($expenseValues) < $count) {
+            $expenseValues = array_pad($expenseValues, $count, 0.0);
+        }
+
+        $netValues = [];
+        foreach ($projection['values'] as $i => $gross) {
+            $netValues[] = round((float)$gross - (float)$expenseValues[$i], 2);
+        }
+
+        $projection['expense_values'] = array_map(static fn($v): float => round((float)$v, 2), $expenseValues);
+        $projection['net_values'] = $netValues;
+
+        return $projection;
+    }
+
+    private function getExpenseProjection(int $months): array
+    {
+        $inputs = $this->loadExpenseInputs();
+        if (!$inputs['available']) {
+            return [
+                'available' => false,
+                'values' => array_fill(0, $months, 0.0),
+                'monthly_base' => 0.0,
+                'annual_equivalent' => 0.0,
+            ];
+        }
+
+        $values = array_fill(0, $months, round($inputs['monthly_base'], 2));
+
+        foreach ($inputs['one_time_rows'] as $row) {
+            if (empty($row['expense_date'])) {
+                continue;
+            }
+
+            $monthIndex = ((int)date('Y', strtotime($row['expense_date'])) - (int)date('Y')) * 12
+                + ((int)date('m', strtotime($row['expense_date'])) - (int)date('m')) - 1;
+
+            if ($monthIndex >= 0 && $monthIndex < $months) {
+                $values[$monthIndex] += (float)$row['amount'];
+            }
+        }
+
+        return [
+            'available' => true,
+            'values' => array_map(static fn($v): float => round((float)$v, 2), $values),
+            'monthly_base' => round((float)$inputs['monthly_base'], 2),
+            'annual_equivalent' => round((float)$inputs['annual_equivalent'], 2),
+        ];
+    }
+
+    private function getHistoricalExpenseSeries(array $revenues): array
+    {
+        $inputs = $this->loadExpenseInputs();
+        if (!$inputs['available']) {
+            return array_fill(0, count($revenues), 0.0);
+        }
+
+        $values = [];
+        foreach ($revenues as $monthData) {
+            $year = (int)($monthData['year'] ?? 0);
+            $month = (int)($monthData['month'] ?? 0);
+            $value = (float)$inputs['monthly_base'];
+
+            foreach ($inputs['one_time_rows'] as $row) {
+                if (empty($row['expense_date'])) {
+                    continue;
+                }
+
+                if ((int)date('Y', strtotime($row['expense_date'])) === $year
+                    && (int)date('m', strtotime($row['expense_date'])) === $month
+                ) {
+                    $value += (float)$row['amount'];
+                }
+            }
+
+            $values[] = round($value, 2);
+        }
+
+        return $values;
+    }
+
+    private function loadExpenseInputs(): array
+    {
+        if ($this->expenseInputs !== null) {
+            return $this->expenseInputs;
+        }
+
+        try {
+            $check = $this->pdo->query("SHOW TABLES LIKE 'expenses'");
+            if (!$check || !$check->fetchColumn()) {
+                $this->expenseInputs = [
+                    'available' => false,
+                    'monthly_base' => 0.0,
+                    'annual_equivalent' => 0.0,
+                    'one_time_rows' => [],
+                ];
+                return $this->expenseInputs;
+            }
+
+            $stmt = $this->pdo->query(
+                'SELECT recurrence, COALESCE(SUM(amount), 0) AS total
+                 FROM expenses
+                 GROUP BY recurrence'
+            );
+
+            $monthly = 0.0;
+            $annual = 0.0;
+            $oneTime = 0.0;
+            foreach ($stmt->fetchAll() as $row) {
+                $total = (float)($row['total'] ?? 0);
+                switch ($row['recurrence']) {
+                    case 'monthly':
+                        $monthly += $total;
+                        break;
+                    case 'annual':
+                        $annual += $total;
+                        break;
+                    case 'one_time':
+                        $oneTime += $total;
+                        break;
+                }
+            }
+
+            $oneTimeStmt = $this->pdo->query(
+                "SELECT amount, expense_date
+                 FROM expenses
+                 WHERE recurrence = 'one_time'"
+            );
+
+            $this->expenseInputs = [
+                'available' => true,
+                'monthly_base' => $monthly + ($annual / 12) + ($oneTime / 12),
+                'annual_equivalent' => ($monthly * 12) + $annual + $oneTime,
+                'one_time_rows' => $oneTimeStmt ? $oneTimeStmt->fetchAll() : [],
+            ];
+        } catch (Throwable $e) {
+            error_log('Forecast expenses unavailable: ' . $e->getMessage());
+            $this->expenseInputs = [
+                'available' => false,
+                'monthly_base' => 0.0,
+                'annual_equivalent' => 0.0,
+                'one_time_rows' => [],
+            ];
+        }
+
+        return $this->expenseInputs;
     }
 
     public function detectRecurringInvoices(): array
@@ -181,7 +345,15 @@ class ForecastService
             return $this->recurringCache;
         }
 
-        $stmt = $this->pdo->query(
+        $activeTiersIds = $this->getActiveTiersWithInvoiceThisMonth();
+        if (empty($activeTiersIds)) {
+            $this->recurringCache = [];
+            return $this->recurringCache;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($activeTiersIds), '?'));
+
+        $stmt = $this->pdo->prepare(
             'SELECT
                i.id,
                i.tiers_id,
@@ -199,10 +371,12 @@ class ForecastService
              ) il ON il.invoice_id = i.id
              LEFT JOIN products p ON p.id = il.product_id
              WHERE i.status = 2
+                             AND i.tiers_id IN (' . $placeholders . ')
                AND i.date_invoice IS NOT NULL
                AND i.total_ht > 0
              ORDER BY i.tiers_id, service_label, i.date_invoice'
         );
+                $stmt->execute($activeTiersIds);
 
         $groups = [];
         foreach ($stmt->fetchAll() as $row) {
@@ -239,6 +413,23 @@ class ForecastService
         $this->recurringCache = $recurring;
 
         return $this->recurringCache;
+    }
+
+    private function getActiveTiersWithInvoiceThisMonth(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT DISTINCT tiers_id
+             FROM invoices
+             WHERE tiers_id IS NOT NULL
+               AND YEAR(date_invoice) = YEAR(CURDATE())
+               AND MONTH(date_invoice) = MONTH(CURDATE())'
+        );
+
+        if (!$stmt) {
+            return [];
+        }
+
+        return array_map('intval', array_column($stmt->fetchAll(), 'tiers_id'));
     }
 
     private function getRecurringProjection(int $months): array

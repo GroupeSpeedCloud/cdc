@@ -14,6 +14,22 @@
 
   <div id="content">
 
+    <?php
+      $proj3Gross  = array_sum($data['proj3']['values'] ?? []);
+      $proj6Gross  = array_sum($data['proj6']['values'] ?? []);
+      $proj12Gross = array_sum($data['proj12']['values'] ?? []);
+      $proj3Net    = array_sum($data['proj3']['net_values'] ?? []);
+      $proj6Net    = array_sum($data['proj6']['net_values'] ?? []);
+      $proj12Net   = array_sum($data['proj12']['net_values'] ?? []);
+    ?>
+
+    <?php if (!empty($data['expenses_available'])): ?>
+    <div style="background:#e8f0fe;border:1px solid #c6dafc;color:#174ea6;padding:0.75rem 1rem;border-radius:8px;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+      <span class="material-icons" style="font-size:1.1rem;">filter_alt</span>
+      Prévision récurrente filtrée: seuls les clients avec facture ce mois-ci sont pris en compte.
+    </div>
+    <?php endif; ?>
+
     <!-- KPIs -->
     <div class="kpi-grid" style="margin-bottom:2rem;">
       <div class="kpi-card">
@@ -45,20 +61,29 @@
       <?php if (!empty($data['proj3']['values'])): ?>
       <div class="kpi-card">
         <div class="label">Projection 3 mois</div>
-        <div class="value"><?= number_format(array_sum($data['proj3']['values']), 0, ',', ' ') ?> €</div>
-        <div class="sub">CA prévu cumulé</div>
+        <div class="value"><?= number_format($proj3Gross, 0, ',', ' ') ?> €</div>
+        <div class="sub" style="display:flex;justify-content:space-between;gap:1rem;">
+          <span>CA brut</span>
+          <span style="color:<?= $proj3Net >= 0 ? 'var(--success)' : 'var(--error)' ?>;font-weight:500;">Net: <?= ($proj3Net >= 0 ? '+' : '') . number_format($proj3Net, 0, ',', ' ') ?> €</span>
+        </div>
       </div>
 
       <div class="kpi-card">
         <div class="label">Projection 6 mois</div>
-        <div class="value"><?= number_format(array_sum($data['proj6']['values']), 0, ',', ' ') ?> €</div>
-        <div class="sub">CA prévu cumulé</div>
+        <div class="value"><?= number_format($proj6Gross, 0, ',', ' ') ?> €</div>
+        <div class="sub" style="display:flex;justify-content:space-between;gap:1rem;">
+          <span>CA brut</span>
+          <span style="color:<?= $proj6Net >= 0 ? 'var(--success)' : 'var(--error)' ?>;font-weight:500;">Net: <?= ($proj6Net >= 0 ? '+' : '') . number_format($proj6Net, 0, ',', ' ') ?> €</span>
+        </div>
       </div>
 
       <div class="kpi-card">
         <div class="label">Projection 12 mois</div>
-        <div class="value"><?= number_format(array_sum($data['proj12']['values']), 0, ',', ' ') ?> €</div>
-        <div class="sub">CA prévu cumulé</div>
+        <div class="value"><?= number_format($proj12Gross, 0, ',', ' ') ?> €</div>
+        <div class="sub" style="display:flex;justify-content:space-between;gap:1rem;">
+          <span>CA brut</span>
+          <span style="color:<?= $proj12Net >= 0 ? 'var(--success)' : 'var(--error)' ?>;font-weight:500;">Net: <?= ($proj12Net >= 0 ? '+' : '') . number_format($proj12Net, 0, ',', ' ') ?> €</span>
+        </div>
       </div>
       <?php endif; ?>
     </div>
@@ -67,7 +92,7 @@
     <div class="card" style="margin-bottom:1.5rem;">
       <p class="card-title">
         <span class="material-icons" style="vertical-align:middle;font-size:1rem;">multiline_chart</span>
-        Historique + Projections CA (avec moyennes mobiles)
+        Historique + Projections (CA brut / Charges / Net)
       </p>
       <div class="chart-container" style="height:350px;">
         <canvas id="forecastChart"></canvas>
@@ -127,12 +152,16 @@
           Projection 3 mois (détail)
         </p>
         <table class="data-table">
-          <thead><tr><th>Mois</th><th>CA prévu (€)</th></tr></thead>
+          <thead><tr><th>Mois</th><th>CA brut (€)</th><th>Charges (€)</th><th>Net (€)</th></tr></thead>
           <tbody>
           <?php foreach ($data['proj3']['labels'] as $i => $label): ?>
             <tr>
               <td><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></td>
               <td style="font-weight:500;"><?= number_format($data['proj3']['values'][$i], 0, ',', ' ') ?> €</td>
+              <td><?= number_format($data['proj3']['expense_values'][$i] ?? 0, 0, ',', ' ') ?> €</td>
+              <td style="font-weight:500;color:<?= (($data['proj3']['net_values'][$i] ?? 0) >= 0) ? 'var(--success)' : 'var(--error)' ?>;">
+                <?= (($data['proj3']['net_values'][$i] ?? 0) >= 0 ? '+' : '') . number_format($data['proj3']['net_values'][$i] ?? 0, 0, ',', ' ') ?> €
+              </td>
             </tr>
           <?php endforeach; ?>
           </tbody>
@@ -145,12 +174,16 @@
           Projection 12 mois (détail)
         </p>
         <table class="data-table">
-          <thead><tr><th>Mois</th><th>CA prévu (€)</th></tr></thead>
+          <thead><tr><th>Mois</th><th>CA brut (€)</th><th>Charges (€)</th><th>Net (€)</th></tr></thead>
           <tbody>
           <?php foreach ($data['proj12']['labels'] as $i => $label): ?>
             <tr>
               <td><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></td>
               <td style="font-weight:500;"><?= number_format($data['proj12']['values'][$i], 0, ',', ' ') ?> €</td>
+              <td><?= number_format($data['proj12']['expense_values'][$i] ?? 0, 0, ',', ' ') ?> €</td>
+              <td style="font-weight:500;color:<?= (($data['proj12']['net_values'][$i] ?? 0) >= 0) ? 'var(--success)' : 'var(--error)' ?>;">
+                <?= (($data['proj12']['net_values'][$i] ?? 0) >= 0 ? '+' : '') . number_format($data['proj12']['net_values'][$i] ?? 0, 0, ',', ' ') ?> €
+              </td>
             </tr>
           <?php endforeach; ?>
           </tbody>
@@ -174,16 +207,36 @@ $combinedLabels = array_column($data['historical'], 'label');
 $combinedHist   = array_column($data['historical'], 'revenue');
 $projLabels     = $data['proj12']['labels'] ?? [];
 $projVals       = $data['proj12']['values'] ?? [];
+$projExpenseVals = $data['proj12']['expense_values'] ?? [];
+$projNetVals    = $data['proj12']['net_values'] ?? [];
+$histExpenseVals = $data['historical_expenses'] ?? array_fill(0, count($combinedHist), 0.0);
+$histNetVals     = [];
+foreach ($combinedHist as $i => $grossVal) {
+  $histNetVals[] = (float)$grossVal - (float)($histExpenseVals[$i] ?? 0);
+}
 
 // Nulls for hist dataset in projection range
 $histFull = $combinedHist;
 $projFull = array_fill(0, count($combinedHist) - 1, null);
 $projFull[] = end($combinedHist); // connect last hist point
 foreach ($projVals as $v) { $projFull[] = $v; }
+
+$expenseHistFull = array_map(static fn($v): float => round((float)$v, 2), $histExpenseVals);
+$expenseProjFull = array_fill(0, count($combinedHist) - 1, null);
+$expenseProjFull[] = end($expenseHistFull) ?: 0;
+foreach ($projExpenseVals as $v) { $expenseProjFull[] = $v; }
+
+$netHistFull = array_map(static fn($v): float => round((float)$v, 2), $histNetVals);
+$netProjFull = array_fill(0, count($combinedHist) - 1, null);
+$netProjFull[] = end($netHistFull) ?: 0;
+foreach ($projNetVals as $v) { $netProjFull[] = $v; }
+
 $allLabels = array_merge($combinedLabels, $projLabels);
 
 $jHistFull  = json_encode($histFull);
 $jProjFull  = json_encode($projFull);
+$jExpenseFull = json_encode($expenseProjFull);
+$jNetFull = json_encode($netProjFull);
 $jAllLabels = json_encode($allLabels);
 $jMa3       = json_encode(array_merge($data['ma3'], array_fill(0, count($projLabels), null)));
 $jMa6       = json_encode(array_merge($data['ma6'], array_fill(0, count($projLabels), null)));
@@ -214,6 +267,27 @@ new Chart(document.getElementById('forecastChart'), {
         borderDash: [6, 4],
         tension: 0.3,
         pointRadius: 3,
+        borderWidth: 2,
+      },
+      {
+        label: 'Charges projetées (€)',
+        data: <?= $jExpenseFull ?>,
+        borderColor: '#f9ab00',
+        backgroundColor: 'rgba(249,171,0,0.05)',
+        fill: false,
+        borderDash: [4, 4],
+        tension: 0.25,
+        pointRadius: 2,
+        borderWidth: 2,
+      },
+      {
+        label: 'Net projeté (€)',
+        data: <?= $jNetFull ?>,
+        borderColor: '#d93025',
+        backgroundColor: 'rgba(217,48,37,0.04)',
+        fill: false,
+        tension: 0.25,
+        pointRadius: 2,
         borderWidth: 2,
       },
       {
