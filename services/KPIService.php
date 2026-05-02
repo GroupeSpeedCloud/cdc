@@ -28,6 +28,16 @@ class KPIService
         $year  = $year  ?? (int)date('Y');
         $month = $month ?? (int)date('m');
 
+        $paymentsRevenue = $this->getMonthlyRevenueFromPayments($year, $month);
+        if ($paymentsRevenue > 0) {
+            return $paymentsRevenue;
+        }
+
+        return $this->getMonthlyRevenueFromInvoices($year, $month);
+    }
+
+    private function getMonthlyRevenueFromPayments(int $year, int $month): float
+    {
         $stmt = $this->pdo->prepare(
             'SELECT COALESCE(SUM(amount), 0) AS revenue
              FROM payments
@@ -38,15 +48,58 @@ class KPIService
         return (float)$stmt->fetchColumn();
     }
 
+    private function getMonthlyRevenueFromInvoices(int $year, int $month): float
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT COALESCE(SUM(total_ht), 0) AS revenue
+             FROM invoices
+             WHERE (status = 2 OR date_paid IS NOT NULL)
+               AND (
+                 (date_paid IS NOT NULL AND YEAR(date_paid) = ? AND MONTH(date_paid) = ?)
+                 OR
+                 (date_paid IS NULL AND YEAR(date_invoice) = ? AND MONTH(date_invoice) = ?)
+               )'
+        );
+        $stmt->execute([$year, $month, $year, $month]);
+        return (float)$stmt->fetchColumn();
+    }
+
     public function getAnnualRevenue(?int $year = null): float
     {
         $year = $year ?? (int)date('Y');
+
+        $paymentsRevenue = $this->getAnnualRevenueFromPayments($year);
+        if ($paymentsRevenue > 0) {
+            return $paymentsRevenue;
+        }
+
+        return $this->getAnnualRevenueFromInvoices($year);
+    }
+
+    private function getAnnualRevenueFromPayments(int $year): float
+    {
         $stmt = $this->pdo->prepare(
             'SELECT COALESCE(SUM(amount), 0) AS revenue
              FROM payments
              WHERE YEAR(date_payment) = ?'
         );
         $stmt->execute([$year]);
+        return (float)$stmt->fetchColumn();
+    }
+
+    private function getAnnualRevenueFromInvoices(int $year): float
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT COALESCE(SUM(total_ht), 0) AS revenue
+             FROM invoices
+             WHERE (status = 2 OR date_paid IS NOT NULL)
+               AND (
+                 (date_paid IS NOT NULL AND YEAR(date_paid) = ?)
+                 OR
+                 (date_paid IS NULL AND YEAR(date_invoice) = ?)
+               )'
+        );
+        $stmt->execute([$year, $year]);
         return (float)$stmt->fetchColumn();
     }
 
@@ -66,7 +119,9 @@ class KPIService
     public function getAverageBasket(): float
     {
         $stmt = $this->pdo->query(
-            'SELECT COALESCE(AVG(total_ht), 0) FROM invoices WHERE status = 2'
+            'SELECT COALESCE(AVG(total_ht), 0)
+             FROM invoices
+             WHERE status = 2 OR date_paid IS NOT NULL'
         );
         return (float)$stmt->fetchColumn();
     }
@@ -86,10 +141,11 @@ class KPIService
     public function getTopTiers(int $limit = 10): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT t.id, t.name, COALESCE(SUM(i.total_ht), 0) AS revenue,
-                    COUNT(i.id) AS invoice_count
+            'SELECT t.id, t.name,
+                    COALESCE(SUM(CASE WHEN (i.status = 2 OR i.date_paid IS NOT NULL) THEN i.total_ht ELSE 0 END), 0) AS revenue,
+                    COALESCE(SUM(CASE WHEN (i.status = 2 OR i.date_paid IS NOT NULL) THEN 1 ELSE 0 END), 0) AS invoice_count
              FROM tiers t
-             LEFT JOIN invoices i ON i.tiers_id = t.id AND i.status = 2
+             LEFT JOIN invoices i ON i.tiers_id = t.id
              GROUP BY t.id, t.name
              ORDER BY revenue DESC
              LIMIT ?'
@@ -102,8 +158,8 @@ class KPIService
     {
         $stmt = $this->pdo->prepare(
             'SELECT p.id, p.label,
-                    COALESCE(SUM(CASE WHEN i.status = 2 THEN il.total_ht ELSE 0 END), 0) AS revenue,
-                    COALESCE(SUM(CASE WHEN i.status = 2 THEN il.qty ELSE 0 END), 0) AS qty_sold
+                    COALESCE(SUM(CASE WHEN (i.status = 2 OR i.date_paid IS NOT NULL) THEN il.total_ht ELSE 0 END), 0) AS revenue,
+                    COALESCE(SUM(CASE WHEN (i.status = 2 OR i.date_paid IS NOT NULL) THEN il.qty ELSE 0 END), 0) AS qty_sold
              FROM products p
              LEFT JOIN invoice_lines il ON il.product_id = p.id
              LEFT JOIN invoices i ON i.id = il.invoice_id
@@ -121,7 +177,7 @@ class KPIService
             'SELECT p.label, COALESCE(SUM(il.total_ht), 0) AS revenue
              FROM products p
              JOIN invoice_lines il ON il.product_id = p.id
-             JOIN invoices i ON i.id = il.invoice_id AND i.status = 2
+             JOIN invoices i ON i.id = il.invoice_id AND (i.status = 2 OR i.date_paid IS NOT NULL)
              GROUP BY p.label
              ORDER BY revenue DESC
              LIMIT 8'
