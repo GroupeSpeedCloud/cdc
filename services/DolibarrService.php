@@ -269,7 +269,18 @@ class DolibarrService
         }
 
         $details = $response === false ? 'aucune réponse' : $this->summarizeApiResponse(json_decode($response, true) ?: $response);
-        throw new RuntimeException("Dolibarr API $endpoint indisponible ou refusée (HTTP $httpCode, $details)");
+        $hint = $this->httpErrorHint($httpCode);
+        throw new RuntimeException("Dolibarr API $endpoint indisponible ou refusée (HTTP $httpCode, $details). $hint");
+    }
+
+    private function httpErrorHint(int $httpCode): string
+    {
+        return match ($httpCode) {
+            401 => 'Vérifiez DOLIBARR_API_KEY.',
+            403 => 'Vérifiez que l’API REST est activée dans Dolibarr, que la clé API appartient à un utilisateur autorisé, et que cet utilisateur a les droits de lecture sur les modules à synchroniser.',
+            404 => 'Vérifiez DOLIBARR_URL : l’URL doit pointer vers la racine Dolibarr ou vers /api/index.php.',
+            default => 'Vérifiez la configuration Dolibarr et les logs serveur.',
+        };
     }
 
     private function summarizeApiResponse(mixed $data): string

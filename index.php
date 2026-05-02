@@ -14,8 +14,13 @@ function validateCsrf(): void
 {
     $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
     if (!hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+        if (($_SERVER['REQUEST_URI'] ?? '') === '/sync/force') {
+            header('Location: ' . APP_URL . '/sync?error=' . urlencode('Session expirée ou formulaire invalide. Rechargez la page puis relancez la synchronisation.'));
+            exit;
+        }
+
         http_response_code(403);
-        die('Invalid CSRF token.');
+        die('Session expirée ou formulaire invalide.');
     }
 }
 
