@@ -9,23 +9,23 @@ $editExpense = $editExpense ?? null;
 ?>
 
 <div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-64">
-  <header class="bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between flex-shrink-0 sticky top-0 z-20">
-    <div class="flex items-center gap-3">
-      <button id="menu-toggle" class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100">
-        <span class="material-icons-round">menu</span>
+  <header class="bg-white/90 border-b border-slate-200 px-6 h-14 flex items-center justify-between flex-shrink-0 sticky top-0 z-20" style="backdrop-filter:blur(10px)">
+    <div class="flex items-center gap-2.5">
+      <button id="menu-toggle" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
+        <span class="material-icons-round text-xl">menu</span>
       </button>
-      <span class="material-icons-round text-blue-600 text-2xl">account_balance_wallet</span>
-      <h1 class="text-xl font-semibold text-slate-900 font-display">Dépenses</h1>
+      <span class="material-icons-round text-blue-600 text-xl">account_balance_wallet</span>
+      <h1 class="text-base font-semibold text-slate-900 font-display">Dépenses</h1>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5">
       <?php if (!empty($user['avatar'])): ?>
-      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-9 h-9 rounded-full object-cover">
+      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-7 h-7 rounded-full">
       <?php endif; ?>
-      <span class="text-sm font-medium text-slate-700 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+      <span class="text-sm font-medium text-slate-600 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
     </div>
   </header>
 
-  <main class="flex-1 overflow-y-auto p-6 space-y-5" id="expenses-page" v-cloak>
+  <main class="flex-1 overflow-y-auto p-5 space-y-4" id="expenses-page" v-cloak>
 
     <!-- Flash -->
     <?php if (!empty($_GET['message'])): ?>
@@ -42,20 +42,29 @@ $editExpense = $editExpense ?? null;
     <?php endif; ?>
 
     <!-- KPI grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
       <?php
       $kpiRows = [
-        ['Revenus (mois)',   $revenueMonth,   'emerald'],
-        ['Dépenses (mois)',  $monthlyTotal,   'red'],
-        ['Profit (mois)',    $profitMonth,    $profitMonth>=0?'emerald':'red'],
-        ['Revenus (année)',  $revenueYear,    'emerald'],
-        ['Dépenses (année)', $annualTotal,    'red'],
-        ['Profit (année)',   $profitYear,     $profitYear>=0?'emerald':'red'],
+        ['Revenus (mois)',   $revenueMonth,   'emerald', 'trending_up'],
+        ['Dépenses (mois)',  $monthlyTotal,   'red',     'trending_down'],
+        ['Profit (mois)',    $profitMonth,    $profitMonth>=0?'emerald':'red', 'account_balance'],
+        ['Revenus (année)',  $revenueYear,    'emerald', 'calendar_today'],
+        ['Dépenses (année)', $annualTotal,    'red',     'receipt_long'],
+        ['Profit (année)',   $profitYear,     $profitYear>=0?'emerald':'red', 'savings'],
       ];
-      foreach ($kpiRows as [$label,$val,$color]): ?>
-      <div class="bg-white border <?= $color==='emerald'?'border-emerald-100':($color==='red'?'border-red-100':'border-slate-200') ?> rounded-xl p-4 shadow-sm">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide"><?= $label ?></p>
-        <p class="text-xl font-bold <?= $color==='emerald'?'text-emerald-700':($color==='red'?'text-red-600':'text-slate-900') ?> mt-1">
+      foreach ($kpiRows as [$label,$val,$color,$icon]):
+        $ibg  = $color==='emerald'?'bg-emerald-50':'bg-red-50';
+        $itxt = $color==='emerald'?'text-emerald-600':'text-red-600';
+        $bdr  = $color==='emerald'?'border-emerald-100':'border-red-100';
+      ?>
+      <div class="bg-white border <?= $bdr ?> rounded-xl p-4 shadow-sm">
+        <div class="flex items-start justify-between mb-2">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider leading-tight"><?= $label ?></p>
+          <span class="<?= $ibg ?> <?= $itxt ?> w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0">
+            <span class="material-icons-round" style="font-size:13px"><?= $icon ?></span>
+          </span>
+        </div>
+        <p class="text-xl font-bold <?= $itxt ?> leading-none">
           <?= number_format((float)$val, 0, ',', ' ') ?> €
         </p>
       </div>

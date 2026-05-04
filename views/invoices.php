@@ -8,23 +8,23 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
 ?>
 
 <div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-64">
-  <header class="bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between flex-shrink-0 sticky top-0 z-20">
-    <div class="flex items-center gap-3">
-      <button id="menu-toggle" class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100">
-        <span class="material-icons-round">menu</span>
+  <header class="bg-white/90 border-b border-slate-200 px-6 h-14 flex items-center justify-between flex-shrink-0 sticky top-0 z-20" style="backdrop-filter:blur(10px)">
+    <div class="flex items-center gap-2.5">
+      <button id="menu-toggle" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
+        <span class="material-icons-round text-xl">menu</span>
       </button>
-      <span class="material-icons-round text-blue-600 text-2xl">receipt_long</span>
-      <h1 class="text-xl font-semibold text-slate-900 font-display">Factures</h1>
+      <span class="material-icons-round text-blue-600 text-xl">receipt_long</span>
+      <h1 class="text-base font-semibold text-slate-900 font-display">Factures</h1>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5">
       <?php if (!empty($user['avatar'])): ?>
-      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-9 h-9 rounded-full object-cover">
+      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-7 h-7 rounded-full">
       <?php endif; ?>
-      <span class="text-sm font-medium text-slate-700 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+      <span class="text-sm font-medium text-slate-600 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
     </div>
   </header>
 
-  <main class="flex-1 overflow-y-auto p-6 space-y-5" id="invoices-page" v-cloak>
+  <main class="flex-1 overflow-y-auto p-5 space-y-4" id="invoices-page" v-cloak>
 
     <!-- Flash -->
     <?php if (!empty($_GET['message'])): ?>

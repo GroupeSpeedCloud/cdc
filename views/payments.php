@@ -7,23 +7,23 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
 ?>
 
 <div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-64">
-  <header class="bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between flex-shrink-0 sticky top-0 z-20">
-    <div class="flex items-center gap-3">
-      <button id="menu-toggle" class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100">
-        <span class="material-icons-round">menu</span>
+  <header class="bg-white/90 border-b border-slate-200 px-6 h-14 flex items-center justify-between flex-shrink-0 sticky top-0 z-20" style="backdrop-filter:blur(10px)">
+    <div class="flex items-center gap-2.5">
+      <button id="menu-toggle" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
+        <span class="material-icons-round text-xl">menu</span>
       </button>
-      <span class="material-icons-round text-blue-600 text-2xl">payments</span>
-      <h1 class="text-xl font-semibold text-slate-900 font-display">Paiements</h1>
+      <span class="material-icons-round text-blue-600 text-xl">payments</span>
+      <h1 class="text-base font-semibold text-slate-900 font-display">Paiements</h1>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5">
       <?php if (!empty($user['avatar'])): ?>
-      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-9 h-9 rounded-full object-cover">
+      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-7 h-7 rounded-full">
       <?php endif; ?>
-      <span class="text-sm font-medium text-slate-700 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+      <span class="text-sm font-medium text-slate-600 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
     </div>
   </header>
 
-  <main class="flex-1 overflow-y-auto p-6 space-y-5" id="payments-page" v-cloak>
+  <main class="flex-1 overflow-y-auto p-5 space-y-4" id="payments-page" v-cloak>
 
     <!-- Flash -->
     <?php if (!empty($_GET['message'])): ?>
@@ -91,16 +91,21 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
     </div>
 
     <!-- KPI summary -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
       <div class="xl:col-span-2 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total encaissé</p>
-        <p class="text-3xl font-bold text-slate-900 mt-1"><?= number_format($totalCollected, 0, ',', ' ') ?> €</p>
+        <div class="flex items-start justify-between mb-2">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total encaissé</p>
+          <span class="bg-emerald-50 text-emerald-600 w-6 h-6 rounded-md flex items-center justify-center">
+            <span class="material-icons-round" style="font-size:14px">savings</span>
+          </span>
+        </div>
+        <p class="text-2xl font-bold text-slate-900"><?= number_format($totalCollected, 0, ',', ' ') ?> €</p>
       </div>
       <?php foreach (array_slice($methodsBreakdown, 0, 3) as $mb): ?>
-      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide"><?= htmlspecialchars(ucfirst($mb['method']), ENT_QUOTES, 'UTF-8') ?></p>
-        <p class="text-2xl font-bold text-slate-900 mt-1"><?= number_format((float)$mb['total_amount'], 0, ',', ' ') ?> €</p>
-        <p class="text-xs text-slate-500 mt-1"><?= (int)$mb['count'] ?> paiements · moy. <?= number_format((float)$mb['avg_amount'], 0, ',', ' ') ?> €</p>
+      <div class="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider"><?= htmlspecialchars(ucfirst($mb['method']), ENT_QUOTES, 'UTF-8') ?></p>
+        <p class="text-xl font-bold text-slate-800 mt-1"><?= number_format((float)$mb['total_amount'], 0, ',', ' ') ?> €</p>
+        <p class="text-[11px] text-slate-400 mt-1"><?= (int)$mb['count'] ?> paiements · moy. <?= number_format((float)$mb['avg_amount'], 0, ',', ' ') ?> €</p>
       </div>
       <?php endforeach; ?>
     </div>
