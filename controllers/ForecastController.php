@@ -29,7 +29,7 @@ class ForecastController
             $data = array_merge($data, $forecastService->getAllProjections());
         } catch (Throwable $e) {
             error_log('ForecastController::index error: ' . $e->getMessage());
-            $data['error_message'] = 'Impossible de charger les previsions pour le moment.';
+            $data['error_message'] = 'Erreur: ' . $e->getMessage() . ' dans ' . basename($e->getFile()) . ':' . $e->getLine();
         }
         $user            = $_SESSION['user'];
 
