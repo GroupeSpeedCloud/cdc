@@ -428,6 +428,8 @@ class ForecastService
             $period  = $this->classifyPeriod($intervals, $last['date_invoice'], $avgAmount, $nbLines);
             if ($period === null) continue;
 
+            $nextDate = $this->nextOccurrenceDate($last['date_invoice'], $period);
+
             $recurring[] = [
                 'tiers_name'    => $last['tiers_name'],
                 'service_label' => $last['service_label'],
