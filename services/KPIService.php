@@ -1,11 +1,26 @@
 <?php
 class KPIService
 {
-    private PDO $pdo;
+    private PDO    $pdo;
+    /** @var bool|null Cache : vrai si la table payments contient des enregistrements datés */
+    private ?bool  $usePaymentsSource = null;
 
     public function __construct()
     {
         $this->pdo = getDB();
+    }
+
+    /**
+     * Détermine une fois pour toutes si on doit utiliser la table payments (données Dolibarr)
+     * ou la table invoices (fallback). Cohérence garantie sur toute la durée de vie de l'objet.
+     */
+    private function shouldUsePayments(): bool
+    {
+        if ($this->usePaymentsSource === null) {
+            $stmt = $this->pdo->query('SELECT COUNT(*) FROM payments WHERE date_payment IS NOT NULL');
+            $this->usePaymentsSource = (int)$stmt->fetchColumn() > 0;
+        }
+        return $this->usePaymentsSource;
     }
 
     public function getAll(): array
@@ -28,9 +43,8 @@ class KPIService
         $year  = $year  ?? (int)date('Y');
         $month = $month ?? (int)date('m');
 
-        $paymentsRevenue = $this->getMonthlyRevenueFromPayments($year, $month);
-        if ($paymentsRevenue > 0) {
-            return $paymentsRevenue;
+        if ($this->shouldUsePayments()) {
+            return $this->getMonthlyRevenueFromPayments($year, $month);
         }
 
         return $this->getMonthlyRevenueFromInvoices($year, $month);
@@ -68,9 +82,8 @@ class KPIService
     {
         $year = $year ?? (int)date('Y');
 
-        $paymentsRevenue = $this->getAnnualRevenueFromPayments($year);
-        if ($paymentsRevenue > 0) {
-            return $paymentsRevenue;
+        if ($this->shouldUsePayments()) {
+            return $this->getAnnualRevenueFromPayments($year);
         }
 
         return $this->getAnnualRevenueFromInvoices($year);
@@ -140,16 +153,31 @@ class KPIService
 
     public function getTopTiers(int $limit = 10): array
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT t.id, t.name,
-                    COALESCE(SUM(CASE WHEN (i.status = 2 OR i.date_paid IS NOT NULL) THEN i.total_ht ELSE 0 END), 0) AS revenue,
-                    COALESCE(SUM(CASE WHEN (i.status = 2 OR i.date_paid IS NOT NULL) THEN 1 ELSE 0 END), 0) AS invoice_count
-             FROM tiers t
-             LEFT JOIN invoices i ON i.tiers_id = t.id
-             GROUP BY t.id, t.name
-             ORDER BY revenue DESC
-             LIMIT ?'
-        );
+        if ($this->shouldUsePayments()) {
+            $stmt = $this->pdo->prepare(
+                'SELECT t.id, t.name,
+                        COALESCE(SUM(p.amount), 0) AS revenue,
+                        COUNT(DISTINCT p.invoice_id) AS invoice_count
+                 FROM tiers t
+                 LEFT JOIN payments p ON p.tiers_id = t.id
+                   AND p.date_payment >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                 GROUP BY t.id, t.name
+                 ORDER BY revenue DESC
+                 LIMIT ?'
+            );
+        } else {
+            $stmt = $this->pdo->prepare(
+                'SELECT t.id, t.name,
+                        COALESCE(SUM(CASE WHEN (i.status = 2 OR i.date_paid IS NOT NULL) THEN i.total_ht ELSE 0 END), 0) AS revenue,
+                        COALESCE(SUM(CASE WHEN (i.status = 2 OR i.date_paid IS NOT NULL) THEN 1 ELSE 0 END), 0) AS invoice_count
+                 FROM tiers t
+                 LEFT JOIN invoices i ON i.tiers_id = t.id
+                   AND i.date_invoice >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                 GROUP BY t.id, t.name
+                 ORDER BY revenue DESC
+                 LIMIT ?'
+            );
+        }
         $stmt->execute([$limit]);
         return $stmt->fetchAll();
     }
@@ -163,6 +191,7 @@ class KPIService
              FROM products p
              LEFT JOIN invoice_lines il ON il.product_id = p.id
              LEFT JOIN invoices i ON i.id = il.invoice_id
+               AND i.date_invoice >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
              GROUP BY p.id, p.label
              ORDER BY revenue DESC
              LIMIT ?'

@@ -1,27 +1,46 @@
 <?php
 class ForecastService
 {
-    private PDO $pdo;
-    private ?array $recurringCache = null;
-    private ?array $expenseInputs = null;
+    private PDO    $pdo;
+    private ?array $recurringCache   = null;
+    private ?array $expenseInputs    = null;
+    private ?bool  $usePayments      = null;
 
     public function __construct()
     {
         $this->pdo = getDB();
     }
 
+    private function shouldUsePayments(): bool
+    {
+        if ($this->usePayments === null) {
+            $stmt = $this->pdo->query('SELECT COUNT(*) FROM payments WHERE date_payment IS NOT NULL');
+            $this->usePayments = (int)$stmt->fetchColumn() > 0;
+        }
+        return $this->usePayments;
+    }
+
     public function getMonthlyRevenues(int $months = 18): array
     {
         $data = [];
+        $usePayments = $this->shouldUsePayments();
+
         for ($i = $months - 1; $i >= 0; $i--) {
             $ts    = strtotime("-$i months");
             $year  = (int)date('Y', $ts);
             $month = (int)date('m', $ts);
 
-            $stmt = $this->pdo->prepare(
-                'SELECT COALESCE(SUM(total_ht), 0) FROM invoices
-                 WHERE status = 2 AND YEAR(date_invoice) = ? AND MONTH(date_invoice) = ?'
-            );
+            if ($usePayments) {
+                $stmt = $this->pdo->prepare(
+                    'SELECT COALESCE(SUM(amount), 0) FROM payments
+                     WHERE YEAR(date_payment) = ? AND MONTH(date_payment) = ?'
+                );
+            } else {
+                $stmt = $this->pdo->prepare(
+                    'SELECT COALESCE(SUM(total_ht), 0) FROM invoices
+                     WHERE status = 2 AND YEAR(date_invoice) = ? AND MONTH(date_invoice) = ?'
+                );
+            }
             $stmt->execute([$year, $month]);
             $data[] = [
                 'label'   => date('M Y', $ts),
@@ -417,12 +436,12 @@ class ForecastService
 
     private function getActiveTiersWithInvoiceThisMonth(): array
     {
+        // Fenêtre de 3 mois pour ne pas rater les clients avec facturation décalée
         $stmt = $this->pdo->query(
             'SELECT DISTINCT tiers_id
              FROM invoices
              WHERE tiers_id IS NOT NULL
-               AND YEAR(date_invoice) = YEAR(CURDATE())
-               AND MONTH(date_invoice) = MONTH(CURDATE())'
+               AND date_invoice >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 2 MONTH), \'%Y-%m-01\')'
         );
 
         if (!$stmt) {

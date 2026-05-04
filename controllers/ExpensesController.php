@@ -20,13 +20,25 @@ class ExpensesController
 
         // Revenus réels des 12 derniers mois pour comparaison
         $pdo = getDB();
-        $stmt = $pdo->query(
-            "SELECT COALESCE(SUM(total_ht), 0) AS total
-             FROM invoices
-             WHERE status = 2
-               AND date_invoice >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01')
-               AND date_invoice <= LAST_DAY(CURDATE())"
-        );
+
+        $paymentsCount = (int)$pdo->query('SELECT COUNT(*) FROM payments WHERE date_payment IS NOT NULL')->fetchColumn();
+
+        if ($paymentsCount > 0) {
+            $stmt = $pdo->query(
+                "SELECT COALESCE(SUM(amount), 0) AS total
+                 FROM payments
+                 WHERE date_payment >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01')
+                   AND date_payment <= LAST_DAY(CURDATE())"
+            );
+        } else {
+            $stmt = $pdo->query(
+                "SELECT COALESCE(SUM(total_ht), 0) AS total
+                 FROM invoices
+                 WHERE status = 2
+                   AND date_invoice >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01')
+                   AND date_invoice <= LAST_DAY(CURDATE())"
+            );
+        }
         $revenueYear = (float)$stmt->fetchColumn();
         $revenueMonth = $revenueYear / 12;
 

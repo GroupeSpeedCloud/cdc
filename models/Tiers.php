@@ -92,6 +92,11 @@ class Tiers extends BaseModel
 
     public function getRevenueHistory(int $tiersId, int $months = 12): array
     {
+        // Utiliser payments si disponibles, sinon invoices
+        $countStmt = $this->pdo->prepare('SELECT COUNT(*) FROM payments WHERE tiers_id = ? AND date_payment IS NOT NULL');
+        $countStmt->execute([$tiersId]);
+        $usePayments = (int)$countStmt->fetchColumn() > 0;
+
         $data = [];
         for ($i = $months - 1; $i >= 0; $i--) {
             $ts    = strtotime("-$i months");
@@ -99,12 +104,21 @@ class Tiers extends BaseModel
             $month = (int)date('m', $ts);
             $label = date('M Y', $ts);
 
-            $rev = $this->queryScalar(
-                'SELECT COALESCE(SUM(total_ht), 0) FROM invoices
-                 WHERE tiers_id = ? AND status = 2
-                   AND YEAR(date_invoice) = ? AND MONTH(date_invoice) = ?',
-                [$tiersId, $year, $month]
-            );
+            if ($usePayments) {
+                $rev = $this->queryScalar(
+                    'SELECT COALESCE(SUM(amount), 0) FROM payments
+                     WHERE tiers_id = ?
+                       AND YEAR(date_payment) = ? AND MONTH(date_payment) = ?',
+                    [$tiersId, $year, $month]
+                );
+            } else {
+                $rev = $this->queryScalar(
+                    'SELECT COALESCE(SUM(total_ht), 0) FROM invoices
+                     WHERE tiers_id = ? AND status = 2
+                       AND YEAR(date_invoice) = ? AND MONTH(date_invoice) = ?',
+                    [$tiersId, $year, $month]
+                );
+            }
             $data[] = ['label' => $label, 'revenue' => (float)$rev];
         }
         return $data;

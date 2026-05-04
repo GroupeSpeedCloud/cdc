@@ -369,6 +369,19 @@ class DolibarrService
     private function recalculateKpis(): array
     {
         try {
+            // Rafraîchir les drapeaux is_overdue avant de calculer les KPI
+            $this->pdo->exec(
+                "UPDATE invoices SET is_overdue = 1
+                 WHERE date_due IS NOT NULL
+                   AND date_due < CURDATE()
+                   AND status IN (0, 1)"
+            );
+            $this->pdo->exec(
+                "UPDATE invoices SET is_overdue = 0
+                 WHERE is_overdue = 1
+                   AND (status = 2 OR date_due IS NULL OR date_due >= CURDATE())"
+            );
+
             require_once __DIR__ . '/KPIService.php';
 
             $kpis = (new KPIService())->getAll();
@@ -597,13 +610,17 @@ class DolibarrService
         $methodLabel = $data['payment_code'] ?? $data['type_libelle'] ?? '';
         $method = $this->detectMethod($data['payment_code'] ?? '', $methodLabel);
         $datePayment = $data['datepaye'] ?? $data['date'] ?? $data['date_payment'] ?? null;
+        // datepaye = 0 dans Dolibarr signifie date non renseignée → NULL
+        $datePaymentFormatted = ($datePayment !== null && (int)$datePayment > 0)
+            ? date('Y-m-d', (int)$datePayment)
+            : null;
 
         $stmt->execute([
             'did'    => $data['id'] ?? $data['rowid'],
             'inv'    => $invoiceId,
             'tiers'  => $tiersId,
             'amount' => (float)($data['amount'] ?? $data['amount_payment'] ?? 0),
-            'date'   => $datePayment ? date('Y-m-d', (int)$datePayment) : null,
+            'date'   => $datePaymentFormatted,
             'method' => $method,
             'mlabel' => $methodLabel,
         ]);
