@@ -8,9 +8,9 @@ $sc = [
   'fragile'  => ['text-amber-700 bg-amber-100',     'Fragile'],
   'critique' => ['text-red-700 bg-red-100',         'Critique'],
 ];
-function statusBadge(string $s, array $sc): string {
+function statusBadge(string $s, string $metric, array $sc): string {
   [$cls, $lbl] = $sc[$s] ?? ['text-slate-600 bg-slate-100', $s];
-  return "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium $cls\">$lbl</span>";
+  return "<span class=\"inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold border border-slate-200 bg-white text-slate-700\"><span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium $cls\">$lbl</span><span>$metric</span></span>";
 }
 $alerts = $annual['alerts'] ?? [];
 ?>
@@ -63,9 +63,9 @@ $alerts = $annual['alerts'] ?? [];
 
     <!-- Alerts -->
     <?php if (!empty($alerts)): ?>
-    <div class="space-y-2">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
       <?php foreach ($alerts as $alert): ?>
-      <div class="flex items-start gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3 text-sm shadow-sm">
+      <div class="flex items-start gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3 text-sm shadow-sm min-h-[52px]">
         <span class="material-icons-round text-amber-500 text-lg flex-shrink-0 mt-0.5">warning_amber</span>
         <?= htmlspecialchars($alert, ENT_QUOTES, 'UTF-8') ?>
       </div>
@@ -80,12 +80,12 @@ $alerts = $annual['alerts'] ?? [];
         Vue exécutive <?= (int)($annual['year'] ?? date('Y')) ?>
       </div>
       <div class="flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
-        <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1"><?= statusBadge((string)($annual['margin_status'] ?? 'fragile'), $sc) ?> <span>Marge</span></span>
-        <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1"><?= statusBadge((string)($annual['collection_status'] ?? 'fragile'), $sc) ?> <span>Encaissement</span></span>
-        <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1"><?= statusBadge((string)($annual['volatility_status'] ?? 'fragile'), $sc) ?> <span>Volatilité</span></span>
-        <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1"><?= statusBadge((string)($annual['concentration_status'] ?? 'fragile'), $sc) ?> <span>Concentration</span></span>
-        <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1"><?= statusBadge((string)($annual['cash_coverage_status'] ?? 'fragile'), $sc) ?> <span>Couverture</span></span>
-        <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1"><?= statusBadge((string)($annual['delay_risk_status'] ?? 'fragile'), $sc) ?> <span>Retards</span></span>
+        <?= statusBadge((string)($annual['margin_status'] ?? 'fragile'), 'Marge', $sc) ?>
+        <?= statusBadge((string)($annual['collection_status'] ?? 'fragile'), 'Encaissement', $sc) ?>
+        <?= statusBadge((string)($annual['volatility_status'] ?? 'fragile'), 'Volatilité', $sc) ?>
+        <?= statusBadge((string)($annual['concentration_status'] ?? 'fragile'), 'Concentration', $sc) ?>
+        <?= statusBadge((string)($annual['cash_coverage_status'] ?? 'fragile'), 'Couverture', $sc) ?>
+        <?= statusBadge((string)($annual['delay_risk_status'] ?? 'fragile'), 'Retards', $sc) ?>
       </div>
     </div>
 

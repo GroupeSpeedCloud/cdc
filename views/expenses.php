@@ -15,7 +15,7 @@ $editExpense = $editExpense ?? null;
         <span class="material-icons-round">menu</span>
       </button>
       <span class="material-icons-round text-blue-600 text-2xl">account_balance_wallet</span>
-      <h1 class="text-xl font-semibold text-slate-900">Dépenses</h1>
+      <h1 class="text-xl font-semibold text-slate-900 font-display">Dépenses</h1>
     </div>
     <div class="flex items-center gap-3">
       <?php if (!empty($user['avatar'])): ?>

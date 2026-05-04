@@ -91,6 +91,34 @@
     .text-slate-600 { color: #3e5573 !important; }
     .border-slate-100 { border-color: #e8eef7 !important; }
     .border-slate-200 { border-color: var(--line-1) !important; }
+
+    /* Page rhythm */
+    #main-wrap > main {
+      width: 100%;
+      max-width: 1460px;
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: clamp(1rem, 2vw, 1.5rem);
+      padding-right: clamp(1rem, 2vw, 1.5rem);
+    }
+
+    /* Tables readability */
+    table thead th {
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      color: #5a6f8b !important;
+    }
+    table tbody td {
+      vertical-align: middle;
+    }
+
+    /* Better visual grouping for alerts */
+    .bg-amber-50.border.border-amber-200,
+    .bg-red-50.border.border-red-200,
+    .bg-emerald-50.border.border-emerald-200,
+    .bg-blue-50.border.border-blue-200 {
+      border-left-width: 4px !important;
+    }
   </style>
 </head>
 <body class="h-full bg-slate-50" style="font-family:'Manrope',system-ui,sans-serif;">
