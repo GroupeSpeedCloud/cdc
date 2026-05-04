@@ -1,13 +1,31 @@
-# Flow – Tableau de bord stratégique
-
-Application web PHP de gestion stratégique pour organisation à but non lucratif.
-Synchronisation Dolibarr, analyse financière, scoring de risque clients.
-
-## Architecture
-
-```
-flow/
-├── index.php              # Routeur principal
+ # Flow – Tableau de bord financier
+ 
+ Application web de gestion financière légère pour TPE/PME.  
+ PHP 8.4 custom MVC · Tailwind CSS (CDN Play) · Vue.js 3 (CDN) · Chart.js 4 · MySQL.
+ 
+ ---
+ 
+ ## Stack technique
+ 
+ | Couche | Technologie |
+ |--------|-------------|
+ | Backend | PHP 8.4 (pas de framework) |
+ | Routing | `index.php` → `controllers/` |
+ | Base de données | MySQL (PDO) |
+ | Frontend CSS | Tailwind CSS Play CDN |
+ | Interactivité | Vue.js 3 CDN (`createApp` / `ref`) |
+ | Graphiques | Chart.js 4.4 CDN |
+ | Auth | Google OAuth 2.0 (domaine restreint) |
+ | Icônes | Material Icons Round CDN |
+ | Déploiement | cPanel / o2switch |
+ 
+ ---
+ 
+ ## Architecture
+ 
+ ```
+ flow/
+ ├── index.php              # Routeur principal (switch sur $path)
 ├── .env.example           # Variables d'environnement (template)
 ├── .htaccess              # Sécurité Apache + routing
 ├── config/                # Configuration (app, database, auth)

@@ -1,354 +1,239 @@
 <?php require_once __DIR__ . '/partials/header.php'; ?>
 <?php require_once __DIR__ . '/partials/sidebar.php'; ?>
 
-<div id="main">
-  <header id="topbar">
-    <div style="display:flex;align-items:center;min-width:0;">
-      <button id="menu-toggle" aria-label="Ouvrir le menu">
-        <span class="material-icons">menu</span>
+<?php
+$trendIcon  = ['up'=>'trending_up','down'=>'trending_down','stable'=>'trending_flat'][$data['trend']] ?? 'trending_flat';
+$trendColor = ['up'=>'text-emerald-600','down'=>'text-red-600','stable'=>'text-slate-500'][$data['trend']] ?? 'text-slate-500';
+$healthColor = (int)$data['health'] >= 70 ? 'text-emerald-600' : ((int)$data['health'] >= 40 ? 'text-amber-600' : 'text-red-600');
+$healthBg    = (int)$data['health'] >= 70 ? 'bg-emerald-50 border-emerald-200' : ((int)$data['health'] >= 40 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200');
+$csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
+?>
+
+<div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-64">
+  <header class="bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between flex-shrink-0 sticky top-0 z-20">
+    <div class="flex items-center gap-3">
+      <button id="menu-toggle" class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100">
+        <span class="material-icons-round">menu</span>
       </button>
-      <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">trending_up</span>Prévisions financières</h1>
+      <span class="material-icons-round text-blue-600 text-2xl">insights</span>
+      <h1 class="text-xl font-semibold text-slate-900">Prévisions</h1>
     </div>
-    <div class="topbar-user">
+    <div class="flex items-center gap-3">
       <?php if (!empty($user['avatar'])): ?>
-        <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Avatar">
+      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-9 h-9 rounded-full object-cover">
       <?php endif; ?>
-      <span><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+      <span class="text-sm font-medium text-slate-700 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
     </div>
   </header>
 
-  <div id="content">
+  <main class="flex-1 overflow-y-auto p-6 space-y-5">
 
+    <!-- Error banner -->
     <?php if (!empty($data['error_message'])): ?>
-    <div style="background:#fdecea;border:1px solid #f5c2c7;color:#842029;padding:0.75rem 1rem;border-radius:8px;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-      <span class="material-icons" style="font-size:1.1rem;">error</span>
+    <div class="flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-sm">
+      <span class="material-icons-round text-amber-500 text-lg flex-shrink-0 mt-0.5">warning_amber</span>
       <?= htmlspecialchars($data['error_message'], ENT_QUOTES, 'UTF-8') ?>
     </div>
     <?php endif; ?>
 
-    <?php
-      $proj3Gross  = array_sum($data['proj3']['values'] ?? []);
-      $proj6Gross  = array_sum($data['proj6']['values'] ?? []);
-      $proj12Gross = array_sum($data['proj12']['values'] ?? []);
-      $proj3Net    = array_sum($data['proj3']['net_values'] ?? []);
-      $proj6Net    = array_sum($data['proj6']['net_values'] ?? []);
-      $proj12Net   = array_sum($data['proj12']['net_values'] ?? []);
-    ?>
-
-    <?php if (!empty($data['expenses_available'])): ?>
-    <div style="background:#e8f0fe;border:1px solid #c6dafc;color:#174ea6;padding:0.75rem 1rem;border-radius:8px;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-      <span class="material-icons" style="font-size:1.1rem;">filter_alt</span>
-      Prévision récurrente filtrée: seuls les clients avec facture ce mois-ci sont pris en compte.
+    <?php if (!$data['expenses_available']): ?>
+    <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl px-4 py-3 text-sm">
+      <span class="material-icons-round text-blue-400 text-lg flex-shrink-0 mt-0.5">info</span>
+      Aucune dépense enregistrée — les projections nettes ne tiennent pas compte des charges.
     </div>
     <?php endif; ?>
 
-    <!-- KPIs -->
-    <div class="kpi-grid" style="margin-bottom:2rem;">
-      <div class="kpi-card">
-        <div class="label">Tendance</div>
-        <div class="value" style="font-size:1.5rem;">
-          <?php
-            $trendIcon  = ['up' => '▲', 'down' => '▼', 'stable' => '→'][$data['trend']] ?? '→';
-            $trendColor = ['up' => 'var(--success)', 'down' => 'var(--error)', 'stable' => 'var(--warning)'][$data['trend']] ?? '#333';
-            $trendLabel = ['up' => 'Hausse', 'down' => 'Baisse', 'stable' => 'Stable'][$data['trend']] ?? '–';
-          ?>
-          <span style="color:<?= $trendColor ?>"><?= $trendIcon ?> <?= $trendLabel ?></span>
-        </div>
-        <div class="sub">sur les 3 derniers mois</div>
+    <!-- KPI grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div class="bg-white border <?= $healthBg ?> rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Score santé</p>
+        <p class="text-3xl font-bold <?= $healthColor ?> mt-1"><?= (int)$data['health'] ?><span class="text-base">/100</span></p>
       </div>
-
-      <div class="kpi-card">
-        <div class="label">Score de santé financière</div>
-        <div class="value"><?= $data['health'] ?>/100</div>
-        <div class="sub">
-          <?php
-            $h = $data['health'];
-            if ($h >= 70) echo '<span style="color:var(--success)">Bonne santé</span>';
-            elseif ($h >= 40) echo '<span style="color:var(--warning)">À surveiller</span>';
-            else echo '<span style="color:var(--error)">Critique</span>';
-          ?>
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center gap-3">
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Tendance</p>
+          <p class="text-sm font-bold text-slate-900 mt-1 capitalize"><?= htmlspecialchars($data['trend'], ENT_QUOTES, 'UTF-8') ?></p>
         </div>
+        <span class="material-icons-round text-3xl <?= $trendColor ?>"><?= $trendIcon ?></span>
       </div>
-
-      <?php if (!empty($data['proj3']['values'])): ?>
-      <div class="kpi-card">
-        <div class="label">Projection 3 mois</div>
-        <div class="value"><?= number_format($proj3Gross, 0, ',', ' ') ?> €</div>
-        <div class="sub" style="display:flex;justify-content:space-between;gap:1rem;">
-          <span>CA brut</span>
-          <span style="color:<?= $proj3Net >= 0 ? 'var(--success)' : 'var(--error)' ?>;font-weight:500;">Net: <?= ($proj3Net >= 0 ? '+' : '') . number_format($proj3Net, 0, ',', ' ') ?> €</span>
-        </div>
+      <?php foreach ([
+        ['3 mois',  $data['proj3']],
+        ['6 mois',  $data['proj6']],
+        ['12 mois', $data['proj12']],
+      ] as [$label, $proj]): ?>
+      <?php
+        $lastRev = end($proj['values']);
+        $lastNet = end($proj['net_values']);
+        reset($proj['values']); reset($proj['net_values']);
+      ?>
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">CA proj. <?= $label ?></p>
+        <p class="text-xl font-bold text-slate-900 mt-1"><?= number_format((float)$lastRev, 0, ',', ' ') ?> €</p>
+        <p class="text-xs text-slate-500 mt-0.5">Net : <?= number_format((float)$lastNet, 0, ',', ' ') ?> €</p>
       </div>
-
-      <div class="kpi-card">
-        <div class="label">Projection 6 mois</div>
-        <div class="value"><?= number_format($proj6Gross, 0, ',', ' ') ?> €</div>
-        <div class="sub" style="display:flex;justify-content:space-between;gap:1rem;">
-          <span>CA brut</span>
-          <span style="color:<?= $proj6Net >= 0 ? 'var(--success)' : 'var(--error)' ?>;font-weight:500;">Net: <?= ($proj6Net >= 0 ? '+' : '') . number_format($proj6Net, 0, ',', ' ') ?> €</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="label">Projection 12 mois</div>
-        <div class="value"><?= number_format($proj12Gross, 0, ',', ' ') ?> €</div>
-        <div class="sub" style="display:flex;justify-content:space-between;gap:1rem;">
-          <span>CA brut</span>
-          <span style="color:<?= $proj12Net >= 0 ? 'var(--success)' : 'var(--error)' ?>;font-weight:500;">Net: <?= ($proj12Net >= 0 ? '+' : '') . number_format($proj12Net, 0, ',', ' ') ?> €</span>
-        </div>
-      </div>
-      <?php endif; ?>
+      <?php endforeach; ?>
     </div>
 
-    <!-- Forecast chart -->
-    <div class="card" style="margin-bottom:1.5rem;">
-      <p class="card-title">
-        <span class="material-icons" style="vertical-align:middle;font-size:1rem;">multiline_chart</span>
-        Historique + Projections (CA brut / Charges / Net)
+    <!-- Main forecast chart -->
+    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+      <p class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+        <span class="material-icons-round text-blue-500 text-base">show_chart</span>
+        Évolution & Prévisions 12 mois
       </p>
-      <div class="chart-container" style="height:350px;">
+      <div style="position:relative;height:280px;">
         <canvas id="forecastChart"></canvas>
       </div>
     </div>
 
-    <div class="charts-grid">
-
-      <div class="card" style="grid-column:1/-1;">
-        <p class="card-title">
-          <span class="material-icons" style="vertical-align:middle;font-size:1rem;">repeat</span>
-          Échéances prévisionnelles détectées
-        </p>
-        <div class="table-scroll">
-        <table class="data-table">
-          <thead>
+    <!-- Recurring services -->
+    <?php if (!empty($data['recurring'])): ?>
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+        <span class="material-icons-round text-emerald-500 text-base">autorenew</span>
+        <p class="text-sm font-semibold text-slate-900">Services récurrents détectés</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-slate-50">
             <tr>
-              <th>Tiers</th>
-              <th>Service</th>
-              <th>Fréquence</th>
-              <th>Montant moyen</th>
-              <th>Dernière facture</th>
-              <th>Prochaine échéance</th>
+              <?php foreach(['Client','Service','Fréquence','Montant','Dernier','Prochain'] as $h): ?>
+              <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap"><?= $h ?></th>
+              <?php endforeach; ?>
             </tr>
           </thead>
-          <tbody>
-            <?php if (empty($data['recurring'])): ?>
-            <tr>
-              <td colspan="6" style="text-align:center;color:#5f6368;padding:2rem;">
-                Aucune facture payée disponible pour calculer les échéances.
-              </td>
-            </tr>
-            <?php else: ?>
-            <?php foreach ($data['recurring'] as $item): ?>
-            <tr>
-              <td><?= htmlspecialchars($item['tiers_name'], ENT_QUOTES, 'UTF-8') ?></td>
-              <td><?= htmlspecialchars($item['service_label'], ENT_QUOTES, 'UTF-8') ?></td>
-              <td>
-                <span class="badge badge-info">
-                  <?= htmlspecialchars($item['period_label'], ENT_QUOTES, 'UTF-8') ?>
+          <tbody class="divide-y divide-slate-100">
+            <?php foreach ($data['recurring'] as $r): ?>
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-4 py-3 text-sm text-slate-700 font-medium"><?= htmlspecialchars($r['tiers_name'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
+              <td class="px-4 py-3 text-sm text-slate-600"><?= htmlspecialchars($r['service_label'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                  <?= htmlspecialchars($r['period_label'] ?? '–', ENT_QUOTES, 'UTF-8') ?>
                 </span>
               </td>
-              <td style="font-weight:500;"><?= number_format((float)$item['amount'], 0, ',', ' ') ?> €</td>
-              <td><?= htmlspecialchars(date('d/m/Y', strtotime($item['last_date'])), ENT_QUOTES, 'UTF-8') ?></td>
-              <td><?= htmlspecialchars(date('d/m/Y', strtotime($item['next_date'])), ENT_QUOTES, 'UTF-8') ?></td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-900 whitespace-nowrap"><?= number_format((float)$r['amount'], 2, ',', ' ') ?> €</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap"><?= !empty($r['last_date']) ? date('d/m/Y', strtotime($r['last_date'])) : '–' ?></td>
+              <td class="px-4 py-3 text-sm text-blue-600 font-medium whitespace-nowrap"><?= !empty($r['next_date']) ? date('d/m/Y', strtotime($r['next_date'])) : '–' ?></td>
             </tr>
             <?php endforeach; ?>
-            <?php endif; ?>
           </tbody>
         </table>
-        </div>
       </div>
+    </div>
+    <?php endif; ?>
 
-      <!-- 3 and 6 month projections -->
-      <?php if (!empty($data['proj3']['labels'])): ?>
-      <div class="card">
-        <p class="card-title">
-          <span class="material-icons" style="vertical-align:middle;font-size:1rem;">event</span>
-          Projection 3 mois (détail)
-        </p>
-        <div class="table-scroll">
-        <table class="data-table">
-          <thead><tr><th>Mois</th><th>CA brut (€)</th><th>Charges (€)</th><th>Net (€)</th></tr></thead>
-          <tbody>
-          <?php foreach ($data['proj3']['labels'] as $i => $label): ?>
+    <!-- 12-month detail table -->
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+        <span class="material-icons-round text-slate-500 text-base">calendar_month</span>
+        <p class="text-sm font-semibold text-slate-900">Détail mois par mois (12 mois)</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-slate-50">
             <tr>
-              <td><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></td>
-              <td style="font-weight:500;"><?= number_format($data['proj3']['values'][$i], 0, ',', ' ') ?> €</td>
-              <td><?= number_format($data['proj3']['expense_values'][$i] ?? 0, 0, ',', ' ') ?> €</td>
-              <td style="font-weight:500;color:<?= (($data['proj3']['net_values'][$i] ?? 0) >= 0) ? 'var(--success)' : 'var(--error)' ?>;">
-                <?= (($data['proj3']['net_values'][$i] ?? 0) >= 0 ? '+' : '') . number_format($data['proj3']['net_values'][$i] ?? 0, 0, ',', ' ') ?> €
+              <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Mois</th>
+              <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">CA projeté</th>
+              <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Dépenses</th>
+              <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Net</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <?php
+            $proj12 = $data['proj12'];
+            foreach ($proj12['labels'] as $i => $label): 
+              $rev = $proj12['values'][$i] ?? 0;
+              $exp = $proj12['expense_values'][$i] ?? 0;
+              $net = $proj12['net_values'][$i] ?? 0;
+            ?>
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-4 py-3 text-sm font-medium text-slate-900"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></td>
+              <td class="px-4 py-3 text-sm text-slate-700 text-right whitespace-nowrap"><?= number_format((float)$rev, 0, ',', ' ') ?> €</td>
+              <td class="px-4 py-3 text-sm text-red-500 text-right whitespace-nowrap"><?= number_format((float)$exp, 0, ',', ' ') ?> €</td>
+              <td class="px-4 py-3 text-sm font-semibold <?= $net >= 0 ? 'text-emerald-600' : 'text-red-600' ?> text-right whitespace-nowrap">
+                <?= number_format((float)$net, 0, ',', ' ') ?> €
               </td>
             </tr>
-          <?php endforeach; ?>
+            <?php endforeach; ?>
           </tbody>
         </table>
-        </div>
       </div>
-
-      <div class="card">
-        <p class="card-title">
-          <span class="material-icons" style="vertical-align:middle;font-size:1rem;">date_range</span>
-          Projection 12 mois (détail)
-        </p>
-        <div class="table-scroll">
-        <table class="data-table">
-          <thead><tr><th>Mois</th><th>CA brut (€)</th><th>Charges (€)</th><th>Net (€)</th></tr></thead>
-          <tbody>
-          <?php foreach ($data['proj12']['labels'] as $i => $label): ?>
-            <tr>
-              <td><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></td>
-              <td style="font-weight:500;"><?= number_format($data['proj12']['values'][$i], 0, ',', ' ') ?> €</td>
-              <td><?= number_format($data['proj12']['expense_values'][$i] ?? 0, 0, ',', ' ') ?> €</td>
-              <td style="font-weight:500;color:<?= (($data['proj12']['net_values'][$i] ?? 0) >= 0) ? 'var(--success)' : 'var(--error)' ?>;">
-                <?= (($data['proj12']['net_values'][$i] ?? 0) >= 0 ? '+' : '') . number_format($data['proj12']['net_values'][$i] ?? 0, 0, ',', ' ') ?> €
-              </td>
-            </tr>
-          <?php endforeach; ?>
-          </tbody>
-        </table>
-        </div>
-      </div>
-      <?php endif; ?>
-
     </div>
 
-  </div>
+  </main>
 </div>
 
 <?php
-$histLabels = json_encode(array_column($data['historical'], 'label'));
-$histValues = json_encode(array_column($data['historical'], 'revenue'));
-$ma3Values  = json_encode($data['ma3']);
-$ma6Values  = json_encode($data['ma6']);
+$hist     = $data['historical'];
+$ma3      = $data['ma3'];
+$ma6      = $data['ma6'];
+$proj12   = $data['proj12'];
 
-// Build combined labels/values: historical + projection 12m
-$combinedLabels = array_column($data['historical'], 'label');
-$combinedHist   = array_column($data['historical'], 'revenue');
-$projLabels     = $data['proj12']['labels'] ?? [];
-$projVals       = $data['proj12']['values'] ?? [];
-$projExpenseVals = $data['proj12']['expense_values'] ?? [];
-$projNetVals    = $data['proj12']['net_values'] ?? [];
-$histExpenseVals = $data['historical_expenses'] ?? array_fill(0, count($combinedHist), 0.0);
-$histNetVals     = [];
-foreach ($combinedHist as $i => $grossVal) {
-  $histNetVals[] = (float)$grossVal - (float)($histExpenseVals[$i] ?? 0);
-}
-
-// Nulls for hist dataset in projection range
-$histFull = $combinedHist;
-$projFull = array_fill(0, count($combinedHist) - 1, null);
-$projFull[] = end($combinedHist); // connect last hist point
-foreach ($projVals as $v) { $projFull[] = $v; }
-
-$expenseHistFull = array_map(static fn($v): float => round((float)$v, 2), $histExpenseVals);
-$expenseProjFull = array_fill(0, count($combinedHist) - 1, null);
-$expenseProjFull[] = end($expenseHistFull) ?: 0;
-foreach ($projExpenseVals as $v) { $expenseProjFull[] = $v; }
-
-$netHistFull = array_map(static fn($v): float => round((float)$v, 2), $histNetVals);
-$netProjFull = array_fill(0, count($combinedHist) - 1, null);
-$netProjFull[] = end($netHistFull) ?: 0;
-foreach ($projNetVals as $v) { $netProjFull[] = $v; }
-
-$allLabels = array_merge($combinedLabels, $projLabels);
-
-$jHistFull  = json_encode($histFull);
-$jProjFull  = json_encode($projFull);
-$jExpenseFull = json_encode($expenseProjFull);
-$jNetFull = json_encode($netProjFull);
-$jAllLabels = json_encode($allLabels);
-$jMa3       = json_encode(array_merge($data['ma3'], array_fill(0, count($projLabels), null)));
-$jMa6       = json_encode(array_merge($data['ma6'], array_fill(0, count($projLabels), null)));
+$histLabels = json_encode(array_column($hist, 'label'));
+$histVals   = json_encode(array_map(fn($h)=>(float)($h['revenue']??0), $hist));
+$ma3Vals    = json_encode(array_map(fn($h)=>(float)($h['ma3']??0), $hist));
+$ma6Vals    = json_encode(array_map(fn($h)=>(float)($h['ma6']??0), $hist));
+$projLabels = json_encode($proj12['labels']);
+$projVals   = json_encode($proj12['values']);
+$projNet    = json_encode($proj12['net_values']);
+$histCount  = count($hist);
 ?>
-
 <script>
+const allLabels = [...<?= $histLabels ?>, ...<?= $projLabels ?>];
+const histVals  = <?= $histVals ?>;
+const ma3Vals   = <?= $ma3Vals ?>;
+const ma6Vals   = <?= $ma6Vals ?>;
+const projVals  = <?= $projVals ?>;
+const projNet   = <?= $projNet ?>;
+const histCount = <?= $histCount ?>;
+const nullPad   = (arr, before, after) => [...Array(before).fill(null), ...arr, ...Array(after).fill(null)];
+
 new Chart(document.getElementById('forecastChart'), {
   type: 'line',
   data: {
-    labels: <?= $jAllLabels ?>,
+    labels: allLabels,
     datasets: [
       {
-        label: 'CA réel (€)',
-        data: <?= $jHistFull ?>,
-        borderColor: '#1a73e8',
-        backgroundColor: 'rgba(26,115,232,0.07)',
-        fill: true,
-        tension: 0.3,
-        pointRadius: 3,
-        borderWidth: 2,
+        label: 'Historique CA',
+        data: nullPad(histVals, 0, allLabels.length - histCount),
+        borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,.1)',
+        fill: true, tension: 0.3, borderWidth: 2, pointRadius: 3
       },
       {
-        label: 'Projection (€)',
-        data: <?= $jProjFull ?>,
-        borderColor: '#34a853',
-        backgroundColor: 'rgba(52,168,83,0.07)',
-        fill: false,
-        borderDash: [6, 4],
-        tension: 0.3,
-        pointRadius: 3,
-        borderWidth: 2,
+        label: 'Moy. 3 mois',
+        data: nullPad(ma3Vals, 0, allLabels.length - histCount),
+        borderColor: '#f59e0b', fill: false, tension: 0.3,
+        borderWidth: 1.5, borderDash: [4,3], pointRadius: 0
       },
       {
-        label: 'Charges projetées (€)',
-        data: <?= $jExpenseFull ?>,
-        borderColor: '#f9ab00',
-        backgroundColor: 'rgba(249,171,0,0.05)',
-        fill: false,
-        borderDash: [4, 4],
-        tension: 0.25,
-        pointRadius: 2,
-        borderWidth: 2,
+        label: 'Moy. 6 mois',
+        data: nullPad(ma6Vals, 0, allLabels.length - histCount),
+        borderColor: '#8b5cf6', fill: false, tension: 0.3,
+        borderWidth: 1.5, borderDash: [6,3], pointRadius: 0
       },
       {
-        label: 'Net projeté (€)',
-        data: <?= $jNetFull ?>,
-        borderColor: '#d93025',
-        backgroundColor: 'rgba(217,48,37,0.04)',
-        fill: false,
-        tension: 0.25,
-        pointRadius: 2,
-        borderWidth: 2,
+        label: 'Proj. CA',
+        data: nullPad(projVals, histCount, 0),
+        borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.08)',
+        fill: true, tension: 0.3, borderWidth: 2, borderDash: [5,4], pointRadius: 4
       },
       {
-        label: 'MM 3 mois',
-        data: <?= $jMa3 ?>,
-        borderColor: '#fbbc04',
-        fill: false,
-        borderDash: [3, 3],
-        tension: 0.3,
-        pointRadius: 0,
-        borderWidth: 1.5,
+        label: 'Proj. Net',
+        data: nullPad(projNet, histCount, 0),
+        borderColor: '#ef4444', fill: false, tension: 0.3,
+        borderWidth: 1.5, borderDash: [3,3], pointRadius: 3
       },
-      {
-        label: 'MM 6 mois',
-        data: <?= $jMa6 ?>,
-        borderColor: '#ea4335',
-        fill: false,
-        borderDash: [3, 3],
-        tension: 0.3,
-        pointRadius: 0,
-        borderWidth: 1.5,
-      }
     ]
   },
   options: {
-    responsive: true,
-    maintainAspectRatio: false,
+    responsive: true, maintainAspectRatio: false,
     interaction: { mode: 'index', intersect: false },
     plugins: {
-      legend: { position: 'top' },
-      tooltip: {
-        callbacks: {
-          label: ctx => ' ' + ctx.dataset.label + ': ' + (ctx.raw !== null ? Number(ctx.raw).toLocaleString('fr-FR') + ' €' : '–')
-        }
-      }
+      legend: { labels: { boxWidth: 12, font: { size: 11 } } }
     },
     scales: {
-      y: {
-        beginAtZero: true,
-        ticks: { callback: v => v.toLocaleString('fr-FR') + ' €' },
-        grid: { color: '#f0f0f0' }
-      },
-      x: { grid: { display: false }, ticks: { maxRotation: 45 } }
+      y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString('fr-FR') + ' €' }, grid: { color: '#f1f5f9' } },
+      x: { grid: { display: false }, ticks: { maxRotation: 30, font: { size: 10 } } }
     }
   }
 });

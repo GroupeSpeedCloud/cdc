@@ -112,13 +112,97 @@ switch (true) {
         (new TiersController())->detail((int)$m[1]);
         break;
 
+    // Tiers – CRUD manuel
+    case $requestUri === '/tiers/store' && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        require_once __DIR__ . '/services/RiskScoringService.php';
+        loadClass('TiersController');
+        (new TiersController())->store();
+        break;
+
+    case preg_match('#^/tiers/update/(\d+)$#', $requestUri, $m) && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        require_once __DIR__ . '/services/RiskScoringService.php';
+        loadClass('TiersController');
+        (new TiersController())->update((int)$m[1]);
+        break;
+
+    case preg_match('#^/tiers/delete/(\d+)$#', $requestUri, $m) && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        require_once __DIR__ . '/services/RiskScoringService.php';
+        loadClass('TiersController');
+        (new TiersController())->destroy((int)$m[1]);
+        break;
+
     // Payments
     case $requestUri === '/payments' && $method === 'GET':
         require_once __DIR__ . '/models/BaseModel.php';
         require_once __DIR__ . '/models/Payment.php';
+        require_once __DIR__ . '/models/Invoice.php';
+        require_once __DIR__ . '/models/Tiers.php';
         require_once __DIR__ . '/services/PaymentAnalyzerService.php';
         loadClass('PaymentsController');
         (new PaymentsController())->index();
+        break;
+
+    case $requestUri === '/payments/store' && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Payment.php';
+        require_once __DIR__ . '/models/Invoice.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        loadClass('PaymentsController');
+        (new PaymentsController())->store();
+        break;
+
+    case preg_match('#^/payments/delete/(\d+)$#', $requestUri, $m) && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Payment.php';
+        loadClass('PaymentsController');
+        (new PaymentsController())->destroy((int)$m[1]);
+        break;
+
+    // Factures (saisie manuelle)
+    case $requestUri === '/invoices' && $method === 'GET':
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Invoice.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        loadClass('InvoicesController');
+        (new InvoicesController())->index();
+        break;
+
+    case $requestUri === '/invoices/store' && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Invoice.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        loadClass('InvoicesController');
+        (new InvoicesController())->store();
+        break;
+
+    case preg_match('#^/invoices/pay/(\d+)$#', $requestUri, $m) && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Invoice.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        loadClass('InvoicesController');
+        (new InvoicesController())->markPaid((int)$m[1]);
+        break;
+
+    case preg_match('#^/invoices/delete/(\d+)$#', $requestUri, $m) && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Invoice.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        loadClass('InvoicesController');
+        (new InvoicesController())->destroy((int)$m[1]);
         break;
 
     // Forecast
@@ -160,20 +244,6 @@ switch (true) {
         require_once __DIR__ . '/models/Expense.php';
         loadClass('ExpensesController');
         (new ExpensesController())->destroy((int)$m[1]);
-        break;
-
-    // Sync
-    case $requestUri === '/sync' && $method === 'GET':
-        require_once __DIR__ . '/services/DolibarrService.php';
-        loadClass('SyncController');
-        (new SyncController())->index();
-        break;
-
-    case $requestUri === '/sync/force' && $method === 'POST':
-        validateCsrf();
-        require_once __DIR__ . '/services/DolibarrService.php';
-        loadClass('SyncController');
-        (new SyncController())->forceSync();
         break;
 
     // Export
