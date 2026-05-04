@@ -554,6 +554,28 @@ class ForecastService
         return ['values' => array_map(static fn(float $value): float => round($value, 2), $values)];
     }
 
+    private function getRecurringProjection(int $months): array
+    {
+        $values    = array_fill(0, $months, 0.0);
+        $recurring = $this->detectRecurringInvoices();
+
+        foreach ($recurring as $item) {
+            $date = $item['next_date'];
+            while (strtotime($date) <= strtotime("+$months months")) {
+                $monthIndex = ((int)date('Y', strtotime($date)) - (int)date('Y')) * 12
+                    + ((int)date('m', strtotime($date)) - (int)date('m')) - 1;
+
+                if ($monthIndex >= 0 && $monthIndex < $months) {
+                    $values[$monthIndex] += (float)$item['amount'];
+                }
+
+                $date = $this->nextOccurrenceDate($date, $item['period']);
+            }
+        }
+
+        return ['values' => array_map(static fn(float $value): float => round($value, 2), $values)];
+    }
+
     private function classifyPeriod(array $intervals, string $lastDate = '', float $avgAmount = 0.0, int $nbLines = 0): ?string
     {
         if (!$intervals) {
