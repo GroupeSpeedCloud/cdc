@@ -4,7 +4,12 @@
 <div id="main">
   <!-- Top bar -->
   <header id="topbar">
-    <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">dashboard</span>Tableau de bord</h1>
+    <div style="display:flex;align-items:center;min-width:0;">
+      <button id="menu-toggle" aria-label="Ouvrir le menu">
+        <span class="material-icons">menu</span>
+      </button>
+      <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">dashboard</span>Tableau de bord</h1>
+    </div>
     <div class="topbar-user">
       <?php if (!empty($user['avatar'])): ?>
         <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Avatar">
@@ -134,7 +139,7 @@
         <span class="material-icons" style="vertical-align:middle;margin-right:0.25rem;font-size:1rem;">analytics</span>
         Lecture annuelle rapide
       </p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="grid-cols-2">
         <div>
           <div style="display:flex;justify-content:space-between;font-size:0.875rem;margin-bottom:0.25rem;">
             <span>Poids des charges</span>
@@ -166,6 +171,7 @@
         <span class="material-icons" style="vertical-align:middle;margin-right:0.25rem;font-size:1rem;">insights</span>
         Indicateurs de précision
       </p>
+      <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
@@ -219,6 +225,7 @@
           <?php endif; ?>
         </tbody>
       </table>
+      </div>
     </div>
 
     <?php if (!empty($annual['alerts'])): ?>
@@ -294,9 +301,9 @@
             foreach ($annual['expense_categories'] as $cat => $amount):
               $pct = (float)($annual['monthly_expenses'] ?? 0) > 0 ? round(((float)$amount / (float)$annual['monthly_expenses']) * 100) : 0;
           ?>
-          <div style="display:flex;align-items:center;gap:1rem;">
-            <div style="width:150px;font-size:0.875rem;flex-shrink:0;"><?= htmlspecialchars((string)$cat, ENT_QUOTES, 'UTF-8') ?></div>
-            <div style="flex:1;height:18px;background:#f1f3f4;border-radius:6px;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <div style="min-width:100px;max-width:150px;width:150px;font-size:0.875rem;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars((string)$cat, ENT_QUOTES, 'UTF-8') ?></div>
+            <div style="flex:1;min-width:80px;height:18px;background:#f1f3f4;border-radius:6px;overflow:hidden;">
               <div style="height:100%;width:<?= round(((float)$amount / (float)$maxCat) * 100) ?>%;background:#1a73e8;"></div>
             </div>
             <div style="width:130px;text-align:right;font-weight:500;font-size:0.875rem;"><?= number_format((float)$amount, 0, ',', ' ') ?> €/mois</div>

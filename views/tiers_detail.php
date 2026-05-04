@@ -3,12 +3,17 @@
 
 <div id="main">
   <header id="topbar">
-    <h1>
-      <a href="<?= APP_URL ?>/tiers" style="color:inherit;text-decoration:none;">
-        <span class="material-icons" style="vertical-align:middle;font-size:1rem;">arrow_back</span>
-      </a>
-      &nbsp;<?= htmlspecialchars($tiers['name'], ENT_QUOTES, 'UTF-8') ?>
-    </h1>
+    <div style="display:flex;align-items:center;min-width:0;">
+      <button id="menu-toggle" aria-label="Ouvrir le menu">
+        <span class="material-icons">menu</span>
+      </button>
+      <h1>
+        <a href="<?= APP_URL ?>/tiers" style="color:inherit;text-decoration:none;">
+          <span class="material-icons" style="vertical-align:middle;font-size:1rem;">arrow_back</span>
+        </a>
+        &nbsp;<?= htmlspecialchars($tiers['name'], ENT_QUOTES, 'UTF-8') ?>
+      </h1>
+    </div>
     <div class="topbar-user">
       <?php if (!empty($user['avatar'])): ?>
         <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Avatar">
@@ -137,6 +142,7 @@
         <span class="material-icons" style="vertical-align:middle;font-size:1rem;">receipt_long</span>
         Factures récentes
       </p>
+      <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
@@ -174,6 +180,7 @@
           <?php endif; ?>
         </tbody>
       </table>
+      </div>
     </div>
 
     <!-- Payments table -->
@@ -182,6 +189,7 @@
         <span class="material-icons" style="vertical-align:middle;font-size:1rem;">payments</span>
         Historique des paiements
       </p>
+      <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
@@ -214,6 +222,7 @@
           <?php endif; ?>
         </tbody>
       </table>
+      </div>
     </div>
 
   </div>

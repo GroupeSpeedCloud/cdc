@@ -10,14 +10,19 @@ $navItems = [
 ];
 ?>
 <nav id="sidebar">
-  <!-- Logo -->
+  <!-- Logo / header row -->
   <div style="padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid var(--outline);">
-    <div style="display:flex;align-items:center;gap:0.75rem;">
-      <span class="material-icons" style="color:var(--primary);font-size:2rem;">water_drop</span>
-      <div>
-        <div style="font-size:1.25rem;font-weight:700;color:var(--primary);">Flow</div>
-        <div style="font-size:0.7rem;color:#5f6368;text-transform:uppercase;letter-spacing:1px;">Groupe Speed</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span class="material-icons" style="color:var(--primary);font-size:2rem;">water_drop</span>
+        <div>
+          <div style="font-size:1.25rem;font-weight:700;color:var(--primary);">Flow</div>
+          <div style="font-size:0.7rem;color:#5f6368;text-transform:uppercase;letter-spacing:1px;">Groupe Speed</div>
+        </div>
       </div>
+      <button id="sidebar-close" aria-label="Fermer le menu">
+        <span class="material-icons" style="font-size:1.25rem;">close</span>
+      </button>
     </div>
   </div>
 

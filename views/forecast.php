@@ -3,7 +3,12 @@
 
 <div id="main">
   <header id="topbar">
-    <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">trending_up</span>Prévisions financières</h1>
+    <div style="display:flex;align-items:center;min-width:0;">
+      <button id="menu-toggle" aria-label="Ouvrir le menu">
+        <span class="material-icons">menu</span>
+      </button>
+      <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">trending_up</span>Prévisions financières</h1>
+    </div>
     <div class="topbar-user">
       <?php if (!empty($user['avatar'])): ?>
         <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Avatar">
@@ -106,6 +111,7 @@
           <span class="material-icons" style="vertical-align:middle;font-size:1rem;">repeat</span>
           Échéances prévisionnelles détectées
         </p>
+        <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
@@ -142,6 +148,7 @@
             <?php endif; ?>
           </tbody>
         </table>
+        </div>
       </div>
 
       <!-- 3 and 6 month projections -->
@@ -151,6 +158,7 @@
           <span class="material-icons" style="vertical-align:middle;font-size:1rem;">event</span>
           Projection 3 mois (détail)
         </p>
+        <div class="table-scroll">
         <table class="data-table">
           <thead><tr><th>Mois</th><th>CA brut (€)</th><th>Charges (€)</th><th>Net (€)</th></tr></thead>
           <tbody>
@@ -166,6 +174,7 @@
           <?php endforeach; ?>
           </tbody>
         </table>
+        </div>
       </div>
 
       <div class="card">
@@ -173,6 +182,7 @@
           <span class="material-icons" style="vertical-align:middle;font-size:1rem;">date_range</span>
           Projection 12 mois (détail)
         </p>
+        <div class="table-scroll">
         <table class="data-table">
           <thead><tr><th>Mois</th><th>CA brut (€)</th><th>Charges (€)</th><th>Net (€)</th></tr></thead>
           <tbody>
@@ -188,6 +198,7 @@
           <?php endforeach; ?>
           </tbody>
         </table>
+        </div>
       </div>
       <?php endif; ?>
 
