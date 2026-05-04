@@ -2,175 +2,130 @@
 <?php require_once __DIR__ . '/partials/sidebar.php'; ?>
 
 <?php
-$statusLabels = [0=>'Brouillon',1=>'Validée',2=>'Payée',3=>'Abandonnée'];
-$statusBadge  = [0=>'bg-slate-100 text-slate-600',1=>'bg-amber-100 text-amber-700',2=>'bg-emerald-100 text-emerald-700',3=>'bg-red-100 text-red-600'];
+$statusLabel = [0=>'Brouillon',1=>'Validée',2=>'Payée',3=>'Abandonnée'];
+$statusCss   = [0=>'badge-slate',1=>'badge-amber',2=>'badge-green',3=>'badge-red'];
 $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
 ?>
 
-<div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-64">
-  <header class="bg-white/90 border-b border-slate-200 px-6 h-14 flex items-center justify-between flex-shrink-0 sticky top-0 z-20" style="backdrop-filter:blur(10px)">
-    <div class="flex items-center gap-2.5">
-      <button id="menu-toggle" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
-        <span class="material-icons-round text-xl">menu</span>
+<div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-56">
+
+  <div class="topbar flex items-center justify-between px-6 h-14 flex-shrink-0 sticky top-0 z-20">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="menu-toggle" class="lg:hidden" style="background:none;border:none;cursor:pointer;padding:4px;">
+        <span class="material-icons-round" style="color:#64748b;font-size:20px;">menu</span>
       </button>
-      <span class="material-icons-round text-blue-600 text-xl">receipt_long</span>
-      <h1 class="text-base font-semibold text-slate-900 font-display">Factures</h1>
+      <span style="font-size:15px;font-weight:700;color:#0f172a;">Factures</span>
     </div>
-    <div class="flex items-center gap-2.5">
+    <div style="display:flex;align-items:center;gap:10px;">
       <?php if (!empty($user['avatar'])): ?>
-      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-7 h-7 rounded-full">
+      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" style="width:28px;height:28px;border-radius:50%;" alt="">
       <?php endif; ?>
-      <span class="text-sm font-medium text-slate-600 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+      <span style="font-size:13px;font-weight:500;color:#475569;"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
     </div>
-  </header>
+  </div>
 
-  <main class="flex-1 overflow-y-auto p-5 space-y-4" id="invoices-page" v-cloak>
+  <main class="flex-1 overflow-y-auto" style="padding:20px 24px;" id="invoices-page" v-cloak>
 
-    <!-- Flash -->
     <?php if (!empty($_GET['message'])): ?>
-    <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 text-sm">
-      <span class="material-icons-round text-emerald-500 text-lg">check_circle</span>
+    <div class="flash-ok" style="margin-bottom:12px;">
+      <span class="material-icons-round" style="font-size:16px;color:#16a34a;">check_circle</span>
       <?= htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8') ?>
     </div>
     <?php endif; ?>
     <?php if (!empty($_GET['error'])): ?>
-    <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
-      <span class="material-icons-round text-red-500 text-lg">error</span>
+    <div class="flash-err" style="margin-bottom:12px;">
+      <span class="material-icons-round" style="font-size:16px;color:#dc2626;">error</span>
       <?= htmlspecialchars($_GET['error'], ENT_QUOTES, 'UTF-8') ?>
     </div>
     <?php endif; ?>
 
     <!-- Toolbar -->
-    <div class="flex flex-wrap items-center gap-3">
-      <form method="GET" action="<?= APP_URL ?>/invoices" class="flex items-center gap-2 flex-1 min-w-0">
-        <div class="relative flex-1 max-w-xs">
-          <span class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">search</span>
-          <input type="text" name="search" value="<?= htmlspecialchars($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                 placeholder="Référence ou client…"
-                 class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <form method="GET" action="<?= APP_URL ?>/invoices" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
+        <div style="position:relative;flex:1;max-width:300px;">
+          <span class="material-icons-round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:16px;pointer-events:none;">search</span>
+          <input type="text" name="search" value="<?= htmlspecialchars($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Référence ou client…" style="width:100%;padding:7px 10px 7px 34px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;background:#fff;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
         </div>
-        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
-          <span class="material-icons-round text-base">search</span>
-        </button>
+        <button type="submit" class="btn btn-ghost">Filtrer</button>
       </form>
-      <button @click="showAdd = !showAdd"
-              class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-        <span class="material-icons-round text-base">add</span> Nouvelle facture
+      <button @click="showAdd=!showAdd" class="btn btn-primary">
+        <span class="material-icons-round" style="font-size:16px;">add</span> Nouvelle facture
       </button>
     </div>
 
     <!-- Add form -->
-    <div v-show="showAdd" class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-      <p class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-        <span class="material-icons-round text-blue-500 text-base">add_circle</span> Ajouter une facture manuellement
-      </p>
-      <form method="POST" action="<?= APP_URL ?>/invoices/store"
-            class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div v-show="showAdd" class="panel" style="margin-bottom:16px;padding:20px;">
+      <div style="font-size:13px;font-weight:600;color:#0f172a;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+        <span class="material-icons-round" style="font-size:16px;color:#2563eb;">add_circle</span> Nouvelle facture
+      </div>
+      <form method="POST" action="<?= APP_URL ?>/invoices/store" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
         <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Client</label>
-          <select name="tiers_id" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <div class="field">
+          <label>Client</label>
+          <select name="tiers_id">
             <option value="">— Sans client —</option>
             <?php foreach ($tiersAll as $t): ?>
             <option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['name'], ENT_QUOTES, 'UTF-8') ?></option>
             <?php endforeach; ?>
           </select>
         </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Description / Service</label>
-          <input type="text" name="description" placeholder="ex: Maintenance WordPress"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Référence</label>
-          <input type="text" name="ref" placeholder="Auto-générée si vide"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Date de facture *</label>
-          <input type="date" name="date_invoice" value="<?= date('Y-m-d') ?>" required
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Date d'échéance</label>
-          <input type="date" name="date_due"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Montant HT (€) *</label>
-          <input type="number" name="total_ht" step="0.01" min="0.01" placeholder="0.00" required
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Montant TTC (€)</label>
-          <input type="number" name="total_ttc" step="0.01" placeholder="HT × 1.20 si vide"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Statut</label>
-          <select name="status" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <div class="field"><label>Montant HT (€) *</label><input type="number" name="total_ht" step="0.01" min="0.01" placeholder="0.00" required></div>
+        <div class="field"><label>Date *</label><input type="date" name="date_invoice" value="<?= date('Y-m-d') ?>" required></div>
+        <div class="field">
+          <label>Statut</label>
+          <select name="status">
             <option value="2" selected>Payée</option>
             <option value="1">Validée</option>
             <option value="0">Brouillon</option>
-            <option value="3">Abandonnée</option>
           </select>
         </div>
-        <div class="sm:col-span-2 xl:col-span-4 flex gap-3">
-          <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-            <span class="material-icons-round text-base">save</span> Créer la facture
-          </button>
-          <button type="button" @click="showAdd=false" class="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
-            Annuler
-          </button>
+        <div style="grid-column:1/-1;display:flex;gap:8px;padding-top:4px;">
+          <button type="submit" class="btn btn-primary"><span class="material-icons-round" style="font-size:15px;">save</span> Créer</button>
+          <button type="button" @click="showAdd=false" class="btn btn-ghost">Annuler</button>
         </div>
       </form>
     </div>
 
     <!-- Table -->
-    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <?php foreach(['Référence','Client','Date','Échéance','Total HT','Statut','Actions'] as $h): ?>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap"><?= $h ?></th>
-              <?php endforeach; ?>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
+    <div class="panel" style="overflow:hidden;">
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>Référence</th>
+            <th>Client</th>
+            <th>Date</th>
+            <th>Échéance</th>
+            <th style="text-align:right;">Total HT</th>
+            <th>Statut</th>
+            <th style="text-align:right;">Actions</th>
+          </tr></thead>
+          <tbody>
             <?php if (empty($invoices)): ?>
-            <tr><td colspan="7" class="px-4 py-10 text-center text-sm text-slate-400">Aucune facture. Ajoutez-en une avec le bouton ci-dessus.</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:#94a3b8;">Aucune facture. Créez-en une avec le bouton ci-dessus.</td></tr>
             <?php else: ?>
             <?php foreach ($invoices as $inv): ?>
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="px-4 py-3.5 text-sm font-semibold text-slate-900 whitespace-nowrap"><?= htmlspecialchars($inv['ref'], ENT_QUOTES, 'UTF-8') ?></td>
-              <td class="px-4 py-3.5 text-sm text-slate-700 max-w-[160px] truncate"><?= htmlspecialchars($inv['tiers_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
-              <td class="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap"><?= $inv['date_invoice'] ? date('d/m/Y', strtotime($inv['date_invoice'])) : '–' ?></td>
-              <td class="px-4 py-3.5 text-sm whitespace-nowrap <?= ($inv['is_overdue'] ? 'text-red-600 font-medium' : 'text-slate-600') ?>">
+            <tr>
+              <td style="font-weight:700;white-space:nowrap;"><?= htmlspecialchars($inv['ref'], ENT_QUOTES, 'UTF-8') ?></td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($inv['tiers_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+              <td style="white-space:nowrap;color:#64748b;font-size:12px;"><?= $inv['date_invoice'] ? date('d/m/Y', strtotime($inv['date_invoice'])) : '–' ?></td>
+              <td style="white-space:nowrap;font-size:12px;<?= $inv['is_overdue'] ? 'color:#dc2626;font-weight:600;' : 'color:#64748b;' ?>">
                 <?= $inv['date_due'] ? date('d/m/Y', strtotime($inv['date_due'])) : '–' ?>
-                <?php if ($inv['is_overdue']): ?>
-                <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">Retard</span>
-                <?php endif; ?>
+                <?php if ($inv['is_overdue']): ?><span class="badge badge-red" style="margin-left:4px;">Retard</span><?php endif; ?>
               </td>
-              <td class="px-4 py-3.5 text-sm font-semibold text-slate-900 whitespace-nowrap"><?= number_format((float)$inv['total_ht'],2,',',' ') ?> €</td>
-              <td class="px-4 py-3.5">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <?= $statusBadge[$inv['status']] ?? 'bg-slate-100 text-slate-600' ?>">
-                  <?= $statusLabels[$inv['status']] ?? '–' ?>
-                </span>
-              </td>
-              <td class="px-4 py-3.5">
-                <div class="flex items-center gap-1.5">
+              <td style="text-align:right;font-weight:700;white-space:nowrap;"><?= number_format((float)$inv['total_ht'], 2, ',', ' ') ?> €</td>
+              <td><span class="badge <?= $statusCss[$inv['status']] ?? 'badge-slate' ?>"><?= $statusLabel[$inv['status']] ?? '–' ?></span></td>
+              <td style="text-align:right;">
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;">
                   <?php if ((int)$inv['status'] !== 2): ?>
                   <form method="POST" action="<?= APP_URL ?>/invoices/pay/<?= (int)$inv['id'] ?>">
                     <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-                    <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1.5 border border-emerald-300 text-emerald-600 text-xs font-medium rounded-lg hover:bg-emerald-50 transition-colors" title="Marquer payée">
-                      <span class="material-icons-round text-xs">check_circle</span>
+                    <button type="submit" class="btn btn-ghost" style="padding:5px 10px;font-size:12px;color:#16a34a;border-color:#bbf7d0;" title="Marquer payée">
+                      <span class="material-icons-round" style="font-size:13px;">check_circle</span>
                     </button>
                   </form>
                   <?php endif; ?>
-                  <button @click="confirmDelete={id:<?= (int)$inv['id'] ?>,ref:'<?= htmlspecialchars(addslashes($inv['ref']), ENT_QUOTES, 'UTF-8') ?>'}"
-                          class="inline-flex items-center gap-1 px-2.5 py-1.5 border border-red-200 text-red-500 text-xs font-medium rounded-lg hover:bg-red-50 transition-colors">
-                    <span class="material-icons-round text-xs">delete</span>
+                  <button @click="confirmDelete={id:<?= (int)$inv['id'] ?>,ref:'<?= htmlspecialchars(addslashes($inv['ref']), ENT_QUOTES, 'UTF-8') ?>'}" class="btn btn-danger" style="padding:5px 10px;font-size:12px;">
+                    <span class="material-icons-round" style="font-size:13px;">delete</span>
                   </button>
                 </div>
               </td>
@@ -181,22 +136,18 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
         </table>
       </div>
 
-      <!-- Pagination -->
       <?php if ($pages > 1): ?>
-      <div class="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
-        <p class="text-xs text-slate-500"><?= $total ?> factures · page <?= $page ?>/<?= $pages ?></p>
-        <div class="flex items-center gap-1">
+      <div style="padding:10px 16px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:12px;color:#94a3b8;"><?= $total ?> factures · page <?= $page ?>/<?= $pages ?></span>
+        <div style="display:flex;gap:4px;">
           <?php if ($page > 1): ?>
-          <a href="?page=<?= $page-1 ?>&search=<?= urlencode($_GET['search']??'') ?>" class="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">‹</a>
+          <a href="?page=<?= $page-1 ?>&search=<?= urlencode($_GET['search']??'') ?>" class="pg-btn">‹</a>
           <?php endif; ?>
           <?php for ($p = max(1,$page-2); $p <= min($pages,$page+2); $p++): ?>
-          <a href="?page=<?= $p ?>&search=<?= urlencode($_GET['search']??'') ?>"
-             class="px-3 py-1.5 text-xs font-medium rounded-lg <?= $p===$page ? 'bg-blue-600 text-white' : 'border border-slate-200 hover:bg-slate-50 text-slate-600' ?>">
-            <?= $p ?>
-          </a>
+          <a href="?page=<?= $p ?>&search=<?= urlencode($_GET['search']??'') ?>" class="pg-btn <?= $p===$page?'active':'' ?>"><?= $p ?></a>
           <?php endfor; ?>
           <?php if ($page < $pages): ?>
-          <a href="?page=<?= $page+1 ?>&search=<?= urlencode($_GET['search']??'') ?>" class="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">›</a>
+          <a href="?page=<?= $page+1 ?>&search=<?= urlencode($_GET['search']??'') ?>" class="pg-btn">›</a>
           <?php endif; ?>
         </div>
       </div>
@@ -204,23 +155,23 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
     </div>
 
     <!-- Delete modal -->
-    <div v-if="confirmDelete" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" @click.self="confirmDelete=null">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" @click.stop>
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-            <span class="material-icons-round text-red-600">delete_forever</span>
+    <div v-if="confirmDelete" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;" @click.self="confirmDelete=null">
+      <div style="background:#fff;border-radius:12px;box-shadow:0 25px 50px rgba(0,0,0,.2);width:100%;max-width:380px;padding:24px;" @click.stop>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span class="material-icons-round" style="color:#dc2626;font-size:20px;">delete_forever</span>
           </div>
           <div>
-            <h3 class="text-base font-semibold text-slate-900">Supprimer la facture ?</h3>
-            <p class="text-sm text-slate-500">{{ confirmDelete.ref }}</p>
+            <div style="font-size:15px;font-weight:700;color:#0f172a;">Supprimer la facture ?</div>
+            <div style="font-size:13px;color:#64748b;margin-top:2px;">{{ confirmDelete.ref }}</div>
           </div>
         </div>
-        <p class="text-sm text-slate-600 mb-5">Les paiements associés seront également supprimés.</p>
-        <div class="flex gap-3">
-          <button @click="confirmDelete=null" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50">Annuler</button>
-          <form :action="'<?= APP_URL ?>/invoices/delete/' + confirmDelete.id" method="POST" class="flex-1">
+        <p style="font-size:13px;color:#64748b;margin-bottom:20px;">Les paiements associés seront également supprimés.</p>
+        <div style="display:flex;gap:8px;">
+          <button @click="confirmDelete=null" class="btn btn-ghost" style="flex:1;justify-content:center;">Annuler</button>
+          <form :action="'<?= APP_URL ?>/invoices/delete/' + confirmDelete.id" method="POST" style="flex:1;">
             <input type="hidden" name="csrf_token" :value="csrf">
-            <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700">Supprimer</button>
+            <button type="submit" class="btn btn-primary" style="width:100%;background:#dc2626;justify-content:center;border-color:#dc2626;">Supprimer</button>
           </form>
         </div>
       </div>
@@ -233,10 +184,11 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
 const { createApp, ref } = Vue;
 createApp({
   setup() {
-    const showAdd       = ref(false);
-    const confirmDelete = ref(null);
-    const csrf          = '<?= $csrf ?>';
-    return { showAdd, confirmDelete, csrf };
+    return {
+      showAdd: ref(false),
+      confirmDelete: ref(null),
+      csrf: '<?= $csrf ?>'
+    };
   }
 }).mount('#invoices-page');
 </script>

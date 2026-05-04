@@ -2,74 +2,64 @@
 <?php require_once __DIR__ . '/partials/sidebar.php'; ?>
 
 <?php
-$methodBadge = ['CB'=>'bg-blue-100 text-blue-700','virement'=>'bg-emerald-100 text-emerald-700','chèque'=>'bg-amber-100 text-amber-700','espèces'=>'bg-purple-100 text-purple-700','inconnu'=>'bg-slate-100 text-slate-600'];
+$methodCss = ['CB'=>'badge-blue','virement'=>'badge-green','chèque'=>'badge-amber','espèces'=>'badge-violet','inconnu'=>'badge-slate'];
 $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
 ?>
 
-<div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-64">
-  <header class="bg-white/90 border-b border-slate-200 px-6 h-14 flex items-center justify-between flex-shrink-0 sticky top-0 z-20" style="backdrop-filter:blur(10px)">
-    <div class="flex items-center gap-2.5">
-      <button id="menu-toggle" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
-        <span class="material-icons-round text-xl">menu</span>
+<div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-56">
+
+  <div class="topbar flex items-center justify-between px-6 h-14 flex-shrink-0 sticky top-0 z-20">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="menu-toggle" class="lg:hidden" style="background:none;border:none;cursor:pointer;padding:4px;">
+        <span class="material-icons-round" style="color:#64748b;font-size:20px;">menu</span>
       </button>
-      <span class="material-icons-round text-blue-600 text-xl">payments</span>
-      <h1 class="text-base font-semibold text-slate-900 font-display">Paiements</h1>
+      <span style="font-size:15px;font-weight:700;color:#0f172a;">Paiements</span>
     </div>
-    <div class="flex items-center gap-2.5">
+    <div style="display:flex;align-items:center;gap:10px;">
       <?php if (!empty($user['avatar'])): ?>
-      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-7 h-7 rounded-full">
+      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" style="width:28px;height:28px;border-radius:50%;" alt="">
       <?php endif; ?>
-      <span class="text-sm font-medium text-slate-600 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+      <span style="font-size:13px;font-weight:500;color:#475569;"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
     </div>
-  </header>
+  </div>
 
-  <main class="flex-1 overflow-y-auto p-5 space-y-4" id="payments-page" v-cloak>
+  <main class="flex-1 overflow-y-auto" style="padding:20px 24px;" id="payments-page" v-cloak>
 
-    <!-- Flash -->
     <?php if (!empty($_GET['message'])): ?>
-    <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 text-sm">
-      <span class="material-icons-round text-emerald-500 text-lg">check_circle</span>
+    <div class="flash-ok" style="margin-bottom:12px;">
+      <span class="material-icons-round" style="font-size:16px;color:#16a34a;">check_circle</span>
       <?= htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8') ?>
     </div>
     <?php endif; ?>
     <?php if (!empty($_GET['error'])): ?>
-    <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
-      <span class="material-icons-round text-red-500 text-lg">error</span>
+    <div class="flash-err" style="margin-bottom:12px;">
+      <span class="material-icons-round" style="font-size:16px;color:#dc2626;">error</span>
       <?= htmlspecialchars($_GET['error'], ENT_QUOTES, 'UTF-8') ?>
     </div>
     <?php endif; ?>
 
     <!-- Add payment form -->
-    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-      <p class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-        <span class="material-icons-round text-blue-500 text-base">add_circle</span>
+    <div class="panel" style="padding:20px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:600;color:#0f172a;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+        <span class="material-icons-round" style="font-size:16px;color:#2563eb;">add_circle</span>
         Enregistrer un paiement
-      </p>
-      <form method="POST" action="<?= APP_URL ?>/payments/store"
-            class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+      </div>
+      <form method="POST" action="<?= APP_URL ?>/payments/store" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px;align-items:end;">
         <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Client</label>
-          <select name="tiers_id" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <div class="field">
+          <label>Client</label>
+          <select name="tiers_id">
             <option value="">— Optionnel —</option>
             <?php foreach ($tiersAll as $t): ?>
             <option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['name'], ENT_QUOTES, 'UTF-8') ?></option>
             <?php endforeach; ?>
           </select>
         </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Montant (€) *</label>
-          <input type="number" name="amount" step="0.01" min="0.01" placeholder="0.00" required
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Date *</label>
-          <input type="date" name="date_payment" value="<?= date('Y-m-d') ?>" required
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Mode</label>
-          <select name="method" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <div class="field"><label>Montant (€) *</label><input type="number" name="amount" step="0.01" min="0.01" placeholder="0.00" required></div>
+        <div class="field"><label>Date *</label><input type="date" name="date_payment" value="<?= date('Y-m-d') ?>" required></div>
+        <div class="field">
+          <label>Mode</label>
+          <select name="method">
             <option value="virement">Virement</option>
             <option value="CB">CB</option>
             <option value="chèque">Chèque</option>
@@ -77,13 +67,12 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
             <option value="inconnu">Inconnu</option>
           </select>
         </div>
-        <div class="flex flex-col justify-end">
-          <label class="block text-xs font-medium text-slate-600 mb-1">Libellé</label>
-          <div class="flex gap-2">
-            <input type="text" name="method_label" placeholder="ex: Virt. SEPA"
-                   class="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button type="submit" class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
-              <span class="material-icons-round text-base">save</span>
+        <div class="field">
+          <label>Libellé</label>
+          <div style="display:flex;gap:6px;">
+            <input type="text" name="method_label" placeholder="ex: Virt. SEPA" style="flex:1;">
+            <button type="submit" class="btn btn-primary" style="white-space:nowrap;padding:7px 14px;">
+              <span class="material-icons-round" style="font-size:16px;">save</span>
             </button>
           </div>
         </div>
@@ -91,88 +80,76 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
     </div>
 
     <!-- KPI summary -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
-      <div class="xl:col-span-2 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-        <div class="flex items-start justify-between mb-2">
-          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total encaissé</p>
-          <span class="bg-emerald-50 text-emerald-600 w-6 h-6 rounded-md flex items-center justify-center">
-            <span class="material-icons-round" style="font-size:14px">savings</span>
-          </span>
-        </div>
-        <p class="text-2xl font-bold text-slate-900"><?= number_format($totalCollected, 0, ',', ' ') ?> €</p>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="stat-card accent-green">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:8px;">Total encaissé</div>
+        <div style="font-size:28px;font-weight:800;color:#0f172a;line-height:1;"><?= number_format($totalCollected, 0, ',', ' ') ?> €</div>
       </div>
       <?php foreach (array_slice($methodsBreakdown, 0, 3) as $mb): ?>
-      <div class="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
-        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider"><?= htmlspecialchars(ucfirst($mb['method']), ENT_QUOTES, 'UTF-8') ?></p>
-        <p class="text-xl font-bold text-slate-800 mt-1"><?= number_format((float)$mb['total_amount'], 0, ',', ' ') ?> €</p>
-        <p class="text-[11px] text-slate-400 mt-1"><?= (int)$mb['count'] ?> paiements · moy. <?= number_format((float)$mb['avg_amount'], 0, ',', ' ') ?> €</p>
+      <div class="stat-card accent-blue">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:8px;"><?= htmlspecialchars(ucfirst($mb['method']), ENT_QUOTES, 'UTF-8') ?></div>
+        <div style="font-size:22px;font-weight:800;color:#0f172a;line-height:1;"><?= number_format((float)$mb['total_amount'], 0, ',', ' ') ?> €</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:6px;"><?= (int)$mb['count'] ?> paiements</div>
       </div>
       <?php endforeach; ?>
     </div>
 
     <!-- Charts -->
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
-      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-        <p class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-          <span class="material-icons-round text-blue-500 text-base">pie_chart</span>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-bottom:16px;">
+      <div class="panel" style="padding:20px;">
+        <div class="panel-head">
+          <span class="material-icons-round" style="font-size:16px;color:#3b82f6;">pie_chart</span>
           Répartition par mode
-        </p>
-        <div style="position:relative;height:220px;">
+        </div>
+        <div style="position:relative;height:200px;">
           <canvas id="methodsChart"></canvas>
         </div>
       </div>
-      <div class="xl:col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-        <p class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-          <span class="material-icons-round text-emerald-500 text-base">show_chart</span>
+      <div class="panel" style="padding:20px;">
+        <div class="panel-head">
+          <span class="material-icons-round" style="font-size:16px;color:#10b981;">show_chart</span>
           Encaissements mensuels (12 mois)
-        </p>
-        <div style="position:relative;height:220px;">
+        </div>
+        <div style="position:relative;height:200px;">
           <canvas id="monthlyChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Payments table -->
-    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-        <p class="text-sm font-semibold text-slate-900 flex items-center gap-2">
-          <span class="material-icons-round text-slate-500 text-base">receipt</span>
-          Derniers paiements
-        </p>
-        <a href="<?= APP_URL ?>/export/csv?type=payments"
-           class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 text-slate-600 text-xs font-medium rounded-lg hover:bg-slate-50 transition-colors">
-          <span class="material-icons-round text-sm">download</span> CSV
+    <!-- Table -->
+    <div class="panel" style="overflow:hidden;">
+      <div style="padding:14px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:13px;font-weight:600;color:#0f172a;">Derniers paiements</div>
+        <a href="<?= APP_URL ?>/export/csv?type=payments" class="btn btn-ghost" style="font-size:12px;padding:5px 10px;">
+          <span class="material-icons-round" style="font-size:14px;">download</span> CSV
         </a>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-slate-50">
-            <tr>
-              <?php foreach(['Date','Client','Facture','Montant','Mode','Libellé',''] as $h): ?>
-              <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap"><?= $h ?></th>
-              <?php endforeach; ?>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Facture</th>
+            <th style="text-align:right;">Montant</th>
+            <th>Mode</th>
+            <th>Libellé</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
             <?php if (empty($recentPayments)): ?>
-            <tr><td colspan="7" class="px-4 py-8 text-center text-sm text-slate-400">Aucun paiement enregistré.</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:#94a3b8;">Aucun paiement enregistré.</td></tr>
             <?php else: ?>
             <?php foreach ($recentPayments as $p): ?>
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap"><?= $p['date_payment'] ? date('d/m/Y', strtotime($p['date_payment'])) : '–' ?></td>
-              <td class="px-4 py-3 text-sm text-slate-700 max-w-[140px] truncate"><?= htmlspecialchars($p['tiers_name'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
-              <td class="px-4 py-3 text-sm text-slate-600"><?= htmlspecialchars($p['invoice_ref'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
-              <td class="px-4 py-3 text-sm font-semibold text-slate-900 whitespace-nowrap"><?= number_format((float)$p['amount'], 2, ',', ' ') ?> €</td>
-              <td class="px-4 py-3">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <?= $methodBadge[$p['method']] ?? 'bg-slate-100 text-slate-600' ?>">
-                  <?= htmlspecialchars(ucfirst($p['method'] ?? 'inconnu'), ENT_QUOTES, 'UTF-8') ?>
-                </span>
-              </td>
-              <td class="px-4 py-3 text-xs text-slate-400 max-w-[120px] truncate"><?= htmlspecialchars($p['method_label'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-              <td class="px-4 py-3">
-                <button @click="confirmDelete={id:<?= (int)$p['id'] ?>,amount:'<?= number_format((float)$p['amount'],2,',',' ') ?> €'}"
-                        class="inline-flex items-center gap-1 px-2.5 py-1.5 border border-red-200 text-red-500 text-xs font-medium rounded-lg hover:bg-red-50 transition-colors">
-                  <span class="material-icons-round text-xs">delete</span>
+            <tr>
+              <td style="white-space:nowrap;color:#64748b;font-size:12px;"><?= $p['date_payment'] ? date('d/m/Y', strtotime($p['date_payment'])) : '–' ?></td>
+              <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($p['tiers_name'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
+              <td style="font-size:12px;color:#64748b;"><?= htmlspecialchars($p['invoice_ref'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
+              <td style="text-align:right;font-weight:700;white-space:nowrap;"><?= number_format((float)$p['amount'], 2, ',', ' ') ?> €</td>
+              <td><span class="badge <?= $methodCss[$p['method']] ?? 'badge-slate' ?>"><?= htmlspecialchars(ucfirst($p['method'] ?? 'inconnu'), ENT_QUOTES, 'UTF-8') ?></span></td>
+              <td style="font-size:11px;color:#94a3b8;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($p['method_label'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+              <td>
+                <button @click="confirmDelete={id:<?= (int)$p['id'] ?>,amount:'<?= number_format((float)$p['amount'],2,',',' ') ?> €'}" class="btn btn-danger" style="padding:4px 8px;font-size:12px;">
+                  <span class="material-icons-round" style="font-size:13px;">delete</span>
                 </button>
               </td>
             </tr>
@@ -184,22 +161,22 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
     </div>
 
     <!-- Delete modal -->
-    <div v-if="confirmDelete" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" @click.self="confirmDelete=null">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" @click.stop>
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-            <span class="material-icons-round text-red-600">delete_forever</span>
+    <div v-if="confirmDelete" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;" @click.self="confirmDelete=null">
+      <div style="background:#fff;border-radius:12px;box-shadow:0 25px 50px rgba(0,0,0,.2);width:100%;max-width:380px;padding:24px;" @click.stop>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span class="material-icons-round" style="color:#dc2626;font-size:20px;">delete_forever</span>
           </div>
           <div>
-            <h3 class="text-base font-semibold text-slate-900">Supprimer ce paiement ?</h3>
-            <p class="text-sm text-slate-500">{{ confirmDelete.amount }}</p>
+            <div style="font-size:15px;font-weight:700;color:#0f172a;">Supprimer ce paiement ?</div>
+            <div style="font-size:13px;color:#64748b;margin-top:2px;">{{ confirmDelete.amount }}</div>
           </div>
         </div>
-        <div class="flex gap-3">
-          <button @click="confirmDelete=null" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50">Annuler</button>
-          <form :action="'<?= APP_URL ?>/payments/delete/' + confirmDelete.id" method="POST" class="flex-1">
+        <div style="display:flex;gap:8px;">
+          <button @click="confirmDelete=null" class="btn btn-ghost" style="flex:1;justify-content:center;">Annuler</button>
+          <form :action="'<?= APP_URL ?>/payments/delete/' + confirmDelete.id" method="POST" style="flex:1;">
             <input type="hidden" name="csrf_token" :value="csrf">
-            <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700">Supprimer</button>
+            <button type="submit" class="btn btn-primary" style="width:100%;background:#dc2626;justify-content:center;border-color:#dc2626;">Supprimer</button>
           </form>
         </div>
       </div>
@@ -209,8 +186,8 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
 </div>
 
 <?php
-$mLabels  = json_encode(array_map('ucfirst', array_column($methodsBreakdown, 'method')));
-$mValues  = json_encode(array_column($methodsBreakdown, 'total_amount'));
+$mLabels   = json_encode(array_map('ucfirst', array_column($methodsBreakdown, 'method')));
+$mValues   = json_encode(array_column($methodsBreakdown, 'total_amount'));
 $mLabels12 = json_encode(array_column($monthlyTotals, 'label'));
 $mValues12 = json_encode(array_column($monthlyTotals, 'amount'));
 ?>
@@ -218,13 +195,13 @@ $mValues12 = json_encode(array_column($monthlyTotals, 'amount'));
 const { createApp, ref } = Vue;
 createApp({
   setup() {
-    const confirmDelete = ref(null);
-    const csrf = '<?= $csrf ?>';
-    return { confirmDelete, csrf };
+    return {
+      confirmDelete: ref(null),
+      csrf: '<?= $csrf ?>'
+    };
   }
 }).mount('#payments-page');
 
-// Charts
 new Chart(document.getElementById('methodsChart'), {
   type: 'doughnut',
   data: { labels: <?= $mLabels ?>, datasets: [{ data: <?= $mValues ?>, backgroundColor: CHART_COLORS, borderWidth: 2, borderColor: '#fff', hoverOffset: 6 }] },
@@ -234,7 +211,7 @@ new Chart(document.getElementById('monthlyChart'), {
   type: 'bar',
   data: {
     labels: <?= $mLabels12 ?>,
-    datasets: [{ label: 'Encaissements (€)', data: <?= $mValues12 ?>, backgroundColor: 'rgba(16,185,129,.8)', borderColor: '#10b981', borderWidth: 1, borderRadius: 5 }]
+    datasets: [{ label: 'Encaissements (€)', data: <?= $mValues12 ?>, backgroundColor: 'rgba(16,185,129,.8)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 }]
   },
   options: {
     responsive: true, maintainAspectRatio: false,

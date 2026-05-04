@@ -3,202 +3,143 @@
 
 <?php
 $recurrenceLabels = ['monthly'=>'Mensuelle','annual'=>'Annuelle','one_time'=>'Ponctuelle'];
-$recurrenceBadge  = ['monthly'=>'bg-blue-100 text-blue-700','annual'=>'bg-purple-100 text-purple-700','one_time'=>'bg-slate-100 text-slate-600'];
+$recurrenceCss    = ['monthly'=>'badge-blue','annual'=>'badge-violet','one_time'=>'badge-slate'];
 $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
 $editExpense = $editExpense ?? null;
 ?>
 
-<div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-64">
-  <header class="bg-white/90 border-b border-slate-200 px-6 h-14 flex items-center justify-between flex-shrink-0 sticky top-0 z-20" style="backdrop-filter:blur(10px)">
-    <div class="flex items-center gap-2.5">
-      <button id="menu-toggle" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
-        <span class="material-icons-round text-xl">menu</span>
+<div id="main-wrap" class="flex-1 flex flex-col overflow-hidden ml-56">
+
+  <div class="topbar flex items-center justify-between px-6 h-14 flex-shrink-0 sticky top-0 z-20">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="menu-toggle" class="lg:hidden" style="background:none;border:none;cursor:pointer;padding:4px;">
+        <span class="material-icons-round" style="color:#64748b;font-size:20px;">menu</span>
       </button>
-      <span class="material-icons-round text-blue-600 text-xl">account_balance_wallet</span>
-      <h1 class="text-base font-semibold text-slate-900 font-display">Dépenses</h1>
+      <span style="font-size:15px;font-weight:700;color:#0f172a;">Dépenses</span>
     </div>
-    <div class="flex items-center gap-2.5">
+    <div style="display:flex;align-items:center;gap:10px;">
       <?php if (!empty($user['avatar'])): ?>
-      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" class="w-7 h-7 rounded-full">
+      <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" style="width:28px;height:28px;border-radius:50%;" alt="">
       <?php endif; ?>
-      <span class="text-sm font-medium text-slate-600 hidden sm:block"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+      <span style="font-size:13px;font-weight:500;color:#475569;"><?= htmlspecialchars($user['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
     </div>
-  </header>
+  </div>
 
-  <main class="flex-1 overflow-y-auto p-5 space-y-4" id="expenses-page" v-cloak>
+  <main class="flex-1 overflow-y-auto" style="padding:20px 24px;" id="expenses-page" v-cloak>
 
-    <!-- Flash -->
     <?php if (!empty($_GET['message'])): ?>
-    <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 text-sm">
-      <span class="material-icons-round text-emerald-500 text-lg">check_circle</span>
+    <div class="flash-ok" style="margin-bottom:12px;">
+      <span class="material-icons-round" style="font-size:16px;color:#16a34a;">check_circle</span>
       <?= htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8') ?>
     </div>
     <?php endif; ?>
     <?php if (!empty($_GET['error'])): ?>
-    <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
-      <span class="material-icons-round text-red-500 text-lg">error</span>
+    <div class="flash-err" style="margin-bottom:12px;">
+      <span class="material-icons-round" style="font-size:16px;color:#dc2626;">error</span>
       <?= htmlspecialchars($_GET['error'], ENT_QUOTES, 'UTF-8') ?>
     </div>
     <?php endif; ?>
 
     <!-- KPI grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-      <?php
-      $kpiRows = [
-        ['Revenus (mois)',   $revenueMonth,   'emerald', 'trending_up'],
-        ['Dépenses (mois)',  $monthlyTotal,   'red',     'trending_down'],
-        ['Profit (mois)',    $profitMonth,    $profitMonth>=0?'emerald':'red', 'account_balance'],
-        ['Revenus (année)',  $revenueYear,    'emerald', 'calendar_today'],
-        ['Dépenses (année)', $annualTotal,    'red',     'receipt_long'],
-        ['Profit (année)',   $profitYear,     $profitYear>=0?'emerald':'red', 'savings'],
-      ];
-      foreach ($kpiRows as [$label,$val,$color,$icon]):
-        $ibg  = $color==='emerald'?'bg-emerald-50':'bg-red-50';
-        $itxt = $color==='emerald'?'text-emerald-600':'text-red-600';
-        $bdr  = $color==='emerald'?'border-emerald-100':'border-red-100';
+    <?php
+    $kpiRows = [
+      ['Revenus (mois)',   $revenueMonth,  true,  'trending_up'],
+      ['Dépenses (mois)',  $monthlyTotal,  false, 'trending_down'],
+      ['Profit (mois)',    $profitMonth,   $profitMonth>=0, 'account_balance'],
+      ['Revenus (année)',  $revenueYear,   true,  'calendar_today'],
+      ['Dépenses (année)', $annualTotal,   false, 'receipt_long'],
+      ['Profit (année)',   $profitYear,    $profitYear>=0, 'savings'],
+    ];
+    ?>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;">
+      <?php foreach ($kpiRows as [$label,$val,$positive,$icon]):
+        $accent = $positive ? 'accent-green' : 'accent-red';
+        $color  = $positive ? '#16a34a' : '#dc2626';
       ?>
-      <div class="bg-white border <?= $bdr ?> rounded-xl p-4 shadow-sm">
-        <div class="flex items-start justify-between mb-2">
-          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider leading-tight"><?= $label ?></p>
-          <span class="<?= $ibg ?> <?= $itxt ?> w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0">
-            <span class="material-icons-round" style="font-size:13px"><?= $icon ?></span>
-          </span>
-        </div>
-        <p class="text-xl font-bold <?= $itxt ?> leading-none">
-          <?= number_format((float)$val, 0, ',', ' ') ?> €
-        </p>
+      <div class="stat-card <?= $accent ?>">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:6px;line-height:1.3;"><?= $label ?></div>
+        <div style="font-size:20px;font-weight:800;color:<?= $color ?>;line-height:1;"><?= number_format((float)$val, 0, ',', ' ') ?> €</div>
       </div>
       <?php endforeach; ?>
     </div>
 
-    <!-- Edit form (if editing) -->
+    <!-- Edit form -->
     <?php if ($editExpense): ?>
-    <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 shadow-sm">
-      <p class="text-sm font-semibold text-amber-900 mb-4 flex items-center gap-2">
-        <span class="material-icons-round text-amber-600 text-base">edit</span>
+    <div class="panel" style="margin-bottom:16px;padding:20px;border-color:#f59e0b;border-width:2px;">
+      <div style="font-size:13px;font-weight:600;color:#0f172a;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+        <span class="material-icons-round" style="font-size:16px;color:#d97706;">edit</span>
         Modifier la dépense
-      </p>
-      <form method="POST" action="<?= APP_URL ?>/expenses/update/<?= (int)$editExpense['id'] ?>"
-            class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      </div>
+      <form method="POST" action="<?= APP_URL ?>/expenses/update/<?= (int)$editExpense['id'] ?>" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
         <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Libellé *</label>
-          <input type="text" name="label" value="<?= htmlspecialchars($editExpense['label'], ENT_QUOTES, 'UTF-8') ?>" required
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Montant (€) *</label>
-          <input type="number" name="amount" step="0.01" min="0.01" value="<?= (float)$editExpense['amount'] ?>" required
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Catégorie</label>
-          <input type="text" name="category" value="<?= htmlspecialchars($editExpense['category'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="ex: Logiciel, Hébergement…"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Récurrence</label>
-          <select name="recurrence" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+        <div class="field"><label>Libellé *</label><input type="text" name="label" value="<?= htmlspecialchars($editExpense['label'], ENT_QUOTES, 'UTF-8') ?>" required></div>
+        <div class="field"><label>Montant (€) *</label><input type="number" name="amount" step="0.01" min="0.01" value="<?= (float)$editExpense['amount'] ?>" required></div>
+        <div class="field"><label>Catégorie</label><input type="text" name="category" value="<?= htmlspecialchars($editExpense['category'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="ex: Logiciel…"></div>
+        <div class="field">
+          <label>Récurrence</label>
+          <select name="recurrence">
             <?php foreach ($recurrenceLabels as $k => $v): ?>
             <option value="<?= $k ?>" <?= $editExpense['recurrence']===$k?'selected':'' ?>><?= $v ?></option>
             <?php endforeach; ?>
           </select>
         </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Date (optionnel)</label>
-          <input type="date" name="expense_date" value="<?= htmlspecialchars($editExpense['expense_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-        </div>
-        <div class="xl:col-span-3">
-          <label class="block text-xs font-medium text-slate-600 mb-1">Note</label>
-          <input type="text" name="note" value="<?= htmlspecialchars($editExpense['note'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Détail ou commentaire…"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-        </div>
-        <div class="sm:col-span-2 xl:col-span-4 flex gap-3">
-          <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors">
-            <span class="material-icons-round text-base">save</span> Enregistrer
-          </button>
-          <a href="<?= APP_URL ?>/expenses" class="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Annuler</a>
+        <div class="field"><label>Date</label><input type="date" name="expense_date" value="<?= htmlspecialchars($editExpense['expense_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>"></div>
+        <div class="field" style="grid-column:span 3;"><label>Note</label><input type="text" name="note" value="<?= htmlspecialchars($editExpense['note'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Détail ou commentaire…"></div>
+        <div style="grid-column:1/-1;display:flex;gap:8px;padding-top:4px;">
+          <button type="submit" class="btn btn-primary"><span class="material-icons-round" style="font-size:15px;">save</span> Enregistrer</button>
+          <a href="<?= APP_URL ?>/expenses" class="btn btn-ghost">Annuler</a>
         </div>
       </form>
     </div>
     <?php endif; ?>
 
+    <!-- Toolbar -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <button @click="showAdd=!showAdd" class="btn btn-primary">
+        <span class="material-icons-round" style="font-size:16px;">add</span> Nouvelle dépense
+      </button>
+      <a href="<?= APP_URL ?>/export/csv?type=expenses" class="btn btn-ghost">
+        <span class="material-icons-round" style="font-size:16px;">download</span> CSV
+      </a>
+    </div>
+
     <!-- Add form (toggle) -->
-    <div v-show="showAdd" class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-      <p class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-        <span class="material-icons-round text-blue-500 text-base">add_circle</span>
+    <div v-show="showAdd" class="panel" style="margin-bottom:16px;padding:20px;">
+      <div style="font-size:13px;font-weight:600;color:#0f172a;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+        <span class="material-icons-round" style="font-size:16px;color:#2563eb;">add_circle</span>
         Ajouter une dépense
-      </p>
-      <form method="POST" action="<?= APP_URL ?>/expenses/store"
-            class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      </div>
+      <form method="POST" action="<?= APP_URL ?>/expenses/store" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
         <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Libellé *</label>
-          <input type="text" name="label" placeholder="ex: Abonnement OVH" required
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Montant (€) *</label>
-          <input type="number" name="amount" step="0.01" min="0.01" placeholder="0.00" required
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Catégorie</label>
-          <input type="text" name="category" placeholder="ex: Logiciel, Hébergement…"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Récurrence</label>
-          <select name="recurrence" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <div class="field"><label>Libellé *</label><input type="text" name="label" placeholder="ex: Abonnement OVH" required></div>
+        <div class="field"><label>Montant (€) *</label><input type="number" name="amount" step="0.01" min="0.01" placeholder="0.00" required></div>
+        <div class="field"><label>Catégorie</label><input type="text" name="category" placeholder="ex: Logiciel, Hébergement…"></div>
+        <div class="field">
+          <label>Récurrence</label>
+          <select name="recurrence">
             <option value="monthly">Mensuelle</option>
             <option value="annual">Annuelle</option>
             <option value="one_time">Ponctuelle</option>
           </select>
         </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Date (optionnel)</label>
-          <input type="date" name="expense_date"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div class="xl:col-span-3">
-          <label class="block text-xs font-medium text-slate-600 mb-1">Note</label>
-          <input type="text" name="note" placeholder="Détail ou commentaire…"
-                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div class="sm:col-span-2 xl:col-span-4 flex gap-3">
-          <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-            <span class="material-icons-round text-base">save</span> Ajouter
-          </button>
-          <button type="button" @click="showAdd=false" class="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Annuler</button>
+        <div class="field"><label>Date</label><input type="date" name="expense_date"></div>
+        <div class="field" style="grid-column:span 3;"><label>Note</label><input type="text" name="note" placeholder="Détail ou commentaire…"></div>
+        <div style="grid-column:1/-1;display:flex;gap:8px;padding-top:4px;">
+          <button type="submit" class="btn btn-primary"><span class="material-icons-round" style="font-size:15px;">save</span> Ajouter</button>
+          <button type="button" @click="showAdd=false" class="btn btn-ghost">Annuler</button>
         </div>
       </form>
     </div>
 
-    <!-- Toolbar -->
-    <div class="flex flex-wrap items-center gap-3">
-      <button @click="showAdd = !showAdd"
-              class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-        <span class="material-icons-round text-base">add</span> Nouvelle dépense
-      </button>
-      <a href="<?= APP_URL ?>/export/csv?type=expenses"
-         class="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-300 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
-        <span class="material-icons-round text-base">download</span> CSV
-      </a>
-    </div>
-
     <!-- By category -->
     <?php if (!empty($byCategory)): ?>
-    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-      <p class="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-        <span class="material-icons-round text-slate-500 text-base">category</span>
-        Répartition par catégorie (ce mois)
-      </p>
-      <div class="flex flex-wrap gap-3">
+    <div class="panel" style="padding:16px 20px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;">Répartition par catégorie (ce mois)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
         <?php foreach ($byCategory as $cat): ?>
-        <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-medium rounded-full">
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:#f1f5f9;border-radius:20px;font-size:12px;color:#334155;">
           <?= htmlspecialchars($cat['category'] ?? 'Sans catégorie', ENT_QUOTES, 'UTF-8') ?>
-          <span class="font-bold"><?= number_format((float)$cat['monthly_total'], 0, ',', ' ') ?> €</span>
+          <strong><?= number_format((float)$cat['monthly_total'], 0, ',', ' ') ?> €</strong>
         </span>
         <?php endforeach; ?>
       </div>
@@ -206,41 +147,37 @@ $editExpense = $editExpense ?? null;
     <?php endif; ?>
 
     <!-- Table -->
-    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <?php foreach(['Libellé','Montant','Catégorie','Récurrence','Date','Note','Actions'] as $h): ?>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap"><?= $h ?></th>
-              <?php endforeach; ?>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
+    <div class="panel" style="overflow:hidden;">
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>Libellé</th>
+            <th style="text-align:right;">Montant</th>
+            <th>Catégorie</th>
+            <th>Récurrence</th>
+            <th>Date</th>
+            <th>Note</th>
+            <th style="text-align:right;">Actions</th>
+          </tr></thead>
+          <tbody>
             <?php if (empty($expenses)): ?>
-            <tr><td colspan="7" class="px-4 py-10 text-center text-sm text-slate-400">Aucune dépense.</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:#94a3b8;">Aucune dépense enregistrée.</td></tr>
             <?php else: ?>
             <?php foreach ($expenses as $exp): ?>
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="px-4 py-3.5 text-sm font-semibold text-slate-900"><?= htmlspecialchars($exp['label'], ENT_QUOTES, 'UTF-8') ?></td>
-              <td class="px-4 py-3.5 text-sm text-red-600 font-semibold whitespace-nowrap"><?= number_format((float)$exp['amount'], 2, ',', ' ') ?> €</td>
-              <td class="px-4 py-3.5 text-sm text-slate-600"><?= htmlspecialchars($exp['category'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
-              <td class="px-4 py-3.5">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <?= $recurrenceBadge[$exp['recurrence']] ?? 'bg-slate-100 text-slate-600' ?>">
-                  <?= $recurrenceLabels[$exp['recurrence']] ?? $exp['recurrence'] ?>
-                </span>
-              </td>
-              <td class="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap"><?= !empty($exp['expense_date']) ? date('d/m/Y', strtotime($exp['expense_date'])) : '–' ?></td>
-              <td class="px-4 py-3.5 text-xs text-slate-400 max-w-[160px] truncate"><?= htmlspecialchars($exp['note'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-              <td class="px-4 py-3.5">
-                <div class="flex items-center gap-1.5">
-                  <a href="<?= APP_URL ?>/expenses?edit=<?= (int)$exp['id'] ?>"
-                     class="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 text-slate-500 text-xs font-medium rounded-lg hover:bg-slate-50 transition-colors">
-                    <span class="material-icons-round text-xs">edit</span>
+            <tr>
+              <td style="font-weight:600;"><?= htmlspecialchars($exp['label'], ENT_QUOTES, 'UTF-8') ?></td>
+              <td style="text-align:right;font-weight:700;color:#dc2626;white-space:nowrap;"><?= number_format((float)$exp['amount'], 2, ',', ' ') ?> €</td>
+              <td style="color:#64748b;font-size:12px;"><?= htmlspecialchars($exp['category'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
+              <td><span class="badge <?= $recurrenceCss[$exp['recurrence']] ?? 'badge-slate' ?>"><?= $recurrenceLabels[$exp['recurrence']] ?? $exp['recurrence'] ?></span></td>
+              <td style="white-space:nowrap;color:#64748b;font-size:12px;"><?= !empty($exp['expense_date']) ? date('d/m/Y', strtotime($exp['expense_date'])) : '–' ?></td>
+              <td style="font-size:11px;color:#94a3b8;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($exp['note'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+              <td style="text-align:right;">
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;">
+                  <a href="<?= APP_URL ?>/expenses?edit=<?= (int)$exp['id'] ?>" class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">
+                    <span class="material-icons-round" style="font-size:13px;">edit</span>
                   </a>
-                  <button @click="confirmDelete={id:<?= (int)$exp['id'] ?>,label:'<?= htmlspecialchars(addslashes($exp['label']), ENT_QUOTES, 'UTF-8') ?>'}"
-                          class="inline-flex items-center gap-1 px-2.5 py-1.5 border border-red-200 text-red-500 text-xs font-medium rounded-lg hover:bg-red-50 transition-colors">
-                    <span class="material-icons-round text-xs">delete</span>
+                  <button @click="confirmDelete={id:<?= (int)$exp['id'] ?>,label:'<?= htmlspecialchars(addslashes($exp['label']), ENT_QUOTES, 'UTF-8') ?>'}" class="btn btn-danger" style="padding:5px 10px;font-size:12px;">
+                    <span class="material-icons-round" style="font-size:13px;">delete</span>
                   </button>
                 </div>
               </td>
@@ -253,22 +190,22 @@ $editExpense = $editExpense ?? null;
     </div>
 
     <!-- Delete modal -->
-    <div v-if="confirmDelete" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" @click.self="confirmDelete=null">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" @click.stop>
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-            <span class="material-icons-round text-red-600">delete_forever</span>
+    <div v-if="confirmDelete" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;" @click.self="confirmDelete=null">
+      <div style="background:#fff;border-radius:12px;box-shadow:0 25px 50px rgba(0,0,0,.2);width:100%;max-width:380px;padding:24px;" @click.stop>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span class="material-icons-round" style="color:#dc2626;font-size:20px;">delete_forever</span>
           </div>
           <div>
-            <h3 class="text-base font-semibold text-slate-900">Supprimer la dépense ?</h3>
-            <p class="text-sm text-slate-500">{{ confirmDelete.label }}</p>
+            <div style="font-size:15px;font-weight:700;color:#0f172a;">Supprimer la dépense ?</div>
+            <div style="font-size:13px;color:#64748b;margin-top:2px;">{{ confirmDelete.label }}</div>
           </div>
         </div>
-        <div class="flex gap-3">
-          <button @click="confirmDelete=null" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50">Annuler</button>
-          <form :action="'<?= APP_URL ?>/expenses/delete/' + confirmDelete.id" method="POST" class="flex-1">
+        <div style="display:flex;gap:8px;">
+          <button @click="confirmDelete=null" class="btn btn-ghost" style="flex:1;justify-content:center;">Annuler</button>
+          <form :action="'<?= APP_URL ?>/expenses/delete/' + confirmDelete.id" method="POST" style="flex:1;">
             <input type="hidden" name="csrf_token" :value="csrf">
-            <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700">Supprimer</button>
+            <button type="submit" class="btn btn-primary" style="width:100%;background:#dc2626;justify-content:center;border-color:#dc2626;">Supprimer</button>
           </form>
         </div>
       </div>
@@ -281,10 +218,11 @@ $editExpense = $editExpense ?? null;
 const { createApp, ref } = Vue;
 createApp({
   setup() {
-    const showAdd       = ref(<?= $editExpense ? 'false' : 'false' ?>);
-    const confirmDelete = ref(null);
-    const csrf          = '<?= $csrf ?>';
-    return { showAdd, confirmDelete, csrf };
+    return {
+      showAdd: ref(false),
+      confirmDelete: ref(null),
+      csrf: '<?= $csrf ?>'
+    };
   }
 }).mount('#expenses-page');
 </script>
