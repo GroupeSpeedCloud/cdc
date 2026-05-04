@@ -1,32 +1,56 @@
 Options -Indexes
 
-# Use PHP 8.5 (cPanel)
-AddHandler application/x-httpd-php85 .php
+#####################################
+# PHP HANDLER (IMPORTANT)
+# Ne pas forcer une version non supportée
+# Géré directement via cPanel (MultiPHP Manager)
+#####################################
 
-# Deny access to .env files
+# Si ton hébergement nécessite un handler explicite, utilise plutôt :
+# AddHandler application/x-httpd-ea-php83 .php
+# Sinon, laisse cPanel gérer PHP automatiquement
+
+#####################################
+# SECURITY - PROTECTION FICHIERS SENSIBLES
+#####################################
+
+# Bloquer les fichiers .env
 <FilesMatch "^\.env">
-    Order allow,deny
-    Deny from all
+    Require all denied
 </FilesMatch>
 
-# Deny access to sensitive directories
+# Bloquer fichiers sensibles
 <FilesMatch "\.(sql|log|sh)$">
-    Order allow,deny
-    Deny from all
+    Require all denied
 </FilesMatch>
 
-# Protect config, models, services, controllers, database, cron directories
+#####################################
+# PROTECTION DOSSIERS BACKEND
+#####################################
+
 RewriteEngine On
 
 RewriteRule ^(config|models|services|database|cron)/ - [F,L]
 
-# Route all requests to index.php (except real files/directories)
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+#####################################
+# FRONT CONTROLLER (API / APP)
+#####################################
+
+# Ne pas réécrire si fichier ou dossier existe
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route tout vers index.php
 RewriteRule ^ index.php [QSA,L]
 
-# Security headers
-Header always set X-Content-Type-Options "nosniff"
-Header always set X-Frame-Options "SAMEORIGIN"
-Header always set X-XSS-Protection "1; mode=block"
-Header always set Referrer-Policy "strict-origin-when-cross-origin"
+#####################################
+# SECURITY HEADERS
+#####################################
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

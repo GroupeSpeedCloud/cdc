@@ -391,6 +391,7 @@ class ForecastService
              WHERE i.status = 2
                AND i.tiers_id IS NOT NULL
                AND i.date_invoice IS NOT NULL
+                             AND i.date_invoice >= DATE_SUB(CURDATE(), INTERVAL 36 MONTH)
                AND i.total_ht > 0
              ORDER BY i.tiers_id, service_label, i.date_invoice'
         );
@@ -475,8 +476,8 @@ class ForecastService
                 // Trop ancienne → client probablement parti
                 return null;
             }
-            // Petit montant (abonnement / licence) avec 1 article = mensuel probable
-            if ($avgAmount > 0 && $avgAmount < 30 && $nbLines <= 1) {
+            // Petit montant (abonnement / licence) avec exactement 1 article = mensuel probable
+            if ($avgAmount > 0 && $avgAmount < 30 && $nbLines === 1) {
                 return 'monthly';
             }
             // Sinon on considère annuel (one-shot ou renouvellement annuel)

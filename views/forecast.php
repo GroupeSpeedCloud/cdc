@@ -19,6 +19,13 @@
 
   <div id="content">
 
+    <?php if (!empty($data['error_message'])): ?>
+    <div style="background:#fdecea;border:1px solid #f5c2c7;color:#842029;padding:0.75rem 1rem;border-radius:8px;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+      <span class="material-icons" style="font-size:1.1rem;">error</span>
+      <?= htmlspecialchars($data['error_message'], ENT_QUOTES, 'UTF-8') ?>
+    </div>
+    <?php endif; ?>
+
     <?php
       $proj3Gross  = array_sum($data['proj3']['values'] ?? []);
       $proj6Gross  = array_sum($data['proj6']['values'] ?? []);
