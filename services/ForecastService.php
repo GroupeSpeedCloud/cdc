@@ -478,11 +478,8 @@ class ForecastService
                 // Trop ancienne → client probablement parti
                 return null;
             }
-            // Petit montant (abonnement / licence) avec exactement 1 article = mensuel probable
-            if ($avgAmount > 0 && $avgAmount < 30 && $nbLines === 1) {
-                return 'monthly';
-            }
-            // Sinon on considère annuel (one-shot ou renouvellement annuel)
+            // Sans répétition observée, on ne classe jamais en mensuel.
+            // On considère annuel par défaut pour une facture unique récente.
             return 'annual';
         }
 
