@@ -139,7 +139,7 @@
         <span class="material-icons" style="vertical-align:middle;margin-right:0.25rem;font-size:1rem;">analytics</span>
         Lecture annuelle rapide
       </p>
-      <div class="grid-cols-2" style="gap:1rem;">
+      <div class="grid-cols-2">
         <div>
           <div style="display:flex;justify-content:space-between;font-size:0.875rem;margin-bottom:0.25rem;">
             <span>Poids des charges</span>

@@ -29,7 +29,7 @@ if ($editId) {
       <button id="menu-toggle" aria-label="Ouvrir le menu">
         <span class="material-icons">menu</span>
       </button>
-      <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">account_balance_wallet</span>Dépenses &amp; Rentabilité</h1>
+      <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">account_balance_wallet</span>Dépenses & Rentabilité</h1>
     </div>
     <div class="topbar-user">
       <?php if (!empty($user['avatar'])): ?>
