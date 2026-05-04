@@ -3,7 +3,12 @@
 
 <div id="main">
   <header id="topbar">
-    <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">sync</span>Synchronisation Dolibarr</h1>
+    <div style="display:flex;align-items:center;min-width:0;">
+      <button id="menu-toggle" aria-label="Ouvrir le menu">
+        <span class="material-icons">menu</span>
+      </button>
+      <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">sync</span>Synchronisation Dolibarr</h1>
+    </div>
     <div class="topbar-user">
       <?php if (!empty($user['avatar'])): ?>
         <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Avatar">
@@ -84,6 +89,7 @@
           Journal de synchronisation
         </h2>
       </div>
+      <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
@@ -150,6 +156,7 @@
           <?php endif; ?>
         </tbody>
       </table>
+      </div>
     </div>
 
   </div>

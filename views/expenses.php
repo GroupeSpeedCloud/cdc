@@ -25,7 +25,12 @@ if ($editId) {
 
 <div id="main">
   <header id="topbar">
-    <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">account_balance_wallet</span>Dépenses & Rentabilité</h1>
+    <div style="display:flex;align-items:center;min-width:0;">
+      <button id="menu-toggle" aria-label="Ouvrir le menu">
+        <span class="material-icons">menu</span>
+      </button>
+      <h1><span class="material-icons" style="vertical-align:middle;margin-right:0.5rem;">account_balance_wallet</span>Dépenses &amp; Rentabilité</h1>
+    </div>
     <div class="topbar-user">
       <?php if (!empty($user['avatar'])): ?>
         <img src="<?= htmlspecialchars($user['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Avatar">
@@ -112,9 +117,9 @@ if ($editId) {
           foreach ($byCategory as $cat => $amt):
             $pct = round($amt / $monthlyTotal * 100);
         ?>
-        <div style="display:flex;align-items:center;gap:1rem;">
-          <div style="width:140px;font-size:0.875rem;flex-shrink:0;"><?= htmlspecialchars($cat, ENT_QUOTES, 'UTF-8') ?></div>
-          <div style="flex:1;background:#f1f3f4;border-radius:4px;overflow:hidden;height:18px;">
+        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+          <div style="min-width:100px;max-width:140px;width:140px;font-size:0.875rem;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($cat, ENT_QUOTES, 'UTF-8') ?></div>
+          <div style="flex:1;min-width:80px;background:#f1f3f4;border-radius:4px;overflow:hidden;height:18px;">
             <div style="width:<?= round($amt / $maxCat * 100) ?>%;background:var(--primary);height:100%;border-radius:4px;transition:width .3s;"></div>
           </div>
           <div style="width:100px;text-align:right;font-size:0.875rem;font-weight:500;"><?= number_format($amt, 0, ',', ' ') ?> €/mois</div>
@@ -125,7 +130,7 @@ if ($editId) {
     </div>
     <?php endif; ?>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
+    <div class="grid-cols-2">
 
       <!-- ────────────── Formulaire ajout / édition ────────────── -->
       <div class="card">

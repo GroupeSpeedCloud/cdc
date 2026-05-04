@@ -106,6 +106,9 @@
       align-items: flex-start;
       gap: 0.5rem;
     }
+    @media (max-width: 480px) {
+      .login-card { padding: 2rem 1.25rem; }
+    }
   </style>
 </head>
 <body>
