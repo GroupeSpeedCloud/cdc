@@ -21,9 +21,13 @@ class Subscription extends BaseModel
         }
 
         try {
-            $stmt = getDB()->prepare('SHOW TABLES LIKE ?');
-            $stmt->execute([$this->table]);
-            $this->subscriptionsTableExists = (bool)$stmt->fetchColumn();
+            $stmt = getDB()->query(
+                "SELECT COUNT(*)
+                 FROM information_schema.tables
+                 WHERE table_schema = DATABASE()
+                   AND table_name = 'subscriptions'"
+            );
+            $this->subscriptionsTableExists = (int)$stmt->fetchColumn() > 0;
         } catch (Throwable $e) {
             $this->subscriptionsTableExists = false;
         }

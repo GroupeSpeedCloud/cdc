@@ -6,6 +6,30 @@ class ProductsController
 {
     private Product $model;
 
+    private function createSubscriptionsFallbackTable(): void
+    {
+        $sql = "CREATE TABLE IF NOT EXISTS `subscriptions` (
+  `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `tiers_id`    INT UNSIGNED NOT NULL,
+  `product_id`  INT UNSIGNED NULL,
+  `label`       VARCHAR(255) NOT NULL DEFAULT '',
+  `amount`      DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+  `recurrence`  ENUM('monthly','quarterly','annual','one_time') NOT NULL DEFAULT 'monthly',
+  `start_date`  DATE NULL,
+  `end_date`    DATE NULL,
+  `is_active`   TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_sub_tiers`   (`tiers_id`),
+  KEY `idx_sub_product` (`product_id`),
+  KEY `idx_sub_active`  (`is_active`),
+  KEY `idx_sub_rec`     (`recurrence`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+        getDB()->exec($sql);
+    }
+
     private function ensureSubscriptionsTable(): void
     {
         if ($this->subscriptionsTableExists()) {
@@ -27,14 +51,26 @@ class ProductsController
         } catch (Throwable $e) {
             error_log('ProductsController::ensureSubscriptionsTable error: ' . $e->getMessage());
         }
+
+        if (!$this->subscriptionsTableExists()) {
+            try {
+                $this->createSubscriptionsFallbackTable();
+            } catch (Throwable $e) {
+                error_log('ProductsController::createSubscriptionsFallbackTable error: ' . $e->getMessage());
+            }
+        }
     }
 
     private function subscriptionsTableExists(): bool
     {
         try {
-            $stmt = getDB()->prepare('SHOW TABLES LIKE ?');
-            $stmt->execute(['subscriptions']);
-            return (bool)$stmt->fetchColumn();
+            $stmt = getDB()->query(
+                "SELECT COUNT(*)
+                 FROM information_schema.tables
+                 WHERE table_schema = DATABASE()
+                   AND table_name = 'subscriptions'"
+            );
+            return (int)$stmt->fetchColumn() > 0;
         } catch (Throwable $e) {
             return false;
         }
