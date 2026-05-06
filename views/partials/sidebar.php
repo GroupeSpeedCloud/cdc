@@ -3,8 +3,6 @@ $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $navItems = [
   ['path'=>'/',         'icon'=>'space_dashboard',       'label'=>'Tableau de bord'],
   ['path'=>'/tiers',    'icon'=>'groups',                'label'=>'Tiers'],
-  ['path'=>'/invoices', 'icon'=>'receipt_long',          'label'=>'Factures'],
-  ['path'=>'/payments', 'icon'=>'credit_card',           'label'=>'Paiements'],
   ['path'=>'/forecast', 'icon'=>'trending_up',           'label'=>'Prévisions'],
   ['path'=>'/products',      'icon'=>'inventory_2',           'label'=>'Produits'],
   ['path'=>'/subscriptions', 'icon'=>'autorenew',             'label'=>'Abonnements'],
@@ -44,8 +42,6 @@ $navItems = [
 
     <div style="margin:16px 0 8px;padding:0 10px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.25);">Exports</div>
     <?php foreach ([
-      ['/export/csv?type=invoices','download','Factures CSV'],
-      ['/export/csv?type=payments','download','Paiements CSV'],
       ['/export/csv?type=tiers',  'download','Tiers CSV'],
     ] as [$href, $icon, $label]): ?>
     <a href="<?= APP_URL . $href ?>"

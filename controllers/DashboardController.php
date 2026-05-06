@@ -235,20 +235,19 @@ class DashboardController
             'expense_categories'=> $expenseCategories,
         ];
 
-        $user       = $_SESSION['user'];
+        $mrr = 0.0;
+        $arr = 0.0;
+        try {
+            require_once __DIR__ . '/../models/Subscription.php';
+            $subModel = new Subscription();
+            $mrr = $subModel->getMRR();
+            $arr = $subModel->getARR();
+        } catch (Throwable $e) {
+            error_log('Dashboard MRR/ARR unavailable: ' . $e->getMessage());
+        }
+
+        $user = $_SESSION['user'];
 
         require_once __DIR__ . '/../views/dashboard.php';
     }
 }
-            $user       = $_SESSION['user'];
-
-            $mrr = 0.0;
-            $arr = 0.0;
-            try {
-                require_once __DIR__ . '/../models/Subscription.php';
-                $subModel = new Subscription();
-                $mrr = $subModel->getMRR();
-                $arr = $subModel->getARR();
-            } catch (Throwable $e) {
-                error_log('Dashboard MRR/ARR unavailable: ' . $e->getMessage());
-            }

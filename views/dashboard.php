@@ -77,7 +77,6 @@ $alerts = $annual['alerts'] ?? [];
     $mgp = (float)($annual['monthly_growth_pct'] ?? 0);
     $mp2 = (float)($annual['monthly_profit']     ?? 0);
     $ep  = (float)($annual['expense_rate_pct']   ?? 0);
-    $pr  = (float)($annual['paid_rate_pct']      ?? 0);
     $secondary = [
       ['CA du mois',
         number_format($mr, 0, ',', ' ').' €',
@@ -90,14 +89,14 @@ $alerts = $annual['alerts'] ?? [];
       ['Taux de charges',
         number_format($ep, 1, ',', '.').' %',
         'Charges / CA', '#d97706'],
-      ['Factures payées',
-        number_format($pr, 1, ',', '.').' %',
-        (int)($kpis['invoice_counts']['paid'] ?? 0).'/'.(int)($kpis['invoice_counts']['total'] ?? 0),
-        $pr >= 90 ? '#16a34a' : '#d97706'],
-      ['Retard moyen',
-        number_format((float)($annual['avg_overdue_days'] ?? 0), 1, ',', '.').' j',
-        'Sur factures en retard',
-        (float)($annual['avg_overdue_days'] ?? 0) <= 10 ? '#16a34a' : '#dc2626'],
+      ['MRR',
+        number_format((float)($mrr ?? 0), 2, ',', ' ').' €',
+        'Revenus récurrents / mois',
+        '#7c3aed'],
+      ['ARR',
+        number_format((float)($arr ?? 0), 0, ',', ' ').' €',
+        'Revenus récurrents annualisés',
+        '#2563eb'],
     ];
     ?>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
@@ -182,30 +181,36 @@ $alerts = $annual['alerts'] ?? [];
 
       <div class="panel" style="overflow:hidden;">
         <div class="panel-head">
-          <span class="material-icons-round" style="font-size:15px;color:#10b981;">workspace_premium</span>
-          Top services
+          <span class="material-icons-round" style="font-size:15px;color:#10b981;">autorenew</span>
+          Abonnements actifs
         </div>
         <table class="data-table">
           <thead><tr>
+            <th>Client</th>
             <th>Service</th>
-            <th style="text-align:right;">CA</th>
-            <th style="text-align:right;">Fct.</th>
+            <th style="text-align:right;">Montant</th>
+            <th>Fréquence</th>
           </tr></thead>
           <tbody>
-            <?php foreach (array_slice($kpis['top_products'] ?? [], 0, 8) as $i => $p): ?>
+            <?php
+            $activeSubs = [];
+            try {
+                require_once __DIR__ . '/../models/Subscription.php';
+                $subM = new Subscription();
+                $activeSubs = array_slice($subM->getAll(['is_active' => 1]), 0, 8);
+            } catch (Throwable $e) {}
+            $periodLabels = ['monthly'=>'Mensuelle','quarterly'=>'Trim.','annual'=>'Annuelle','one_time'=>'Unique'];
+            foreach ($activeSubs as $sub):
+            ?>
             <tr>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span style="width:20px;height:20px;border-radius:50%;background:#10b981;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><?= $i+1 ?></span>
-                  <span style="font-weight:600;color:#0f172a;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;"><?= htmlspecialchars($p['name'] ?? ($p['label'] ?? '–'), ENT_QUOTES, 'UTF-8') ?></span>
-                </div>
-              </td>
-              <td style="text-align:right;font-weight:700;"><?= number_format((float)($p['revenue'] ?? $p['total'] ?? 0), 0, ',', ' ') ?> €</td>
-              <td style="text-align:right;color:#94a3b8;"><?= (int)($p['count'] ?? 0) ?></td>
+              <td style="font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($sub['tiers_name'] ?? ($sub['tiers_id'] ?? '–'), ENT_QUOTES, 'UTF-8') ?></td>
+              <td style="color:#334155;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($sub['label'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
+              <td style="text-align:right;font-weight:700;white-space:nowrap;"><?= number_format((float)($sub['amount'] ?? 0), 2, ',', ' ') ?> €</td>
+              <td><span class="badge badge-violet" style="font-size:10px;"><?= $periodLabels[$sub['recurrence'] ?? ''] ?? ucfirst($sub['recurrence'] ?? '') ?></span></td>
             </tr>
             <?php endforeach; ?>
-            <?php if (empty($kpis['top_products'] ?? [])): ?>
-            <tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:24px;">Aucune donnée</td></tr>
+            <?php if (empty($activeSubs)): ?>
+            <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">Aucun abonnement actif</td></tr>
             <?php endif; ?>
           </tbody>
         </table>
