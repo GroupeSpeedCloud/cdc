@@ -6,6 +6,8 @@ $navItems = [
   ['path'=>'/invoices', 'icon'=>'receipt_long',          'label'=>'Factures'],
   ['path'=>'/payments', 'icon'=>'credit_card',           'label'=>'Paiements'],
   ['path'=>'/forecast', 'icon'=>'trending_up',           'label'=>'Prévisions'],
+  ['path'=>'/products',      'icon'=>'inventory_2',           'label'=>'Produits'],
+  ['path'=>'/subscriptions', 'icon'=>'autorenew',             'label'=>'Abonnements'],
   ['path'=>'/expenses', 'icon'=>'account_balance_wallet','label'=>'Dépenses'],
 ];
 ?>

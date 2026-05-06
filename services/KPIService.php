@@ -35,7 +35,21 @@ class KPIService
             'revenue_by_product' => $this->getTopProducts(10),
             'revenue_breakdown'  => $this->getRevenueBreakdown(),
             'revenue_evolution'  => $this->getRevenueEvolution(12),
+            'mrr'                => $this->getMRR(),
+            'arr'                => $this->getARR(),
         ];
+    }
+
+    public function getMRR(): float
+    {
+        require_once __DIR__ . '/../models/BaseModel.php';
+        require_once __DIR__ . '/../models/Subscription.php';
+        return (new Subscription())->getMRR();
+    }
+
+    public function getARR(): float
+    {
+        return round($this->getMRR() * 12, 2);
     }
 
     public function getMonthlyRevenue(?int $year = null, ?int $month = null): float

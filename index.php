@@ -284,6 +284,77 @@ switch (true) {
         break;
 
     // 404
+    // Products
+    case $requestUri === '/products' && $method === 'GET':
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Product.php';
+        loadClass('ProductsController');
+        (new ProductsController())->index();
+        break;
+
+    case $requestUri === '/products/store' && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Product.php';
+        loadClass('ProductsController');
+        (new ProductsController())->store();
+        break;
+
+    case preg_match('#^/products/update/(\d+)$#', $requestUri, $m) && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Product.php';
+        loadClass('ProductsController');
+        (new ProductsController())->update((int)$m[1]);
+        break;
+
+    case preg_match('#^/products/delete/(\d+)$#', $requestUri, $m) && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Product.php';
+        loadClass('ProductsController');
+        (new ProductsController())->destroy((int)$m[1]);
+        break;
+
+    // Subscriptions
+    case $requestUri === '/subscriptions' && $method === 'GET':
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Subscription.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        require_once __DIR__ . '/models/Product.php';
+        loadClass('SubscriptionsController');
+        (new SubscriptionsController())->index();
+        break;
+
+    case $requestUri === '/subscriptions/store' && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Subscription.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        require_once __DIR__ . '/models/Product.php';
+        loadClass('SubscriptionsController');
+        (new SubscriptionsController())->store();
+        break;
+
+    case preg_match('#^/subscriptions/update/(\d+)$#', $requestUri, $m) && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Subscription.php';
+        require_once __DIR__ . '/models/Tiers.php';
+        require_once __DIR__ . '/models/Product.php';
+        loadClass('SubscriptionsController');
+        (new SubscriptionsController())->update((int)$m[1]);
+        break;
+
+    case preg_match('#^/subscriptions/delete/(\d+)$#', $requestUri, $m) && $method === 'POST':
+        validateCsrf();
+        require_once __DIR__ . '/models/BaseModel.php';
+        require_once __DIR__ . '/models/Subscription.php';
+        loadClass('SubscriptionsController');
+        (new SubscriptionsController())->destroy((int)$m[1]);
+        break;
+
+    // 404
     default:
         http_response_code(404);
         require_once __DIR__ . '/views/partials/header.php';
