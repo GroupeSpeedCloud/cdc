@@ -6,6 +6,14 @@ class Subscription extends BaseModel
     protected string $table = 'subscriptions';
     private ?bool $subscriptionsTableExists = null;
 
+    public function find(int $id): ?array
+    {
+        if (!$this->tableExists()) {
+            return null;
+        }
+        return $this->findById($id);
+    }
+
     private function tableExists(): bool
     {
         if ($this->subscriptionsTableExists !== null) {

@@ -6,6 +6,29 @@ class ProductsController
 {
     private Product $model;
 
+    private function ensureSubscriptionsTable(): void
+    {
+        if ($this->subscriptionsTableExists()) {
+            return;
+        }
+
+        try {
+            $migrationFile = __DIR__ . '/../database/migrations/002_create_subscriptions.sql';
+            if (!file_exists($migrationFile)) {
+                return;
+            }
+
+            $sql = file_get_contents($migrationFile);
+            if ($sql === false || trim($sql) === '') {
+                return;
+            }
+
+            getDB()->exec($sql);
+        } catch (Throwable $e) {
+            error_log('ProductsController::ensureSubscriptionsTable error: ' . $e->getMessage());
+        }
+    }
+
     private function subscriptionsTableExists(): bool
     {
         try {
@@ -24,39 +47,21 @@ class ProductsController
 
     public function index(): void
     {
+        $this->ensureSubscriptionsTable();
+
         $search = trim($_GET['search'] ?? '');
         $page   = max(1, (int)($_GET['page'] ?? 1));
         $limit  = 40;
         $offset = ($page - 1) * $limit;
 
-        $pdo = getDB();
-        $where  = $search ? "WHERE label LIKE ? OR ref LIKE ?" : '';
-        $params = $search ? ["%$search%", "%$search%"] : [];
+        $products = $this->model->getPagedWithSubscriptionStats(
+            $search,
+            $limit,
+            $offset,
+            $this->subscriptionsTableExists()
+        );
 
-        if ($this->subscriptionsTableExists()) {
-            $products = $this->model->query(
-                "SELECT p.*,
-                        (SELECT COUNT(*) FROM subscriptions s WHERE s.product_id = p.id AND s.is_active = 1) AS sub_count,
-                        (SELECT COALESCE(SUM(s.amount),0) FROM subscriptions s WHERE s.product_id = p.id AND s.is_active = 1 AND s.recurrence='monthly') AS mrr_direct
-                 FROM products p $where
-                 ORDER BY p.label
-                 LIMIT ? OFFSET ?",
-                array_merge($params, [$limit, $offset])
-            );
-        } else {
-            $products = $this->model->query(
-                "SELECT p.*, 0 AS sub_count, 0 AS mrr_direct
-                 FROM products p $where
-                 ORDER BY p.label
-                 LIMIT ? OFFSET ?",
-                array_merge($params, [$limit, $offset])
-            );
-        }
-
-        $total = (int)$this->model->queryOne(
-            "SELECT COUNT(*) FROM products $where LIMIT 1",
-            $params
-        )['COUNT(*)'];
+        $total = $this->model->countSearch($search);
         $pages = max(1, (int)ceil($total / $limit));
 
         $user        = $_SESSION['user'];

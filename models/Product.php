@@ -5,6 +5,46 @@ class Product extends BaseModel
 {
     protected string $table = 'products';
 
+    public function getAll(): array
+    {
+        return $this->query('SELECT * FROM products ORDER BY label');
+    }
+
+    public function find(int $id): ?array
+    {
+        return $this->findById($id);
+    }
+
+    public function getPagedWithSubscriptionStats(string $search, int $limit, int $offset, bool $withSubscriptions): array
+    {
+        $where  = $search !== '' ? 'WHERE p.label LIKE ? OR p.ref LIKE ?' : '';
+        $params = $search !== '' ? ["%$search%", "%$search%"] : [];
+
+        if ($withSubscriptions) {
+            $sql = "SELECT p.*,
+                           (SELECT COUNT(*) FROM subscriptions s WHERE s.product_id = p.id AND s.is_active = 1) AS sub_count,
+                           (SELECT COALESCE(SUM(s.amount),0) FROM subscriptions s WHERE s.product_id = p.id AND s.is_active = 1 AND s.recurrence='monthly') AS mrr_direct
+                    FROM products p $where
+                    ORDER BY p.label
+                    LIMIT ? OFFSET ?";
+        } else {
+            $sql = "SELECT p.*, 0 AS sub_count, 0 AS mrr_direct
+                    FROM products p $where
+                    ORDER BY p.label
+                    LIMIT ? OFFSET ?";
+        }
+
+        return $this->query($sql, array_merge($params, [$limit, $offset]));
+    }
+
+    public function countSearch(string $search): int
+    {
+        $where  = $search !== '' ? 'WHERE label LIKE ? OR ref LIKE ?' : '';
+        $params = $search !== '' ? ["%$search%", "%$search%"] : [];
+        $row = $this->queryOne("SELECT COUNT(*) AS c FROM products $where LIMIT 1", $params);
+        return (int)($row['c'] ?? 0);
+    }
+
     public function getWithRevenue(int $limit = 50): array
     {
         return $this->query(

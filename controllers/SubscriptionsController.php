@@ -8,6 +8,29 @@ class SubscriptionsController
 {
     private Subscription $model;
 
+    private function ensureSubscriptionsTable(): void
+    {
+        if ($this->subscriptionsTableExists()) {
+            return;
+        }
+
+        try {
+            $migrationFile = __DIR__ . '/../database/migrations/002_create_subscriptions.sql';
+            if (!file_exists($migrationFile)) {
+                return;
+            }
+
+            $sql = file_get_contents($migrationFile);
+            if ($sql === false || trim($sql) === '') {
+                return;
+            }
+
+            getDB()->exec($sql);
+        } catch (Throwable $e) {
+            error_log('SubscriptionsController::ensureSubscriptionsTable error: ' . $e->getMessage());
+        }
+    }
+
     private function subscriptionsTableExists(): bool
     {
         try {
@@ -26,6 +49,8 @@ class SubscriptionsController
 
     public function index(): void
     {
+        $this->ensureSubscriptionsTable();
+
         $search    = trim($_GET['search'] ?? '');
         $recFilter = in_array($_GET['recurrence'] ?? '', ['monthly','quarterly','annual','one_time']) ? $_GET['recurrence'] : '';
         $page      = max(1, (int)($_GET['page'] ?? 1));
@@ -59,6 +84,8 @@ class SubscriptionsController
 
     public function store(): void
     {
+        $this->ensureSubscriptionsTable();
+
         if (!$this->subscriptionsTableExists()) {
             header('Location: ' . APP_URL . '/subscriptions?error=' . urlencode('Table subscriptions absente. Lancez la migration SQL.'));
             exit;
@@ -91,6 +118,8 @@ class SubscriptionsController
 
     public function update(int $id): void
     {
+        $this->ensureSubscriptionsTable();
+
         if (!$this->subscriptionsTableExists()) {
             header('Location: ' . APP_URL . '/subscriptions?error=' . urlencode('Table subscriptions absente. Lancez la migration SQL.'));
             exit;
@@ -117,6 +146,8 @@ class SubscriptionsController
 
     public function destroy(int $id): void
     {
+        $this->ensureSubscriptionsTable();
+
         if (!$this->subscriptionsTableExists()) {
             header('Location: ' . APP_URL . '/subscriptions?error=' . urlencode('Table subscriptions absente. Lancez la migration SQL.'));
             exit;
