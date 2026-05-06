@@ -5,6 +5,16 @@ class Tiers extends BaseModel
 {
     protected string $table = 'tiers';
 
+    public function getAll(): array
+    {
+        return $this->query('SELECT * FROM tiers ORDER BY name');
+    }
+
+    public function find(int $id): ?array
+    {
+        return $this->findById($id);
+    }
+
     public function getWithStats(int $limit = 100, int $offset = 0, string $search = ''): array
     {
         $params = [];
