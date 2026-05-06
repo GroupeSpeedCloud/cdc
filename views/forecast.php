@@ -8,6 +8,26 @@ $healthVal  = (int)$data['health'];
 $healthColor = $healthVal >= 70 ? '#16a34a' : ($healthVal >= 40 ? '#d97706' : '#dc2626');
 $healthAccent = $healthVal >= 70 ? 'accent-green' : ($healthVal >= 40 ? 'accent-amber' : 'accent-red');
 $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
+
+// Calculs KPI en pourcentages
+$proj12data    = $data['proj12'];
+$totalCa12     = array_sum($proj12data['values'] ?? []);
+$totalExp12    = array_sum($proj12data['expense_values'] ?? []);
+$totalNet12    = array_sum($proj12data['net_values'] ?? []);
+$margeNetPct   = $totalCa12 > 0 ? round($totalNet12 / $totalCa12 * 100, 1) : null;
+$coverChargesPct = ($totalExp12 > 0) ? round($totalCa12 / $totalExp12 * 100, 1) : null;
+$mrrSubs = 0.0;
+foreach (($data['recurring'] ?? []) as $_r) {
+    if (($_r['source'] ?? '') === 'subscriptions') {
+        $_amt = (float)($_r['amount'] ?? 0);
+        $mrrSubs += match($_r['period'] ?? 'monthly') {
+            'quarterly' => $_amt / 3,
+            'annual'    => $_amt / 12,
+            default     => $_amt,
+        };
+    }
+}
+$partSubsPct = $totalCa12 > 0 ? round(($mrrSubs * 12) / $totalCa12 * 100, 1) : null;
 ?>
 
 <div id="main-wrap" class="flex-1 flex flex-col overflow-hidden">
@@ -87,6 +107,35 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
       <?php endforeach; ?>
     </div>
 
+    <!-- Secondary % KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+
+      <div class="stat-card <?= $margeNetPct === null ? 'accent-slate' : ($margeNetPct >= 0 ? 'accent-green' : 'accent-red') ?>">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:6px;">Marge nette (12 mois)</div>
+        <div style="font-size:26px;font-weight:800;color:<?= $margeNetPct === null ? '#94a3b8' : ($margeNetPct >= 0 ? '#16a34a' : '#dc2626') ?>;line-height:1;">
+          <?= $margeNetPct === null ? '–' : (($margeNetPct > 0 ? '+' : '') . number_format($margeNetPct, 1, ',', ' ') . ' %') ?>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:5px;">Net cumulé : <?= number_format($totalNet12, 0, ',', ' ') ?> €</div>
+      </div>
+
+      <div class="stat-card accent-violet">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:6px;">Part des abonnements</div>
+        <div style="font-size:26px;font-weight:800;color:#7c3aed;line-height:1;">
+          <?= $partSubsPct === null ? '–' : number_format($partSubsPct, 1, ',', ' ') . ' %' ?>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:5px;">MRR : <?= number_format($mrrSubs, 2, ',', ' ') ?> €/mois</div>
+      </div>
+
+      <div class="stat-card <?= $coverChargesPct === null ? 'accent-slate' : ($coverChargesPct >= 100 ? 'accent-green' : 'accent-amber') ?>">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:6px;">Couverture des charges</div>
+        <div style="font-size:26px;font-weight:800;color:<?= $coverChargesPct === null ? '#94a3b8' : ($coverChargesPct >= 100 ? '#16a34a' : '#d97706') ?>;line-height:1;">
+          <?= $coverChargesPct === null ? '–' : number_format($coverChargesPct, 0, ',', ' ') . ' %' ?>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:5px;">Charges : <?= number_format($totalExp12, 0, ',', ' ') ?> €</div>
+      </div>
+
+    </div>
+
     <!-- Forecast chart -->
     <div class="panel" style="padding:20px;margin-bottom:16px;">
       <div class="panel-head">
@@ -96,40 +145,6 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
       <div style="position:relative;height:280px;">
         <canvas id="forecastChart"></canvas>
       </div>
-    </div>
-
-    <!-- Recurrence config -->
-    <div class="panel" style="padding:20px;margin-bottom:16px;">
-      <div class="panel-head" style="margin-bottom:16px;">
-        <span class="material-icons-round" style="font-size:16px;color:#10b981;">autorenew</span>
-        Récurrence de paiement legacy (client + fréquence)
-      </div>
-      <form method="POST" action="<?= APP_URL ?>/forecast/recurrence/store" style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;">
-        <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-        <div class="field">
-          <label>Client *</label>
-          <select name="tiers_id" required>
-            <option value="">Sélectionner...</option>
-            <?php foreach (($tiersAll ?? []) as $t): ?>
-            <option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['name'], ENT_QUOTES, 'UTF-8') ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <div class="field">
-          <label>Fréquence *</label>
-          <select name="period">
-            <option value="monthly">Mensuelle</option>
-            <option value="quarterly">Trimestrielle</option>
-            <option value="annual">Annuelle</option>
-          </select>
-        </div>
-        <div>
-          <button type="submit" class="btn btn-primary">
-            <span class="material-icons-round" style="font-size:15px;">save</span> Enregistrer
-          </button>
-        </div>
-      </form>
-      <div style="font-size:12px;color:#94a3b8;margin-top:10px;">Ce bloc historique reste disponible, mais la projection tient aussi compte des abonnements configurés dans l'onglet Abonnements.</div>
     </div>
 
     <!-- Recurring table -->
@@ -197,6 +212,7 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
             <th style="text-align:right;">Evolution</th>
             <th style="text-align:right;">Dépenses</th>
             <th style="text-align:right;">Net</th>
+            <th style="text-align:right;">% Marge</th>
           </tr></thead>
           <tbody>
             <?php
@@ -209,15 +225,19 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
                   : null;
               $exp = $proj12['expense_values'][$i] ?? 0;
               $net = $proj12['net_values'][$i] ?? 0;
+              $margePct = (float)$rev > 0 ? round((float)$net / (float)$rev * 100, 1) : null;
             ?>
             <tr>
               <td style="font-weight:600;"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></td>
               <td style="text-align:right;white-space:nowrap;"><?= number_format((float)$rev, 0, ',', ' ') ?> €</td>
-              <td style="text-align:right;white-space:nowrap;font-weight:600;color:<?= $deltaPct === null ? '#94a3b8' : ($deltaPct >= 0 ? '#16a34a' : '#dc2626') ?>;">
+              <td style="text-align:right;white-space:nowrap;font-weight:600;color:<?= $deltaPct === null ? '#94a3b8' : ($deltaPct >= 0 ? '#16a34a' : '#dc2626') ?>">
                 <?= $deltaPct === null ? '—' : (($deltaPct > 0 ? '+' : '') . number_format($deltaPct, 1, ',', ' ') . ' %') ?>
               </td>
               <td style="text-align:right;white-space:nowrap;color:#dc2626;"><?= number_format((float)$exp, 0, ',', ' ') ?> €</td>
               <td style="text-align:right;white-space:nowrap;font-weight:700;color:<?= $net >= 0 ? '#16a34a' : '#dc2626' ?>;"><?= number_format((float)$net, 0, ',', ' ') ?> €</td>
+              <td style="text-align:right;white-space:nowrap;font-weight:600;color:<?= $margePct === null ? '#94a3b8' : ($margePct >= 0 ? '#16a34a' : '#dc2626') ?>">
+                <?= $margePct === null ? '—' : (($margePct > 0 ? '+' : '') . number_format($margePct, 1, ',', ' ') . ' %') ?>
+              </td>
             </tr>
             <?php endforeach; ?>
           </tbody>
