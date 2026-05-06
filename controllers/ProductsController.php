@@ -6,6 +6,17 @@ class ProductsController
 {
     private Product $model;
 
+    private function subscriptionsTableExists(): bool
+    {
+        try {
+            $stmt = getDB()->prepare('SHOW TABLES LIKE ?');
+            $stmt->execute(['subscriptions']);
+            return (bool)$stmt->fetchColumn();
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
     public function __construct()
     {
         $this->model = new Product();
@@ -22,15 +33,25 @@ class ProductsController
         $where  = $search ? "WHERE label LIKE ? OR ref LIKE ?" : '';
         $params = $search ? ["%$search%", "%$search%"] : [];
 
-        $products = $this->model->query(
-            "SELECT p.*,
-                    (SELECT COUNT(*) FROM subscriptions s WHERE s.product_id = p.id AND s.is_active = 1) AS sub_count,
-                    (SELECT COALESCE(SUM(s.amount),0) FROM subscriptions s WHERE s.product_id = p.id AND s.is_active = 1 AND s.recurrence='monthly') AS mrr_direct
-             FROM products p $where
-             ORDER BY p.label
-             LIMIT ? OFFSET ?",
-            array_merge($params, [$limit, $offset])
-        );
+        if ($this->subscriptionsTableExists()) {
+            $products = $this->model->query(
+                "SELECT p.*,
+                        (SELECT COUNT(*) FROM subscriptions s WHERE s.product_id = p.id AND s.is_active = 1) AS sub_count,
+                        (SELECT COALESCE(SUM(s.amount),0) FROM subscriptions s WHERE s.product_id = p.id AND s.is_active = 1 AND s.recurrence='monthly') AS mrr_direct
+                 FROM products p $where
+                 ORDER BY p.label
+                 LIMIT ? OFFSET ?",
+                array_merge($params, [$limit, $offset])
+            );
+        } else {
+            $products = $this->model->query(
+                "SELECT p.*, 0 AS sub_count, 0 AS mrr_direct
+                 FROM products p $where
+                 ORDER BY p.label
+                 LIMIT ? OFFSET ?",
+                array_merge($params, [$limit, $offset])
+            );
+        }
 
         $total = (int)$this->model->queryOne(
             "SELECT COUNT(*) FROM products $where LIMIT 1",

@@ -3,6 +3,7 @@ class ForecastService
 {
     private PDO $pdo;
     private ?array $recurringCache = null;
+    private ?array $subscriptionsCache = null;
     private ?array $expenseInputs = null;
     private ?bool $usePayments = null;
 
@@ -358,9 +359,13 @@ class ForecastService
             return $this->recurringCache;
         }
 
+        $rows = [];
+        $rows = array_merge($rows, $this->getSubscriptionRecurringRows());
+
         $configured = $this->getConfiguredRecurrences();
         if (empty($configured)) {
-            $this->recurringCache = [];
+            usort($rows, static fn(array $a, array $b): int => strcmp((string)($a['next_date'] ?? ''), (string)($b['next_date'] ?? '')));
+            $this->recurringCache = $rows;
             return $this->recurringCache;
         }
 
@@ -382,7 +387,6 @@ class ForecastService
              GROUP BY t.id, t.name'
         );
 
-        $rows = [];
         foreach ($configured as $cfg) {
             $stmt->execute([(int)$cfg['tiers_id']]);
             $row = $stmt->fetch();
@@ -401,10 +405,11 @@ class ForecastService
                 'last_date' => $lastDate,
                 'next_date' => $this->nextOccurrenceDate($lastDate, $cfg['period']),
                 'invoice_count' => (int)$row['payment_count'],
+                'source' => 'payments',
             ];
         }
 
-        usort($rows, static fn(array $a, array $b): int => strcmp($a['next_date'], $b['next_date']));
+        usort($rows, static fn(array $a, array $b): int => strcmp((string)($a['next_date'] ?? ''), (string)($b['next_date'] ?? '')));
         $this->recurringCache = $rows;
         return $this->recurringCache;
     }
@@ -415,7 +420,21 @@ class ForecastService
         $recurring = $this->detectRecurringInvoices();
 
         foreach ($recurring as $item) {
+            if (($item['source'] ?? '') === 'subscriptions') {
+                continue;
+            }
+
             $date = $item['next_date'];
+            if (($item['period'] ?? '') === 'one_time') {
+                $monthIndex = ((int)date('Y', strtotime($date)) - (int)date('Y')) * 12
+                    + ((int)date('m', strtotime($date)) - (int)date('m')) - 1;
+
+                if ($monthIndex >= 0 && $monthIndex < $months) {
+                    $values[$monthIndex] += (float)$item['amount'];
+                }
+                continue;
+            }
+
             while (strtotime($date) <= strtotime("+$months months")) {
                 $monthIndex = ((int)date('Y', strtotime($date)) - (int)date('Y')) * 12
                     + ((int)date('m', strtotime($date)) - (int)date('m')) - 1;
@@ -428,7 +447,112 @@ class ForecastService
             }
         }
 
+        // Ajoute les abonnements actifs (produits/clients) à la projection.
+        foreach ($this->getActiveSubscriptions() as $subscription) {
+            $startDate = !empty($subscription['start_date']) ? (string)$subscription['start_date'] : date('Y-m-01');
+            $endDate = !empty($subscription['end_date']) ? (string)$subscription['end_date'] : null;
+            $period = (string)($subscription['recurrence'] ?? 'monthly');
+            $amount = (float)($subscription['amount'] ?? 0);
+
+            if ($amount <= 0) {
+                continue;
+            }
+
+            for ($monthIndex = 0; $monthIndex < $months; $monthIndex++) {
+                $targetMonth = date('Y-m-01', strtotime('+' . ($monthIndex + 1) . ' month'));
+                if (strtotime($targetMonth) < strtotime(date('Y-m-01', strtotime($startDate)))) {
+                    continue;
+                }
+                if ($endDate !== null && strtotime($targetMonth) > strtotime(date('Y-m-01', strtotime($endDate)))) {
+                    continue;
+                }
+
+                $diffMonths = ((int)date('Y', strtotime($targetMonth)) - (int)date('Y', strtotime($startDate))) * 12
+                    + ((int)date('m', strtotime($targetMonth)) - (int)date('m', strtotime($startDate)));
+
+                if ($diffMonths < 0) {
+                    continue;
+                }
+
+                if ($period === 'monthly') {
+                    $values[$monthIndex] += $amount;
+                } elseif ($period === 'quarterly' && $diffMonths % 3 === 0) {
+                    $values[$monthIndex] += $amount;
+                } elseif ($period === 'annual' && $diffMonths % 12 === 0) {
+                    $values[$monthIndex] += $amount;
+                } elseif ($period === 'one_time' && $diffMonths === 0) {
+                    $values[$monthIndex] += $amount;
+                }
+            }
+        }
+
         return ['values' => array_map(static fn(float $value): float => round($value, 2), $values)];
+    }
+
+    private function getActiveSubscriptions(): array
+    {
+        if ($this->subscriptionsCache !== null) {
+            return $this->subscriptionsCache;
+        }
+
+        try {
+            $check = $this->pdo->query("SHOW TABLES LIKE 'subscriptions'");
+            if (!$check || !$check->fetchColumn()) {
+                $this->subscriptionsCache = [];
+                return $this->subscriptionsCache;
+            }
+
+            $stmt = $this->pdo->query(
+                "SELECT s.id, s.tiers_id, s.product_id, s.label, s.amount, s.recurrence, s.start_date, s.end_date,
+                        t.name AS tiers_name,
+                        COALESCE(p.label, s.label, 'Abonnement') AS service_label
+                 FROM subscriptions s
+                 JOIN tiers t ON t.id = s.tiers_id
+                 LEFT JOIN products p ON p.id = s.product_id
+                 WHERE s.is_active = 1
+                   AND (s.end_date IS NULL OR s.end_date >= CURDATE())"
+            );
+
+            $this->subscriptionsCache = $stmt ? $stmt->fetchAll() : [];
+        } catch (Throwable $e) {
+            error_log('Forecast subscriptions unavailable: ' . $e->getMessage());
+            $this->subscriptionsCache = [];
+        }
+
+        return $this->subscriptionsCache;
+    }
+
+    private function getSubscriptionRecurringRows(): array
+    {
+        $periodLabels = [
+            'monthly' => 'Mensuelle',
+            'quarterly' => 'Trimestrielle',
+            'annual' => 'Annuelle',
+            'one_time' => 'Unique',
+        ];
+
+        $rows = [];
+        foreach ($this->getActiveSubscriptions() as $s) {
+            $startDate = !empty($s['start_date']) ? (string)$s['start_date'] : date('Y-m-d');
+            $nextDate = (string)$s['recurrence'] === 'one_time'
+                ? $startDate
+                : $this->nextOccurrenceDate($startDate, (string)$s['recurrence']);
+
+            $rows[] = [
+                'tiers_id' => (int)($s['tiers_id'] ?? 0),
+                'tiers_name' => (string)($s['tiers_name'] ?? 'Sans tiers'),
+                'service_label' => (string)($s['service_label'] ?? 'Abonnement'),
+                'period' => (string)($s['recurrence'] ?? 'monthly'),
+                'period_label' => $periodLabels[(string)($s['recurrence'] ?? 'monthly')] ?? ucfirst((string)($s['recurrence'] ?? 'monthly')),
+                'amount' => round((float)($s['amount'] ?? 0), 2),
+                'last_date' => $startDate,
+                'next_date' => $nextDate,
+                'invoice_count' => null,
+                'source' => 'subscriptions',
+            ];
+        }
+
+        return $rows;
     }
 
     public function saveRecurringConfig(int $tiersId, string $period): void

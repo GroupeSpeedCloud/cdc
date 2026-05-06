@@ -8,6 +8,17 @@ class SubscriptionsController
 {
     private Subscription $model;
 
+    private function subscriptionsTableExists(): bool
+    {
+        try {
+            $stmt = getDB()->prepare('SHOW TABLES LIKE ?');
+            $stmt->execute(['subscriptions']);
+            return (bool)$stmt->fetchColumn();
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
     public function __construct()
     {
         $this->model = new Subscription();
@@ -21,12 +32,21 @@ class SubscriptionsController
         $limit     = 40;
         $offset    = ($page - 1) * $limit;
 
-        $subscriptions = $this->model->getAll($limit, $offset, $search, $recFilter);
-        $total         = $this->model->countAll($search, $recFilter);
-        $pages         = max(1, (int)ceil($total / $limit));
+        if ($this->subscriptionsTableExists()) {
+            $subscriptions = $this->model->getAll($limit, $offset, $search, $recFilter);
+            $total         = $this->model->countAll($search, $recFilter);
+            $pages         = max(1, (int)ceil($total / $limit));
 
-        $mrr = $this->model->getMRR();
-        $arr = $this->model->getARR();
+            $mrr = $this->model->getMRR();
+            $arr = $this->model->getARR();
+        } else {
+            $subscriptions = [];
+            $total         = 0;
+            $pages         = 1;
+            $mrr           = 0.0;
+            $arr           = 0.0;
+            $_GET['error'] = 'La table subscriptions est absente. Lancez la migration 002_create_subscriptions.sql.';
+        }
 
         $tiers_list   = (new Tiers())->getAll();
         $products_list = (new Product())->getAll();
@@ -39,6 +59,11 @@ class SubscriptionsController
 
     public function store(): void
     {
+        if (!$this->subscriptionsTableExists()) {
+            header('Location: ' . APP_URL . '/subscriptions?error=' . urlencode('Table subscriptions absente. Lancez la migration SQL.'));
+            exit;
+        }
+
         $tiersId   = (int)($_POST['tiers_id']   ?? 0);
         $productId = (int)($_POST['product_id'] ?? 0) ?: null;
         $label     = trim($_POST['label'] ?? '');
@@ -66,6 +91,11 @@ class SubscriptionsController
 
     public function update(int $id): void
     {
+        if (!$this->subscriptionsTableExists()) {
+            header('Location: ' . APP_URL . '/subscriptions?error=' . urlencode('Table subscriptions absente. Lancez la migration SQL.'));
+            exit;
+        }
+
         $tiersId   = (int)($_POST['tiers_id']   ?? 0);
         $productId = (int)($_POST['product_id'] ?? 0) ?: null;
         $label     = trim($_POST['label'] ?? '');
@@ -87,6 +117,11 @@ class SubscriptionsController
 
     public function destroy(int $id): void
     {
+        if (!$this->subscriptionsTableExists()) {
+            header('Location: ' . APP_URL . '/subscriptions?error=' . urlencode('Table subscriptions absente. Lancez la migration SQL.'));
+            exit;
+        }
+
         getDB()->prepare("DELETE FROM subscriptions WHERE id=?")->execute([$id]);
         header('Location: ' . APP_URL . '/subscriptions?message=' . urlencode('Abonnement supprimé.'));
         exit;

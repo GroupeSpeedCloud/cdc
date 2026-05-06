@@ -4,10 +4,32 @@ require_once __DIR__ . '/BaseModel.php';
 class Subscription extends BaseModel
 {
     protected string $table = 'subscriptions';
+    private ?bool $subscriptionsTableExists = null;
+
+    private function tableExists(): bool
+    {
+        if ($this->subscriptionsTableExists !== null) {
+            return $this->subscriptionsTableExists;
+        }
+
+        try {
+            $stmt = getDB()->prepare('SHOW TABLES LIKE ?');
+            $stmt->execute([$this->table]);
+            $this->subscriptionsTableExists = (bool)$stmt->fetchColumn();
+        } catch (Throwable $e) {
+            $this->subscriptionsTableExists = false;
+        }
+
+        return $this->subscriptionsTableExists;
+    }
 
     /** Retourne les abonnements avec nom du tiers + nom du produit */
     public function getAll(int $limit = 200, int $offset = 0, string $search = '', string $recurrence = ''): array
     {
+        if (!$this->tableExists()) {
+            return [];
+        }
+
         $where  = ['1=1'];
         $params = [];
 
@@ -38,6 +60,10 @@ class Subscription extends BaseModel
 
     public function countAll(string $search = '', string $recurrence = ''): int
     {
+        if (!$this->tableExists()) {
+            return 0;
+        }
+
         $where  = ['1=1'];
         $params = [];
         if ($search !== '') {
@@ -59,6 +85,10 @@ class Subscription extends BaseModel
     /** MRR : valeur mensuelle de tous les abonnements actifs */
     public function getMRR(): float
     {
+        if (!$this->tableExists()) {
+            return 0.0;
+        }
+
         $rows = $this->query(
             "SELECT amount, recurrence FROM subscriptions WHERE is_active = 1
              AND (end_date IS NULL OR end_date >= CURDATE())"
@@ -82,6 +112,10 @@ class Subscription extends BaseModel
 
     public function countActive(): int
     {
+        if (!$this->tableExists()) {
+            return 0;
+        }
+
         return (int)$this->queryOne(
             "SELECT COUNT(*) FROM subscriptions
              WHERE is_active = 1 AND (end_date IS NULL OR end_date >= CURDATE())"
@@ -90,6 +124,10 @@ class Subscription extends BaseModel
 
     public function getByTiers(int $tiersId): array
     {
+        if (!$this->tableExists()) {
+            return [];
+        }
+
         return $this->query(
             'SELECT s.*, COALESCE(p.label, s.label) AS product_label, p.ref AS product_ref
              FROM subscriptions s

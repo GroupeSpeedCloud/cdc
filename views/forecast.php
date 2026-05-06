@@ -56,6 +56,11 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
     </div>
     <?php endif; ?>
 
+    <div style="display:flex;align-items:center;gap:8px;background:#ecfeff;border:1px solid #a5f3fc;border-radius:8px;padding:10px 14px;font-size:13px;color:#0e7490;margin-bottom:12px;">
+      <span class="material-icons-round" style="font-size:16px;color:#06b6d4;">insights</span>
+      Les projections incluent désormais les abonnements actifs (mensuel/trimestriel/annuel/unique) en plus de l'historique des encaissements.
+    </div>
+
     <!-- KPI grid -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
       <div class="stat-card <?= $healthAccent ?>">
@@ -97,7 +102,7 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
     <div class="panel" style="padding:20px;margin-bottom:16px;">
       <div class="panel-head" style="margin-bottom:16px;">
         <span class="material-icons-round" style="font-size:16px;color:#10b981;">autorenew</span>
-        Récurrence de paiement (client + fréquence)
+        Récurrence de paiement legacy (client + fréquence)
       </div>
       <form method="POST" action="<?= APP_URL ?>/forecast/recurrence/store" style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;">
         <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
@@ -124,7 +129,7 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
           </button>
         </div>
       </form>
-      <div style="font-size:12px;color:#94a3b8;margin-top:10px;">Le montant est calculé automatiquement depuis la moyenne des paiements du client.</div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:10px;">Ce bloc historique reste disponible, mais la projection tient aussi compte des abonnements configurés dans l'onglet Abonnements.</div>
     </div>
 
     <!-- Recurring table -->
@@ -138,9 +143,11 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
         <table class="data-table">
           <thead><tr>
             <th>Client</th>
+            <th>Libellé</th>
+            <th>Source</th>
             <th>Fréquence</th>
-            <th style="text-align:right;">Montant moyen</th>
-            <th>Dernier paiement</th>
+            <th style="text-align:right;">Montant</th>
+            <th>Date référence</th>
             <th>Prochaine occurrence</th>
             <th></th>
           </tr></thead>
@@ -148,17 +155,25 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
             <?php foreach ($data['recurring'] as $r): ?>
             <tr>
               <td style="font-weight:600;"><?= htmlspecialchars($r['tiers_name'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
+              <td style="color:#334155;"><?= htmlspecialchars($r['service_label'] ?? '–', ENT_QUOTES, 'UTF-8') ?></td>
+              <td>
+                <span class="badge <?= (($r['source'] ?? '') === 'subscriptions') ? 'badge-violet' : 'badge-slate' ?>">
+                  <?= (($r['source'] ?? '') === 'subscriptions') ? 'Abonnement' : 'Paiement' ?>
+                </span>
+              </td>
               <td><span class="badge badge-blue"><?= htmlspecialchars($r['period_label'] ?? '–', ENT_QUOTES, 'UTF-8') ?></span></td>
               <td style="text-align:right;font-weight:700;white-space:nowrap;"><?= number_format((float)$r['amount'], 2, ',', ' ') ?> €</td>
               <td style="white-space:nowrap;color:#64748b;font-size:12px;"><?= !empty($r['last_date']) ? date('d/m/Y', strtotime($r['last_date'])) : '–' ?></td>
               <td style="white-space:nowrap;font-weight:600;color:#2563eb;font-size:12px;"><?= !empty($r['next_date']) ? date('d/m/Y', strtotime($r['next_date'])) : '–' ?></td>
               <td style="text-align:right;">
+                <?php if (($r['source'] ?? '') !== 'subscriptions'): ?>
                 <form method="POST" action="<?= APP_URL ?>/forecast/recurrence/delete/<?= (int)($r['tiers_id'] ?? 0) ?>">
                   <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
                   <button type="submit" class="btn btn-danger" style="padding:5px 10px;font-size:12px;">
                     <span class="material-icons-round" style="font-size:13px;">delete</span>
                   </button>
                 </form>
+                <?php endif; ?>
               </td>
             </tr>
             <?php endforeach; ?>
