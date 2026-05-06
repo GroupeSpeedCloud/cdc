@@ -76,13 +76,13 @@ class ForecastService
 
     public function getProjections(array $revenues, int $months = 12): array
     {
-        $values = array_filter(array_column($revenues, 'revenue'), static fn($v) => $v > 0);
+        $values = array_map(static fn($v): float => (float)$v, array_column($revenues, 'revenue'));
         $labels = [];
         for ($i = 1; $i <= $months; $i++) {
             $labels[] = date('M Y', strtotime("+$i months"));
         }
 
-        if (empty($values)) {
+        if (empty($values) || max($values) <= 0) {
             $recurringProjection = $this->getRecurringProjection($months);
             return [
                 'values' => $recurringProjection['values'],
@@ -116,7 +116,8 @@ class ForecastService
         $recurringProjection = $this->getRecurringProjection($months);
         $projections = [];
         foreach ($linear as $i => $value) {
-            $projections[] = max($value, (float)($recurringProjection['values'][$i] ?? 0));
+            // Combine la tendance historique avec le socle récurrent (abonnements + legacy).
+            $projections[] = round(max(0.0, (float)$value) + (float)($recurringProjection['values'][$i] ?? 0), 2);
         }
 
         return [
@@ -314,12 +315,16 @@ class ForecastService
 
             $monthly = 0.0;
             $annual = 0.0;
+            $quarterly = 0.0;
             $oneTime = 0.0;
             foreach ($stmt->fetchAll() as $row) {
                 $total = (float)($row['total'] ?? 0);
                 switch ($row['recurrence']) {
                     case 'monthly':
                         $monthly += $total;
+                        break;
+                    case 'quarterly':
+                        $quarterly += $total;
                         break;
                     case 'annual':
                         $annual += $total;
@@ -336,8 +341,9 @@ class ForecastService
 
             $this->expenseInputs = [
                 'available' => true,
-                'monthly_base' => $monthly + ($annual / 12) + ($oneTime / 12),
-                'annual_equivalent' => ($monthly * 12) + $annual + $oneTime,
+                // one_time est injecté sur son mois réel, pas lissé mensuellement.
+                'monthly_base' => $monthly + ($quarterly / 3) + ($annual / 12),
+                'annual_equivalent' => ($monthly * 12) + ($quarterly * 4) + $annual + $oneTime,
                 'one_time_rows' => $oneTimeStmt ? $oneTimeStmt->fetchAll() : [],
             ];
         } catch (Throwable $e) {
@@ -496,8 +502,13 @@ class ForecastService
         }
 
         try {
-            $check = $this->pdo->query("SHOW TABLES LIKE 'subscriptions'");
-            if (!$check || !$check->fetchColumn()) {
+            $check = $this->pdo->query(
+                "SELECT COUNT(*)
+                 FROM information_schema.tables
+                 WHERE table_schema = DATABASE()
+                   AND table_name = 'subscriptions'"
+            );
+            if (!$check || (int)$check->fetchColumn() === 0) {
                 $this->subscriptionsCache = [];
                 return $this->subscriptionsCache;
             }

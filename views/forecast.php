@@ -194,6 +194,7 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
           <thead><tr>
             <th>Mois</th>
             <th style="text-align:right;">CA projeté</th>
+            <th style="text-align:right;">Evolution</th>
             <th style="text-align:right;">Dépenses</th>
             <th style="text-align:right;">Net</th>
           </tr></thead>
@@ -202,12 +203,19 @@ $csrf = htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
             $proj12 = $data['proj12'];
             foreach ($proj12['labels'] as $i => $label):
               $rev = $proj12['values'][$i] ?? 0;
+              $prev = $i > 0 ? ($proj12['values'][$i - 1] ?? 0) : 0;
+              $deltaPct = $i > 0 && (float)$prev > 0
+                  ? round((((float)$rev - (float)$prev) / (float)$prev) * 100, 1)
+                  : null;
               $exp = $proj12['expense_values'][$i] ?? 0;
               $net = $proj12['net_values'][$i] ?? 0;
             ?>
             <tr>
               <td style="font-weight:600;"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></td>
               <td style="text-align:right;white-space:nowrap;"><?= number_format((float)$rev, 0, ',', ' ') ?> €</td>
+              <td style="text-align:right;white-space:nowrap;font-weight:600;color:<?= $deltaPct === null ? '#94a3b8' : ($deltaPct >= 0 ? '#16a34a' : '#dc2626') ?>;">
+                <?= $deltaPct === null ? '—' : (($deltaPct > 0 ? '+' : '') . number_format($deltaPct, 1, ',', ' ') . ' %') ?>
+              </td>
               <td style="text-align:right;white-space:nowrap;color:#dc2626;"><?= number_format((float)$exp, 0, ',', ' ') ?> €</td>
               <td style="text-align:right;white-space:nowrap;font-weight:700;color:<?= $net >= 0 ? '#16a34a' : '#dc2626' ?>;"><?= number_format((float)$net, 0, ',', ' ') ?> €</td>
             </tr>
@@ -225,8 +233,8 @@ $hist     = $data['historical'];
 $proj12   = $data['proj12'];
 $histLabels = json_encode(array_column($hist, 'label'));
 $histVals   = json_encode(array_map(fn($h)=>(float)($h['revenue']??0), $hist));
-$ma3Vals    = json_encode(array_map(fn($h)=>(float)($h['ma3']??0), $hist));
-$ma6Vals    = json_encode(array_map(fn($h)=>(float)($h['ma6']??0), $hist));
+$ma3Vals    = json_encode($data['ma3'] ?? []);
+$ma6Vals    = json_encode($data['ma6'] ?? []);
 $projLabels = json_encode($proj12['labels']);
 $projVals   = json_encode($proj12['values']);
 $projNet    = json_encode($proj12['net_values']);
