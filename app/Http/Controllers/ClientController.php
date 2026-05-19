@@ -34,7 +34,7 @@ class ClientController extends Controller
             'notes' => 'nullable',
         ]);
         $client = Client::create($data);
-        return redirect()->route('clients.show', $client);
+        return redirect()->route('clients.index');
     }
 
     public function edit(Client $client)

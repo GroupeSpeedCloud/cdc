@@ -34,7 +34,7 @@ class ServiceController extends Controller
             'status' => 'required',
         ]);
         $service = Service::create($data);
-        return redirect()->route('services.show', $service);
+        return redirect()->route('services.index');
     }
 
     public function edit(Service $service)
