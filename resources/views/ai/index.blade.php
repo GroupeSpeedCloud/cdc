@@ -7,21 +7,13 @@
         <x-card>
             <form method="POST" action="{{ route('ai.summary') }}" class="space-y-4">
                 @csrf
-                <div>
-                    <label class="block text-sm font-medium mb-1">Résumé IA</label>
-                    <textarea name="data" class="w-full rounded bg-card border border-zinc-700 p-2" rows="3" placeholder="Collez vos données financières ou sélectionnez une période..."></textarea>
-                </div>
-                <button type="submit" class="bg-primary hover:bg-accent text-white px-4 py-2 rounded">Générer le résumé</button>
+                <button type="submit" class="bg-primary hover:bg-accent text-white px-4 py-2 rounded w-full">Générer un résumé IA automatique</button>
             </form>
         </x-card>
         <x-card>
             <form method="POST" action="{{ route('ai.analyze') }}" class="space-y-4">
                 @csrf
-                <div>
-                    <label class="block text-sm font-medium mb-1">Analyse IA</label>
-                    <textarea name="data" class="w-full rounded bg-card border border-zinc-700 p-2" rows="3" placeholder="Collez vos données ou sélectionnez une période..."></textarea>
-                </div>
-                <button type="submit" class="bg-primary hover:bg-accent text-white px-4 py-2 rounded">Analyser</button>
+                <button type="submit" class="bg-primary hover:bg-accent text-white px-4 py-2 rounded w-full">Analyser automatiquement les finances</button>
             </form>
         </x-card>
     </div>
@@ -29,16 +21,12 @@
         <x-card>
             <form method="POST" action="{{ route('ai.anomalies') }}" class="space-y-4">
                 @csrf
-                <div>
-                    <label class="block text-sm font-medium mb-1">Détection d'anomalies</label>
-                    <textarea name="data" class="w-full rounded bg-card border border-zinc-700 p-2" rows="3" placeholder="Collez vos données ou sélectionnez une période..."></textarea>
-                </div>
-                <button type="submit" class="bg-primary hover:bg-accent text-white px-4 py-2 rounded">Détecter</button>
+                <button type="submit" class="bg-primary hover:bg-accent text-white px-4 py-2 rounded w-full">Détecter automatiquement les anomalies</button>
             </form>
         </x-card>
         <x-card>
             <div class="text-zinc-400 text-sm">
-                <p>Utilisez l’IA pour générer des prévisions, des résumés, détecter des anomalies et obtenir des conseils personnalisés sur vos finances.</p>
+                <p>L’IA analyse et prédit automatiquement à partir de toutes vos données financières. Aucun contexte manuel à fournir.</p>
             </div>
         </x-card>
     </div>
