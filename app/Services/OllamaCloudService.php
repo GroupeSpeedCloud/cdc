@@ -21,6 +21,7 @@ class OllamaCloudService
     public function analyzeFinances(array $data): array
     {
         $response = Http::withToken($this->apiKey)
+            ->withoutVerifying()
             ->post($this->apiUrl . '/analyze', $data);
         return $response->json();
     }
@@ -31,6 +32,7 @@ class OllamaCloudService
     public function summarize(array $data): string
     {
         $response = Http::withToken($this->apiKey)
+            ->withoutVerifying()
             ->post($this->apiUrl . '/summarize', $data);
         return $response->json('summary', '');
     }
@@ -41,6 +43,7 @@ class OllamaCloudService
     public function detectAnomalies(array $data): array
     {
         $response = Http::withToken($this->apiKey)
+            ->withoutVerifying()
             ->post($this->apiUrl . '/anomalies', $data);
         return $response->json('anomalies', []);
     }
