@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 
 class AiController extends Controller
 {
+    public function index()
+    {
+        return view('ai.index');
+    }
+
     public function summary(Request $request, OllamaCloudService $ollama)
     {
         $data = $request->all();
