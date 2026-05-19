@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\AiController;
+use App\Http\Controllers\ExpenseController;
 
 use Illuminate\Support\Facades\Auth;
 Route::get('/', function () {
@@ -31,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
     Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
+    Route::get('/services/{service}', [ServiceController::class, 'show'])->name('services.show');
     Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
     Route::put('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
     Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
@@ -38,4 +40,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ai/summary', [AiController::class, 'summary'])->name('ai.summary');
     Route::post('/ai/analyze', [AiController::class, 'analyze'])->name('ai.analyze');
     Route::post('/ai/anomalies', [AiController::class, 'anomalies'])->name('ai.anomalies');
+    Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+    Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
 });

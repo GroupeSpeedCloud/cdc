@@ -14,4 +14,9 @@ class Service extends Model
     {
         return $this->hasMany(Subscription::class);
     }
+
+    public function expenses()
+    {
+        return $this->hasMany(\App\Models\Expense::class);
+    }
 }

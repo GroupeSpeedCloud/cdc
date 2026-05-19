@@ -22,7 +22,7 @@
             <tbody>
                 @forelse($services as $service)
                 <tr class="border-b border-zinc-800 hover:bg-zinc-800 transition">
-                    <td class="py-2 px-3">{{ $service->name }}</td>
+                    <td class="py-2 px-3"><a href="{{ route('services.show', $service) }}" class="text-primary hover:underline">{{ $service->name }}</a></td>
                     <td class="py-2 px-3">{{ ucfirst($service->type) }}</td>
                     <td class="py-2 px-3">{{ $service->price }} €</td>
                     <td class="py-2 px-3">{{ $service->monthly_cost }} €</td>

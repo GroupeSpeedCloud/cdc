@@ -15,7 +15,9 @@ class ServiceController extends Controller
 
     public function show(Service $service)
     {
-        return view('services.show', compact('service'));
+        $expenses = $service->expenses()->get();
+        $real_cost = $expenses->sum('amount');
+        return view('services.show', compact('service', 'expenses', 'real_cost'));
     }
 
     public function create()
