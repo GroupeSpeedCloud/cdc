@@ -4,13 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ClientController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\ExpenseController;
-use App\Http\Controllers\AiController;
-use App\Http\Controllers\ForecastController;
 use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
@@ -24,27 +20,18 @@ Route::get('/login', [AuthController::class, 'redirectToGoogle'])->name('login')
 Route::get('/auth/callback', [AuthController::class, 'handleGoogleCallback']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'restrict.domain'])->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::resource('clients', ClientController::class);
-    Route::resource('services', ServiceController::class);
-    Route::resource('subscriptions', SubscriptionController::class);
-    Route::resource('revenues', RevenueController::class);
-    Route::resource('expenses', ExpenseController::class);
+    Route::resource('projects', ProjectController::class);
 
-    // AI
-    Route::get('ai', [AiController::class, 'index'])->name('ai.index');
-    Route::post('ai/summary', [AiController::class, 'summary'])->name('ai.summary');
-    Route::post('ai/analysis', [AiController::class, 'analysis'])->name('ai.analysis');
-    Route::post('ai/anomalies', [AiController::class, 'anomalies'])->name('ai.anomalies');
-    Route::get('ai/{report}', [AiController::class, 'show'])->name('ai.show');
+    Route::get('revenues', [RevenueController::class, 'index'])->name('revenues.index');
+    Route::get('revenues/{year}/{month}/edit', [RevenueController::class, 'edit'])->name('revenues.edit');
+    Route::put('revenues/{year}/{month}', [RevenueController::class, 'update'])->name('revenues.update');
 
-    // Forecasts
-    Route::get('forecasts', [ForecastController::class, 'index'])->name('forecasts.index');
-    Route::post('forecasts/generate', [ForecastController::class, 'generate'])->name('forecasts.generate');
+    Route::resource('expenses', ExpenseController::class)->except(['show']);
+    Route::get('expenses/{year}/{month}/override', [ExpenseController::class, 'override'])->name('expenses.override');
+    Route::post('expenses/{year}/{month}/override', [ExpenseController::class, 'storeOverride'])->name('expenses.storeOverride');
 
-    // Reports
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('reports/pdf', [ReportController::class, 'downloadPDF'])->name('reports.pdf');
 });
