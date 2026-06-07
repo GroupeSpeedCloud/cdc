@@ -2,26 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Revenue;
-use App\Models\Expense;
+use App\Models\MonthlyRevenue;
+use App\Models\Project;
 use App\Services\FinanceService;
-use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index(FinanceService $finance)
-    {
-        $kpis = $finance->getKPIs();
-        $revenueByMonth = $finance->getRevenueByMonth(12);
-        $expensesByMonth = $finance->getExpensesByMonth(12);
-        $cashflowByMonth = $finance->getCashflowByMonth(12);
-        $serviceDistribution = $finance->getServiceDistribution();
-        $recentTransactions = $finance->getRecentTransactions(5);
-        $user = Auth::user();
+    public function __construct(private FinanceService $finance) {}
 
-        return view('dashboard', compact(
-            'kpis', 'revenueByMonth', 'expensesByMonth',
-            'cashflowByMonth', 'serviceDistribution', 'recentTransactions', 'user'
-        ));
+    public function index()
+    {
+        $kpis = $this->finance->getCurrentKPIs();
+        $revenueChart = $this->finance->getRevenueChartData(12);
+        $cashflowChart = $this->finance->getCashflowChartData(12);
+        $expensesChart = $this->finance->getExpensesByCategoryForMonth($kpis['year'], $kpis['month']);
+
+        $now = Carbon::now();
+        $projects = Project::where('status', 'active')->get()->map(function ($project) use ($now) {
+            return [
+                'project' => $project,
+                'revenue' => $project->getRevenueForMonth($now->year, $now->month),
+            ];
+        });
+
+        return view('dashboard', compact('kpis', 'revenueChart', 'cashflowChart', 'expensesChart', 'projects'));
     }
 }

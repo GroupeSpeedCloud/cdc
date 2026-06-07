@@ -8,16 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('settings', function (Blueprint $table) {
+        Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->string('key')->unique();
-            $table->text('value')->nullable();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('color', 7)->default('#6366f1');
+            $table->enum('status', ['active', 'archived'])->default('active');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('settings');
+        Schema::dropIfExists('projects');
     }
 };

@@ -8,13 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('clients', function (Blueprint $table) {
+        Schema::create('recurring_expenses', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->nullable();
-            $table->string('company')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('status')->default('actif'); // actif, inactif, suspendu
+            $table->enum('category', ['personnel', 'hebergement', 'infrastructure', 'marketing', 'locaux', 'autre']);
+            $table->decimal('amount', 10, 2);
+            $table->date('start_month');
+            $table->date('end_month')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });
@@ -22,6 +22,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('clients');
+        Schema::dropIfExists('recurring_expenses');
     }
 };
