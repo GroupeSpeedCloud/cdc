@@ -15,6 +15,10 @@ class AuthController extends Controller
      */
     public function redirectToGoogle()
     {
+        // If there's an auth error and no force flag, show the login page with error
+        if (session('auth_error') && !request('force')) {
+            return view('auth.login', ['error' => session('auth_error')]);
+        }
         return Socialite::driver('google')->redirect();
     }
 
@@ -26,7 +30,7 @@ class AuthController extends Controller
         $googleUser = Socialite::driver('google')->stateless()->user();
         $email = $googleUser->getEmail();
         if (!Str::endsWith($email, '@groupe-speed.cloud')) {
-            return redirect('/login')->withErrors(['email' => 'Seuls les comptes @groupe-speed.cloud sont autorisés.']);
+            return redirect('/login')->with('auth_error', 'Seuls les comptes @groupe-speed.cloud sont autorisés. Compte refusé : ' . $email);
         }
         $user = User::firstOrCreate([
             'email' => $email
