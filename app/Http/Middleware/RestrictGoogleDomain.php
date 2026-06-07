@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use App\Models\WhitelistedEmail;
 
 class RestrictGoogleDomain
 {
@@ -23,9 +24,7 @@ class RestrictGoogleDomain
             return redirect()->route('forbidden')->with('blocked_email', $user->email);
         }
 
-        // Whitelist : seuls les comptes listés ont accès
-        $whitelist = config('services.auth.whitelist', []);
-        if (!in_array(strtolower($user->email), array_map('strtolower', $whitelist))) {
+        if (!WhitelistedEmail::isAllowed($user->email)) {
             $email = $user->email;
             Auth::logout();
             return redirect()->route('forbidden')->with('blocked_email', $email);
