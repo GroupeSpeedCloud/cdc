@@ -45,6 +45,21 @@ $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juill
     </div>
 </div>
 
+{{-- Chart --}}
+<div class="card-flush" style="margin-bottom:20px;">
+    <div class="card-header">
+        <div>
+            <div class="card-title">Vue mensuelle {{ $year }}</div>
+            <div class="card-subtitle">Revenus et dépenses mois par mois</div>
+        </div>
+    </div>
+    <div style="padding:20px;">
+        <div class="chart-wrap" style="height:200px;">
+            <canvas id="reportChart"></canvas>
+        </div>
+    </div>
+</div>
+
 {{-- Monthly table --}}
 <div class="card-flush">
     <table class="data-table">
@@ -116,3 +131,59 @@ $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juill
     </table>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+const reportLabels = @json(array_values(array_slice(['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'], 1)));
+const reportRevenues = @json(array_values(array_map(fn($m) => $m['revenue'], $summary['months'])));
+const reportExpenses = @json(array_values(array_map(fn($m) => $m['expenses'], $summary['months'])));
+const reportProfits = @json(array_values(array_map(fn($m) => $m['profit'], $summary['months'])));
+
+new Chart(document.getElementById('reportChart'), {
+    type: 'bar',
+    data: {
+        labels: reportLabels,
+        datasets: [
+            {
+                label: 'Revenus',
+                data: reportRevenues,
+                backgroundColor: 'rgba(16,185,129,0.25)',
+                borderColor: '#10b981',
+                borderWidth: 1.5,
+                borderRadius: 4,
+            },
+            {
+                label: 'Dépenses',
+                data: reportExpenses,
+                backgroundColor: 'rgba(239,68,68,0.2)',
+                borderColor: '#ef4444',
+                borderWidth: 1.5,
+                borderRadius: 4,
+            },
+            {
+                label: 'Profit',
+                data: reportProfits,
+                type: 'line',
+                borderColor: '#6366f1',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                tension: 0.3,
+                pointBackgroundColor: '#6366f1',
+                pointRadius: 3,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { labels: { color: '#888', font: { size: 11 }, padding: 16, boxWidth: 12 } }
+        },
+        scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555', font: { size: 11 } }, border: { color: '#1e1e1e' } },
+            y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555', font: { size: 11 } }, border: { color: '#1e1e1e' } }
+        }
+    }
+});
+</script>
+@endpush
