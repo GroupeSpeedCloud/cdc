@@ -10,6 +10,6 @@ class DashboardController extends Controller
 {
     public function index(FinanceService $finance): JsonResponse
     {
-        return response()->json($finance->getDashboardKPIs());
+        return response()->json($finance->getCurrentKPIs());
     }
 }
