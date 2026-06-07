@@ -7,75 +7,82 @@
 $monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 @endphp
 
-<div class="flex items-center gap-4 mb-6">
-    <form method="GET" class="flex items-center gap-2">
-        <label class="text-sm text-zinc-400">Année :</label>
-        <select name="year" onchange="this.form.submit()" class="input w-auto">
-            @foreach($years as $y)
-                <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
-            @endforeach
-        </select>
-    </form>
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Revenus</h1>
+        <span class="count-badge">{{ $year }}</span>
+    </div>
+    <div class="year-nav">
+        <a href="?year={{ $year - 1 }}" class="year-nav-btn" style="text-decoration:none;">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <span class="year-nav-value">{{ $year }}</span>
+        <a href="?year={{ $year + 1 }}" class="year-nav-btn" style="text-decoration:none;">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+    </div>
 </div>
 
-<div class="card overflow-x-auto p-0">
-    <table class="w-full text-sm min-w-max">
-        <thead class="bg-zinc-800/50">
+<div class="card-flush" style="overflow-x:auto;">
+    <table class="data-table" style="min-width:900px;">
+        <thead>
             <tr>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase sticky left-0 bg-zinc-800/50">Projet</th>
+                <th style="min-width:160px;position:sticky;left:0;background:#0f0f0f;z-index:2;">Projet</th>
                 @foreach($monthNames as $i => $name)
-                    <th class="text-center px-3 py-3 text-xs font-medium text-zinc-500 uppercase min-w-[90px]">
+                    <th class="text-center" style="min-width:80px;">
                         <div>{{ $name }}</div>
-                        <a href="{{ route('revenues.edit', [$year, $i + 1]) }}" class="text-indigo-400 hover:text-indigo-300 text-xs font-normal">Saisir</a>
+                        <a href="{{ route('revenues.edit', [$year, $i + 1]) }}" style="font-size:10px;color:var(--accent);text-decoration:none;font-weight:400;letter-spacing:0;">Saisir</a>
                     </th>
                 @endforeach
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Total</th>
+                <th class="text-right" style="min-width:100px;">Total</th>
             </tr>
         </thead>
         <tbody>
             @forelse($projects as $project)
-            <tr class="table-row">
-                <td class="px-4 py-3 sticky left-0 bg-zinc-900">
-                    <div class="flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full" style="background-color: {{ $project->color }}"></span>
-                        <a href="{{ route('projects.show', $project) }}" class="text-white hover:text-indigo-400 font-medium">{{ $project->name }}</a>
+            <tr>
+                <td style="position:sticky;left:0;background:var(--surface);z-index:1;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="width:10px;height:10px;border-radius:50%;background-color:{{ $project->color }};flex-shrink:0;display:block;"></span>
+                        <a href="{{ route('projects.show', $project) }}" style="color:var(--text);font-weight:500;text-decoration:none;font-size:13px;transition:color 0.15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text)'">{{ $project->name }}</a>
                     </div>
                 </td>
                 @php $rowTotal = 0; @endphp
                 @for($m = 1; $m <= 12; $m++)
                     @php $amount = $grid[$project->id][$m] ?? null; $rowTotal += $amount ?? 0; @endphp
-                    <td class="px-3 py-3 text-center">
+                    <td class="text-center" style="{{ $amount !== null ? 'background:#0d1f10;' : '' }}">
                         @if($amount !== null)
-                            <span class="text-green-400 text-xs font-medium">{{ number_format($amount, 0, ',', ' ') }} €</span>
+                            <span style="color:var(--green);font-size:12px;font-weight:600;">{{ number_format($amount, 0, ',', ' ') }} €</span>
                         @else
-                            <span class="text-zinc-700">—</span>
+                            <span style="color:var(--text-3);">—</span>
                         @endif
                     </td>
                 @endfor
-                <td class="px-4 py-3 text-right">
-                    <span class="text-white font-medium">{{ number_format($rowTotal, 2, ',', ' ') }} €</span>
-                </td>
+                <td class="text-right" style="color:var(--text);font-weight:600;">{{ number_format($rowTotal, 2, ',', ' ') }} €</td>
             </tr>
             @empty
-            <tr><td colspan="14" class="px-4 py-8 text-center text-zinc-500">Aucun projet actif. <a href="{{ route('projects.create') }}" class="text-indigo-400 hover:underline">Créer un projet</a></td></tr>
+            <tr>
+                <td colspan="14" style="text-align:center;padding:48px 16px;color:var(--text-3);">
+                    Aucun projet actif — <a href="{{ route('projects.create') }}" style="color:var(--accent);text-decoration:none;">Créer un projet</a>
+                </td>
+            </tr>
             @endforelse
         </tbody>
         @if($projects->isNotEmpty())
-        <tfoot class="bg-zinc-800/30 border-t border-zinc-700">
+        <tfoot>
             <tr>
-                <td class="px-4 py-3 text-xs font-semibold text-zinc-300 uppercase sticky left-0 bg-zinc-800/30">Total</td>
+                <td style="position:sticky;left:0;background:#0f0f0f;z-index:1;font-weight:700;color:var(--text);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Total</td>
                 @php $grandTotal = 0; @endphp
                 @for($m = 1; $m <= 12; $m++)
                     @php $monthTotal = collect($projects)->sum(fn($p) => $grid[$p->id][$m] ?? 0); $grandTotal += $monthTotal; @endphp
-                    <td class="px-3 py-3 text-center">
+                    <td class="text-center">
                         @if($monthTotal > 0)
-                            <span class="text-zinc-300 text-xs font-medium">{{ number_format($monthTotal, 0, ',', ' ') }} €</span>
+                            <span style="color:var(--text);font-size:12px;font-weight:700;">{{ number_format($monthTotal, 0, ',', ' ') }} €</span>
                         @else
-                            <span class="text-zinc-700">—</span>
+                            <span style="color:var(--text-3);">—</span>
                         @endif
                     </td>
                 @endfor
-                <td class="px-4 py-3 text-right text-white font-bold">{{ number_format($grandTotal, 2, ',', ' ') }} €</td>
+                <td class="text-right" style="font-weight:700;color:var(--text);">{{ number_format($grandTotal, 2, ',', ' ') }} €</td>
             </tr>
         </tfoot>
         @endif

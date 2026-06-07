@@ -6,123 +6,172 @@
 @php
     $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
     $currentMonthName = $monthNames[$kpis['month']] . ' ' . $kpis['year'];
+    $firstName = explode(' ', Auth::user()?->name ?? 'Utilisateur')[0];
 @endphp
 
-<div class="mb-6 flex items-center justify-between">
-    <p class="text-zinc-400 text-sm">{{ $currentMonthName }}</p>
-    <a href="{{ route('revenues.edit', [$kpis['year'], $kpis['month']]) }}" class="btn-primary">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+{{-- Hero header --}}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap;">
+    <div>
+        <h1 style="font-size:24px;font-weight:700;letter-spacing:-0.03em;color:var(--text);margin-bottom:4px;">
+            Bonjour, {{ $firstName }} 👋
+        </h1>
+        <p style="font-size:13px;color:var(--text-3);">Vue d'ensemble — {{ $currentMonthName }}</p>
+    </div>
+    <a href="{{ route('revenues.edit', [$kpis['year'], $kpis['month']]) }}" class="btn btn-primary">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         Saisir les revenus
     </a>
 </div>
 
-<!-- KPI Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <!-- Revenus -->
+{{-- KPI Grid --}}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px;">
+
+    {{-- Revenus --}}
     <div class="kpi-card">
-        <div class="flex items-center justify-between mb-3">
-            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Revenus du mois</p>
-            <div class="w-8 h-8 bg-indigo-600/20 rounded-lg flex items-center justify-center">
-                <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+            <span class="kpi-label">Revenus du mois</span>
+            <div class="kpi-icon" style="background:rgba(99,102,241,0.12);">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#6366f1" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
             </div>
         </div>
-        <p class="text-2xl font-bold text-white">{{ number_format($kpis['revenue'], 2, ',', ' ') }} €</p>
+        <div class="kpi-value">{{ number_format($kpis['revenue'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
         @if($kpis['revenue_diff_pct'] !== null)
-            <p class="text-xs mt-1 {{ $kpis['revenue_diff_pct'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
+            <div style="margin-top:10px;display:flex;align-items:center;gap:4px;font-size:12px;{{ $kpis['revenue_diff_pct'] >= 0 ? 'color:#10b981' : 'color:#ef4444' }}">
+                @if($kpis['revenue_diff_pct'] >= 0)
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                @else
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                @endif
                 {{ $kpis['revenue_diff_pct'] >= 0 ? '+' : '' }}{{ $kpis['revenue_diff_pct'] }}% vs mois préc.
-            </p>
+            </div>
+        @else
+            <div class="kpi-sub">Premier enregistrement</div>
         @endif
     </div>
 
-    <!-- Dépenses -->
+    {{-- Dépenses --}}
     <div class="kpi-card">
-        <div class="flex items-center justify-between mb-3">
-            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Dépenses du mois</p>
-            <div class="w-8 h-8 bg-red-600/20 rounded-lg flex items-center justify-center">
-                <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+            <span class="kpi-label">Dépenses du mois</span>
+            <div class="kpi-icon" style="background:rgba(239,68,68,0.1);">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#ef4444" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </div>
         </div>
-        <p class="text-2xl font-bold text-white">{{ number_format($kpis['expenses'], 2, ',', ' ') }} €</p>
-        <p class="text-xs mt-1 text-zinc-500">Dépenses récurrentes actives</p>
+        <div class="kpi-value">{{ number_format($kpis['expenses'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
+        <div class="kpi-sub">Dépenses récurrentes actives</div>
     </div>
 
-    <!-- Profit net -->
+    {{-- Profit --}}
     <div class="kpi-card">
-        <div class="flex items-center justify-between mb-3">
-            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Profit net</p>
-            <div class="w-8 h-8 {{ $kpis['profit'] >= 0 ? 'bg-green-600/20' : 'bg-red-600/20' }} rounded-lg flex items-center justify-center">
-                <svg class="w-4 h-4 {{ $kpis['profit'] >= 0 ? 'text-green-400' : 'text-red-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+            <span class="kpi-label">Profit net</span>
+            <div class="kpi-icon" style="background:{{ $kpis['profit'] >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }};">
+                <svg fill="none" viewBox="0 0 24 24" stroke="{{ $kpis['profit'] >= 0 ? '#10b981' : '#ef4444' }}" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
         </div>
-        <p class="text-2xl font-bold {{ $kpis['profit'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
-            {{ $kpis['profit'] >= 0 ? '+' : '' }}{{ number_format($kpis['profit'], 2, ',', ' ') }} €
-        </p>
-        <p class="text-xs mt-1 text-zinc-500">Revenus - Dépenses</p>
+        <div class="kpi-value" style="color:{{ $kpis['profit'] >= 0 ? 'var(--green)' : 'var(--red)' }}">
+            {{ $kpis['profit'] >= 0 ? '+' : '' }}{{ number_format($kpis['profit'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span>
+        </div>
+        <div class="kpi-sub">Revenus − Dépenses</div>
     </div>
 
-    <!-- Marge -->
+    {{-- Marge --}}
     <div class="kpi-card">
-        <div class="flex items-center justify-between mb-3">
-            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Marge nette</p>
-            <div class="w-8 h-8 bg-amber-600/20 rounded-lg flex items-center justify-center">
-                <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+            <span class="kpi-label">Marge nette</span>
+            <div class="kpi-icon" style="background:rgba(245,158,11,0.1);">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#f59e0b" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
             </div>
         </div>
-        <p class="text-2xl font-bold text-white">{{ $kpis['margin'] }}%</p>
-        <p class="text-xs mt-1 text-zinc-500">Sur les revenus du mois</p>
+        <div class="kpi-value">{{ $kpis['margin'] }}<span style="font-size:18px;font-weight:500;color:var(--text-3);">%</span></div>
+        <div class="kpi-sub">Sur les revenus du mois</div>
     </div>
 </div>
 
-<!-- Charts row 1 -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <div class="card">
-        <h3 class="text-sm font-semibold text-white mb-4">Revenus par projet — 12 mois glissants</h3>
-        <canvas id="revenueChart" height="250"></canvas>
+{{-- Charts row --}}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card-flush">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Revenus par projet</div>
+                <div class="card-subtitle">12 mois glissants</div>
+            </div>
+        </div>
+        <div style="padding:20px;">
+            <div class="chart-wrap">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <h3 class="text-sm font-semibold text-white mb-4">Cashflow — 12 mois glissants</h3>
-        <canvas id="cashflowChart" height="250"></canvas>
+    <div class="card-flush">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Cashflow</div>
+                <div class="card-subtitle">12 mois glissants</div>
+            </div>
+        </div>
+        <div style="padding:20px;">
+            <div class="chart-wrap">
+                <canvas id="cashflowChart"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Charts row 2 + Table -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="card">
-        <h3 class="text-sm font-semibold text-white mb-4">Dépenses par catégorie</h3>
-        <canvas id="expensesChart" height="250"></canvas>
+{{-- Chart + table row --}}
+<div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;">
+    <div class="card-flush">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Dépenses</div>
+                <div class="card-subtitle">Répartition par catégorie</div>
+            </div>
+        </div>
+        <div style="padding:20px;">
+            <div class="chart-wrap">
+                <canvas id="expensesChart"></canvas>
+            </div>
+        </div>
     </div>
 
-    <div class="card lg:col-span-2 p-0 overflow-hidden">
-        <div class="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-white">Revenus ce mois — {{ $currentMonthName }}</h3>
-            <a href="{{ route('revenues.edit', [$kpis['year'], $kpis['month']]) }}" class="text-xs text-indigo-400 hover:text-indigo-300">Modifier →</a>
+    <div class="card-flush">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Revenus ce mois</div>
+                <div class="card-subtitle">{{ $currentMonthName }}</div>
+            </div>
+            <a href="{{ route('revenues.edit', [$kpis['year'], $kpis['month']]) }}" style="font-size:12px;color:var(--accent);text-decoration:none;transition:opacity 0.15s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
+                Modifier →
+            </a>
         </div>
-        <table class="w-full text-sm">
-            <thead class="bg-zinc-800/50">
+        <table class="data-table">
+            <thead>
                 <tr>
-                    <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Projet</th>
-                    <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Montant</th>
+                    <th>Projet</th>
+                    <th class="text-right">Montant</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($projects as $item)
-                    <tr class="table-row">
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: {{ $item['project']->color }}"></span>
-                                <span class="text-white font-medium">{{ $item['project']->name }}</span>
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <span class="project-dot" style="background-color:{{ $item['project']->color }};"></span>
+                                <span style="color:var(--text);font-weight:500;font-size:13px;">{{ $item['project']->name }}</span>
                             </div>
                         </td>
-                        <td class="px-4 py-3 text-right">
+                        <td class="text-right">
                             @if($item['revenue'] > 0)
-                                <span class="text-green-400 font-medium">{{ number_format($item['revenue'], 2, ',', ' ') }} €</span>
+                                <span style="color:var(--green);font-weight:600;font-size:13px;">{{ number_format($item['revenue'], 2, ',', ' ') }} €</span>
                             @else
-                                <span class="text-zinc-600">—</span>
+                                <span style="color:var(--text-3);">—</span>
                             @endif
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="2" class="px-4 py-6 text-center text-zinc-500">Aucun projet actif</td></tr>
+                    <tr>
+                        <td colspan="2" style="text-align:center;padding:32px 16px;color:var(--text-3);">Aucun projet actif</td>
+                    </tr>
                 @endforelse
             </tbody>
         </table>
@@ -132,40 +181,49 @@
 
 @push('scripts')
 <script>
-const chartDefaults = {
-    plugins: { legend: { labels: { color: '#a1a1aa', font: { size: 11 } } } },
-    scales: {
-        x: { grid: { color: '#27272a' }, ticks: { color: '#71717a', font: { size: 10 } } },
-        y: { grid: { color: '#27272a' }, ticks: { color: '#71717a', font: { size: 10 } } }
+const chartScales = {
+    x: {
+        grid: { color: 'rgba(255,255,255,0.03)' },
+        ticks: { color: '#555555', font: { size: 10, family: '-apple-system,BlinkMacSystemFont,Inter,sans-serif' } },
+        border: { color: '#1e1e1e' }
+    },
+    y: {
+        grid: { color: 'rgba(255,255,255,0.03)' },
+        ticks: { color: '#555555', font: { size: 10, family: '-apple-system,BlinkMacSystemFont,Inter,sans-serif' } },
+        border: { color: '#1e1e1e' }
     }
 };
 
-// Revenue chart
-const revenueData = @json($revenueChart);
 new Chart(document.getElementById('revenueChart'), {
     type: 'line',
-    data: revenueData,
-    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+    data: @json($revenueChart),
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#888888', font: { size: 11 }, boxWidth: 10, padding: 12 } } },
+        scales: chartScales
+    }
 });
 
-// Cashflow chart
-const cashflowData = @json($cashflowChart);
 new Chart(document.getElementById('cashflowChart'), {
     type: 'bar',
-    data: cashflowData,
-    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+    data: @json($cashflowChart),
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#888888', font: { size: 11 }, boxWidth: 10, padding: 12 } } },
+        scales: chartScales
+    }
 });
 
-// Expenses doughnut
-const expensesData = @json($expensesChart);
 new Chart(document.getElementById('expensesChart'), {
     type: 'doughnut',
-    data: expensesData,
+    data: @json($expensesChart),
     options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: { position: 'bottom', labels: { color: '#a1a1aa', font: { size: 10 }, padding: 10 } }
+            legend: { position: 'bottom', labels: { color: '#888888', font: { size: 10 }, padding: 10, boxWidth: 10 } }
         }
     }
 });

@@ -7,103 +7,109 @@
 $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 @endphp
 
-<div class="flex items-center gap-4 mb-6">
-    <form method="GET" class="flex items-center gap-2">
-        <label class="text-sm text-zinc-400">Année :</label>
-        <select name="year" onchange="this.form.submit()" class="input w-auto">
-            @foreach($years as $y)
-                <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
-            @endforeach
-        </select>
-    </form>
-</div>
-
-<!-- Summary KPIs -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="kpi-card">
-        <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Revenus totaux {{ $year }}</p>
-        <p class="text-xl font-bold text-white">{{ number_format($summary['total_revenue'], 2, ',', ' ') }} €</p>
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Rapport annuel</h1>
+        <span class="count-badge">{{ $year }}</span>
     </div>
-    <div class="kpi-card">
-        <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Dépenses totales {{ $year }}</p>
-        <p class="text-xl font-bold text-white">{{ number_format($summary['total_expenses'], 2, ',', ' ') }} €</p>
-    </div>
-    <div class="kpi-card">
-        <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Profit net {{ $year }}</p>
-        <p class="text-xl font-bold {{ $summary['total_profit'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
-            {{ $summary['total_profit'] >= 0 ? '+' : '' }}{{ number_format($summary['total_profit'], 2, ',', ' ') }} €
-        </p>
-    </div>
-    <div class="kpi-card">
-        <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Marge moyenne</p>
-        <p class="text-xl font-bold text-white">{{ $summary['avg_margin'] }}%</p>
+    <div class="year-nav">
+        <a href="?year={{ $year - 1 }}" class="year-nav-btn" style="text-decoration:none;">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <span class="year-nav-value">{{ $year }}</span>
+        <a href="?year={{ $year + 1 }}" class="year-nav-btn" style="text-decoration:none;">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
     </div>
 </div>
 
-<!-- Monthly table -->
-<div class="card overflow-hidden p-0">
-    <table class="w-full text-sm">
-        <thead class="bg-zinc-800/50">
+{{-- Summary KPIs --}}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+    <div class="kpi-card">
+        <span class="kpi-label">Revenus {{ $year }}</span>
+        <div class="kpi-value" style="margin-top:10px;color:var(--green);">{{ number_format($summary['total_revenue'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span></div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-label">Dépenses {{ $year }}</span>
+        <div class="kpi-value" style="margin-top:10px;color:var(--red);">{{ number_format($summary['total_expenses'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span></div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-label">Profit net {{ $year }}</span>
+        <div class="kpi-value" style="margin-top:10px;color:{{ $summary['total_profit'] >= 0 ? 'var(--green)' : 'var(--red)' }}">
+            {{ $summary['total_profit'] >= 0 ? '+' : '' }}{{ number_format($summary['total_profit'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-label">Marge moyenne</span>
+        <div class="kpi-value" style="margin-top:10px;">{{ $summary['avg_margin'] }}<span style="font-size:18px;font-weight:500;color:var(--text-3);">%</span></div>
+    </div>
+</div>
+
+{{-- Monthly table --}}
+<div class="card-flush">
+    <table class="data-table">
+        <thead>
             <tr>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Mois</th>
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Revenus</th>
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Dépenses</th>
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Profit net</th>
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Marge</th>
-                <th class="text-center px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Actions</th>
+                <th>Mois</th>
+                <th class="text-right" style="color:rgba(16,185,129,0.7);">Revenus</th>
+                <th class="text-right" style="color:rgba(239,68,68,0.7);">Dépenses</th>
+                <th class="text-right">Profit net</th>
+                <th class="text-right">Marge</th>
+                <th class="text-center">Actions</th>
             </tr>
         </thead>
         <tbody>
             @foreach($summary['months'] as $m => $data)
-            <tr class="table-row">
-                <td class="px-4 py-3 text-white font-medium">{{ $monthNames[$m] }} {{ $year }}</td>
-                <td class="px-4 py-3 text-right">
+            <tr>
+                <td style="color:var(--text);font-weight:500;">{{ $monthNames[$m] }}</td>
+                <td class="text-right">
                     @if($data['revenue'] > 0)
-                        <span class="text-green-400">{{ number_format($data['revenue'], 2, ',', ' ') }} €</span>
+                        <span style="color:var(--green);font-weight:500;">{{ number_format($data['revenue'], 2, ',', ' ') }} €</span>
                     @else
-                        <span class="text-zinc-600">—</span>
+                        <span style="color:var(--text-3);">—</span>
                     @endif
                 </td>
-                <td class="px-4 py-3 text-right">
+                <td class="text-right">
                     @if($data['expenses'] > 0)
-                        <span class="text-red-400">{{ number_format($data['expenses'], 2, ',', ' ') }} €</span>
+                        <span style="color:var(--red);">{{ number_format($data['expenses'], 2, ',', ' ') }} €</span>
                     @else
-                        <span class="text-zinc-600">—</span>
+                        <span style="color:var(--text-3);">—</span>
                     @endif
                 </td>
-                <td class="px-4 py-3 text-right">
+                <td class="text-right">
                     @if($data['revenue'] > 0 || $data['expenses'] > 0)
-                        <span class="{{ $data['profit'] >= 0 ? 'text-green-400' : 'text-red-400' }} font-medium">
+                        <span style="color:{{ $data['profit'] >= 0 ? 'var(--green)' : 'var(--red)' }};font-weight:600;">
                             {{ $data['profit'] >= 0 ? '+' : '' }}{{ number_format($data['profit'], 2, ',', ' ') }} €
                         </span>
                     @else
-                        <span class="text-zinc-600">—</span>
+                        <span style="color:var(--text-3);">—</span>
                     @endif
                 </td>
-                <td class="px-4 py-3 text-right">
+                <td class="text-right">
                     @if($data['revenue'] > 0)
-                        <span class="{{ $data['margin'] >= 0 ? 'text-green-400' : 'text-red-400' }}">{{ $data['margin'] }}%</span>
+                        <span style="color:{{ $data['margin'] >= 0 ? 'var(--green)' : 'var(--red)' }};">{{ $data['margin'] }}%</span>
                     @else
-                        <span class="text-zinc-600">—</span>
+                        <span style="color:var(--text-3);">—</span>
                     @endif
                 </td>
-                <td class="px-4 py-3 text-center">
-                    <a href="{{ route('revenues.edit', [$year, $m]) }}" class="text-xs text-indigo-400 hover:text-indigo-300">Revenus</a>
-                    <span class="text-zinc-700 mx-1">|</span>
-                    <a href="{{ route('expenses.override', [$year, $m]) }}" class="text-xs text-zinc-400 hover:text-zinc-300">Dépenses</a>
+                <td class="text-center">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+                        <a href="{{ route('revenues.edit', [$year, $m]) }}" style="font-size:11px;color:var(--accent);text-decoration:none;padding:3px 8px;border-radius:6px;background:var(--accent-bg);transition:opacity 0.15s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">Revenus</a>
+                        <a href="{{ route('expenses.override', [$year, $m]) }}" style="font-size:11px;color:var(--text-3);text-decoration:none;padding:3px 8px;border-radius:6px;background:var(--surface-2);transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-3)'">Dépenses</a>
+                    </div>
                 </td>
             </tr>
             @endforeach
         </tbody>
-        <tfoot class="bg-zinc-800/30 border-t border-zinc-700">
-            <tr>
-                <td class="px-4 py-3 text-xs font-bold text-zinc-300 uppercase">Total {{ $year }}</td>
-                <td class="px-4 py-3 text-right font-bold text-green-400">{{ number_format($summary['total_revenue'], 2, ',', ' ') }} €</td>
-                <td class="px-4 py-3 text-right font-bold text-red-400">{{ number_format($summary['total_expenses'], 2, ',', ' ') }} €</td>
-                <td class="px-4 py-3 text-right font-bold {{ $summary['total_profit'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
+        <tfoot>
+            <tr style="background:linear-gradient(90deg, rgba(99,102,241,0.05) 0%, rgba(99,102,241,0.02) 100%);">
+                <td style="font-weight:700;color:var(--text);font-size:12px;text-transform:uppercase;letter-spacing:0.06em;">Total {{ $year }}</td>
+                <td class="text-right" style="font-weight:700;color:var(--green);">{{ number_format($summary['total_revenue'], 2, ',', ' ') }} €</td>
+                <td class="text-right" style="font-weight:700;color:var(--red);">{{ number_format($summary['total_expenses'], 2, ',', ' ') }} €</td>
+                <td class="text-right" style="font-weight:700;color:{{ $summary['total_profit'] >= 0 ? 'var(--green)' : 'var(--red)' }}">
                     {{ $summary['total_profit'] >= 0 ? '+' : '' }}{{ number_format($summary['total_profit'], 2, ',', ' ') }} €
                 </td>
-                <td class="px-4 py-3 text-right font-bold text-white">{{ $summary['avg_margin'] }}%</td>
+                <td class="text-right" style="font-weight:700;color:var(--text);">{{ $summary['avg_margin'] }}%</td>
                 <td></td>
             </tr>
         </tfoot>

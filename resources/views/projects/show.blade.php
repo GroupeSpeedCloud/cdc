@@ -8,64 +8,90 @@ $monthNames = ['', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Se
 $fullMonthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 @endphp
 
-<div class="flex items-center gap-4 mb-6">
-    <span class="w-5 h-5 rounded-full border-2 border-zinc-700" style="background-color: {{ $project->color }}"></span>
-    @if($project->description)
-        <p class="text-zinc-400 text-sm">{{ $project->description }}</p>
-    @endif
-    <span class="badge {{ $project->status === 'active' ? 'badge-green' : 'badge-zinc' }}">
-        {{ $project->status === 'active' ? 'Actif' : 'Archivé' }}
-    </span>
-    <div class="ml-auto flex gap-2">
-        <a href="{{ route('projects.edit', $project) }}" class="btn-secondary text-xs">Modifier</a>
+{{-- Project header --}}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:{{ $project->color }}22;border:2px solid {{ $project->color }}44;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="width:14px;height:14px;border-radius:50%;background:{{ $project->color }};display:block;"></span>
+        </div>
+        <div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <h1 style="font-size:20px;font-weight:700;letter-spacing:-0.02em;color:var(--text);">{{ $project->name }}</h1>
+                @if($project->status === 'active')
+                    <span class="badge badge-green">Actif</span>
+                @else
+                    <span class="badge badge-muted">Archivé</span>
+                @endif
+            </div>
+            @if($project->description)
+                <p style="font-size:13px;color:var(--text-3);margin-top:3px;">{{ $project->description }}</p>
+            @endif
+        </div>
+    </div>
+    <a href="{{ route('projects.edit', $project) }}" class="btn btn-secondary">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        Modifier
+    </a>
+</div>
+
+{{-- Stats KPIs --}}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px;">
+    <div class="kpi-card">
+        <span class="kpi-label">Total cumulé</span>
+        <div class="kpi-value" style="margin-top:10px;">{{ number_format($project->getTotalRevenue(), 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-label">Moy. mensuelle</span>
+        <div class="kpi-value" style="margin-top:10px;">{{ number_format($project->getAverageMonthlyRevenue(), 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-label">Mois avec données</span>
+        <div class="kpi-value" style="margin-top:10px;">{{ $revenues->count() }}</div>
     </div>
 </div>
 
-<!-- Stats -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="kpi-card">
-        <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Total cumulé</p>
-        <p class="text-xl font-bold text-white">{{ number_format($project->getTotalRevenue(), 2, ',', ' ') }} €</p>
+{{-- Chart --}}
+<div class="card-flush" style="margin-bottom:16px;">
+    <div class="card-header">
+        <div>
+            <div class="card-title">Revenus — {{ $project->name }}</div>
+            <div class="card-subtitle">12 mois glissants</div>
+        </div>
     </div>
-    <div class="kpi-card">
-        <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Moy. mensuelle</p>
-        <p class="text-xl font-bold text-white">{{ number_format($project->getAverageMonthlyRevenue(), 2, ',', ' ') }} €</p>
-    </div>
-    <div class="kpi-card">
-        <p class="text-xs text-zinc-500 uppercase tracking-wider mb-1">Mois avec données</p>
-        <p class="text-xl font-bold text-white">{{ $revenues->count() }}</p>
+    <div style="padding:20px;">
+        <div class="chart-wrap">
+            <canvas id="projectChart"></canvas>
+        </div>
     </div>
 </div>
 
-<!-- Chart -->
-<div class="card mb-6">
-    <h3 class="text-sm font-semibold text-white mb-4">Revenus sur 12 mois glissants</h3>
-    <canvas id="projectChart" height="120"></canvas>
-</div>
-
-<!-- Revenues table -->
-<div class="card overflow-hidden p-0">
-    <div class="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-white">Historique des revenus</h3>
-        <a href="{{ route('revenues.index') }}" class="text-xs text-indigo-400 hover:text-indigo-300">Voir tous les revenus →</a>
+{{-- Revenues table --}}
+<div class="card-flush">
+    <div class="card-header">
+        <div>
+            <div class="card-title">Historique des revenus</div>
+        </div>
+        <a href="{{ route('revenues.index') }}" style="font-size:12px;color:var(--accent);text-decoration:none;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">Voir tous →</a>
     </div>
-    <table class="w-full text-sm">
-        <thead class="bg-zinc-800/50">
+    <table class="data-table">
+        <thead>
             <tr>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Période</th>
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Montant</th>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Notes</th>
+                <th>Période</th>
+                <th class="text-right">Montant</th>
+                <th>Notes</th>
             </tr>
         </thead>
         <tbody>
             @forelse($revenues as $rev)
-            <tr class="table-row">
-                <td class="px-4 py-3 text-white">{{ $fullMonthNames[$rev->month] }} {{ $rev->year }}</td>
-                <td class="px-4 py-3 text-right text-green-400 font-medium">{{ number_format($rev->amount, 2, ',', ' ') }} €</td>
-                <td class="px-4 py-3 text-zinc-400 text-xs">{{ $rev->notes ?? '—' }}</td>
+            <tr>
+                <td style="color:var(--text);font-weight:500;">{{ $fullMonthNames[$rev->month] }} {{ $rev->year }}</td>
+                <td class="text-right" style="color:var(--green);font-weight:600;">{{ number_format($rev->amount, 2, ',', ' ') }} €</td>
+                <td style="font-size:12px;color:var(--text-3);">{{ $rev->notes ?? '—' }}</td>
             </tr>
             @empty
-            <tr><td colspan="3" class="px-4 py-6 text-center text-zinc-500">Aucun revenu enregistré</td></tr>
+            <tr>
+                <td colspan="3" style="text-align:center;padding:40px 16px;color:var(--text-3);">Aucun revenu enregistré</td>
+            </tr>
             @endforelse
         </tbody>
     </table>
@@ -86,9 +112,12 @@ new Chart(document.getElementById('projectChart'), {
             label: '{{ $project->name }}',
             data: labels.map(() => 0),
             borderColor: chartColor,
-            backgroundColor: chartColor + '33',
+            backgroundColor: chartColor + '22',
             tension: 0.3,
             fill: true,
+            pointBackgroundColor: chartColor,
+            pointRadius: 3,
+            pointHoverRadius: 5,
         }]
     },
     options: {
@@ -96,8 +125,8 @@ new Chart(document.getElementById('projectChart'), {
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-            x: { grid: { color: '#27272a' }, ticks: { color: '#71717a', font: { size: 10 } } },
-            y: { grid: { color: '#27272a' }, ticks: { color: '#71717a', font: { size: 10 } } }
+            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555555', font: { size: 10 } }, border: { color: '#1e1e1e' } },
+            y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555555', font: { size: 10 } }, border: { color: '#1e1e1e' } }
         }
     }
 });
