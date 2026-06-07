@@ -47,15 +47,32 @@ $categories = [
                 </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
-                <div>
-                    <label class="form-label">Début <span style="color:var(--red);">*</span></label>
-                    <input type="month" name="start_month" value="{{ old('start_month', \Carbon\Carbon::parse($expense->start_month)->format('Y-m')) }}" class="form-input" required>
-                </div>
-                <div>
-                    <label class="form-label">Fin (optionnel)</label>
-                    <input type="month" name="end_month" value="{{ old('end_month', $expense->end_month ? \Carbon\Carbon::parse($expense->end_month)->format('Y-m') : '') }}" class="form-input">
-                </div>
+            <div style="margin-bottom:20px;">
+                <label class="form-label">Début <span style="color:var(--red);">*</span></label>
+                <input type="month" name="start_month" value="{{ old('start_month', \Carbon\Carbon::parse($expense->start_month)->format('Y-m')) }}" class="form-input" required>
+            </div>
+
+            @php $isAnnual = old('repeats_annually', $expense->end_month ? '0' : '1') === '1'; @endphp
+
+            {{-- Toggle répétition annuelle --}}
+            <div style="margin-bottom:20px;">
+                <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--surface-2);border:1px solid var(--border-2);border-radius:10px;padding:14px 16px;" onclick="toggleAnnuel(this)">
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:var(--text);">Se répète chaque année</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">La dépense sera active indéfiniment, année après année</div>
+                    </div>
+                    <div id="toggle-annuel" style="width:40px;height:22px;border-radius:11px;background:{{ $isAnnual ? 'var(--accent)' : 'var(--border-2)' }};position:relative;transition:background 0.2s;flex-shrink:0;">
+                        <div style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;{{ $isAnnual ? 'right:2px;' : 'left:2px;' }}transition:all 0.2s;"></div>
+                    </div>
+                </label>
+                <input type="hidden" name="repeats_annually" id="repeats_annually" value="{{ $isAnnual ? '1' : '0' }}">
+            </div>
+
+            {{-- Champ fin --}}
+            <div id="end-month-wrap" style="display:{{ $isAnnual ? 'none' : 'block' }};margin-bottom:20px;">
+                <label class="form-label">Mois de fin</label>
+                <input type="month" name="end_month" value="{{ old('end_month', $expense->end_month ? \Carbon\Carbon::parse($expense->end_month)->format('Y-m') : '') }}" class="form-input" id="end_month">
+                <p style="font-size:11px;color:var(--text-3);margin-top:4px;">La dépense sera désactivée après ce mois</p>
             </div>
 
             <div>
@@ -73,4 +90,32 @@ $categories = [
         </div>
     </form>
 </div>
+
+@push('scripts')
+<script>
+function toggleAnnuel(label) {
+    const toggle = document.getElementById('toggle-annuel');
+    const dot = toggle.querySelector('div');
+    const input = document.getElementById('repeats_annually');
+    const endWrap = document.getElementById('end-month-wrap');
+    const endInput = document.getElementById('end_month');
+    const isOn = input.value === '1';
+
+    if (isOn) {
+        input.value = '0';
+        toggle.style.background = 'var(--border-2)';
+        dot.style.right = 'auto';
+        dot.style.left = '2px';
+        endWrap.style.display = 'block';
+    } else {
+        input.value = '1';
+        toggle.style.background = 'var(--accent)';
+        dot.style.left = 'auto';
+        dot.style.right = '2px';
+        endWrap.style.display = 'none';
+        endInput.value = '';
+    }
+}
+</script>
+@endpush
 @endsection
