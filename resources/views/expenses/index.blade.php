@@ -75,12 +75,17 @@ $categoryBadge = [
                 </td>
                 <td class="text-right" style="color:var(--text);font-weight:600;">{{ number_format($expense->amount, 2, ',', ' ') }} €</td>
                 <td style="font-size:12px;color:var(--text-3);">
-                    {{ \Carbon\Carbon::parse($expense->start_month)->format('m/Y') }}
-                    @if($expense->end_month)
-                        <span style="color:var(--text-3);margin:0 3px;">→</span>{{ \Carbon\Carbon::parse($expense->end_month)->format('m/Y') }}
-                    @else
-                        <span style="color:var(--text-3);margin:0 3px;">→</span><span style="color:var(--text-3);">∞</span>
-                    @endif
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                        <span>depuis {{ \Carbon\Carbon::parse($expense->start_month)->format('m/Y') }}</span>
+                        @if($expense->end_month)
+                            <span style="color:var(--text-3);">→ {{ \Carbon\Carbon::parse($expense->end_month)->format('m/Y') }}</span>
+                        @else
+                            <span style="display:inline-flex;align-items:center;gap:3px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);color:#818cf8;font-size:10px;font-weight:600;letter-spacing:0.05em;padding:2px 7px;border-radius:4px;">
+                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                Annuel
+                            </span>
+                        @endif
+                    </div>
                 </td>
                 <td class="text-center">
                     @if($monthAmount !== null)

@@ -38,7 +38,9 @@ class ExpenseController extends Controller
         ]);
 
         $data['start_month'] = $data['start_month'] . '-01';
-        if (!empty($data['end_month'])) {
+        if ($request->input('repeats_annually') === '1' || empty($data['end_month'])) {
+            $data['end_month'] = null;
+        } else {
             $data['end_month'] = $data['end_month'] . '-01';
         }
 
@@ -63,10 +65,10 @@ class ExpenseController extends Controller
         ]);
 
         $data['start_month'] = $data['start_month'] . '-01';
-        if (!empty($data['end_month'])) {
-            $data['end_month'] = $data['end_month'] . '-01';
-        } else {
+        if ($request->input('repeats_annually') === '1' || empty($data['end_month'])) {
             $data['end_month'] = null;
+        } else {
+            $data['end_month'] = $data['end_month'] . '-01';
         }
 
         $expense->update($data);
