@@ -134,10 +134,10 @@ $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juill
 
 @push('scripts')
 <script>
-const reportLabels = @json(array_values(array_slice(['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'], 1)));
-const reportRevenues = @json(array_values(array_map(fn($m) => $m['revenue'], $summary['months'])));
-const reportExpenses = @json(array_values(array_map(fn($m) => $m['expenses'], $summary['months'])));
-const reportProfits = @json(array_values(array_map(fn($m) => $m['profit'], $summary['months'])));
+const reportLabels = @json($chartLabels);
+const reportRevenues = @json($chartRevenues);
+const reportExpenses = @json($chartExpenses);
+const reportProfits = @json($chartProfits);
 
 new Chart(document.getElementById('reportChart'), {
     type: 'bar',
