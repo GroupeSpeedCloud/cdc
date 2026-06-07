@@ -29,9 +29,10 @@ $monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 
             <tr>
                 <th style="min-width:160px;position:sticky;left:0;background:#0f0f0f;z-index:2;">Projet</th>
                 @foreach($monthNames as $i => $name)
-                    <th class="text-center" style="min-width:80px;">
-                        <div>{{ $name }}</div>
-                        <a href="{{ route('revenues.edit', [$year, $i + 1]) }}" style="font-size:10px;color:var(--accent);text-decoration:none;font-weight:400;letter-spacing:0;">Saisir</a>
+                    @php $isCurrentMonth = ($i + 1 === (int)now()->format('m') && $year === (int)now()->format('Y')); @endphp
+                    <th class="text-center" style="min-width:80px;{{ $isCurrentMonth ? 'background:rgba(99,102,241,0.08);color:var(--accent);' : '' }}">
+                        <div style="{{ $isCurrentMonth ? 'font-weight:700;' : '' }}">{{ $name }}</div>
+                        <a href="{{ route('revenues.edit', [$year, $i + 1]) }}" style="font-size:10px;color:{{ $isCurrentMonth ? 'var(--accent)' : 'var(--text-3)' }};text-decoration:none;font-weight:400;letter-spacing:0;transition:color 0.15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='{{ $isCurrentMonth ? 'var(--accent)' : 'var(--text-3)' }}'">Saisir</a>
                     </th>
                 @endforeach
                 <th class="text-right" style="min-width:100px;">Total</th>
@@ -49,7 +50,8 @@ $monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 
                 @php $rowTotal = 0; @endphp
                 @for($m = 1; $m <= 12; $m++)
                     @php $amount = $grid[$project->id][$m] ?? null; $rowTotal += $amount ?? 0; @endphp
-                    <td class="text-center" style="{{ $amount !== null ? 'background:#0d1f10;' : '' }}">
+                    @php $isCurrentCol = ($m === (int)now()->format('m') && $year === (int)now()->format('Y')); @endphp
+                    <td class="text-center" style="{{ $amount !== null ? 'background:#0d1f10;' : '' }}{{ $isCurrentCol ? 'border-left:1px solid rgba(99,102,241,0.2);border-right:1px solid rgba(99,102,241,0.2);' : '' }}">
                         @if($amount !== null)
                             <span style="color:var(--green);font-size:12px;font-weight:600;">{{ number_format($amount, 0, ',', ' ') }} €</span>
                         @else

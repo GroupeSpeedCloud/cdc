@@ -15,11 +15,23 @@ $categoryLabels = [
 @endphp
 
 <div style="max-width:720px;">
-    <div style="margin-bottom:28px;">
-        <h1 style="font-size:22px;font-weight:700;letter-spacing:-0.03em;color:var(--text);margin-bottom:4px;">
-            Dépenses — {{ $monthName }}
-        </h1>
-        <p style="font-size:13px;color:var(--text-3);">Activez, désactivez ou modifiez les montants pour ce mois uniquement.</p>
+    <div style="margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div>
+            <h1 style="font-size:20px;font-weight:700;letter-spacing:-0.03em;color:var(--text);margin-bottom:4px;">
+                Ajustements — {{ $monthName }}
+            </h1>
+            <p style="font-size:13px;color:var(--text-3);">Modifiez ou désactivez des dépenses pour ce mois uniquement.</p>
+        </div>
+        <div style="display:flex;gap:6px;">
+            <a href="{{ route('expenses.override', [$year, $month > 1 ? $month - 1 : 12]) }}" class="btn btn-secondary" style="padding:8px 12px;font-size:12px;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                Mois préc.
+            </a>
+            <a href="{{ route('expenses.override', [$year, $month < 12 ? $month + 1 : 1]) }}" class="btn btn-secondary" style="padding:8px 12px;font-size:12px;">
+                Mois suiv.
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="13" height="13"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </a>
+        </div>
     </div>
 
     <form method="POST" action="{{ route('expenses.storeOverride', [$year, $month]) }}">
@@ -98,9 +110,9 @@ $categoryLabels = [
 
         @if($expenses->isNotEmpty())
         <div style="display:flex;flex-direction:column;gap:10px;">
-            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px 20px;font-size:15px;box-shadow:0 0 20px rgba(99,102,241,0.2);">
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px 20px;font-size:14px;box-shadow:0 0 20px rgba(99,102,241,0.15);">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                Enregistrer les overrides
+                Enregistrer les ajustements
             </button>
             <a href="{{ route('expenses.index') }}" class="btn btn-secondary" style="justify-content:center;">Annuler</a>
         </div>
