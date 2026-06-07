@@ -35,8 +35,7 @@ class AuthController extends Controller
             return redirect('/login')->with('auth_error', 'Seuls les comptes ' . $domain . ' sont autorisés.');
         }
 
-        // Whitelist : seuls les comptes listés ont accès
-        $whitelist = config('services.auth.whitelist', []);
+        $whitelist = array_filter(array_map('trim', explode(',', getenv('AUTH_WHITELIST') ?: '')));
         if (!in_array(strtolower($email), array_map('strtolower', $whitelist))) {
             return redirect()->route('forbidden')->with('blocked_email', $email);
         }

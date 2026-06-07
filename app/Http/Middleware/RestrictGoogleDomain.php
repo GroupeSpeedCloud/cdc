@@ -23,8 +23,7 @@ class RestrictGoogleDomain
             return redirect()->route('forbidden')->with('blocked_email', $user->email);
         }
 
-        // Whitelist : seuls les comptes listés ont accès
-        $whitelist = config('services.auth.whitelist', []);
+        $whitelist = array_filter(array_map('trim', explode(',', getenv('AUTH_WHITELIST') ?: '')));
         if (!in_array(strtolower($user->email), array_map('strtolower', $whitelist))) {
             $email = $user->email;
             Auth::logout();
