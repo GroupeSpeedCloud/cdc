@@ -7,9 +7,10 @@
     $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
     $currentMonthName = $monthNames[$kpis['month']] . ' ' . $kpis['year'];
     $firstName = explode(' ', Auth::user()?->name ?? 'Utilisateur')[0];
+    $yearPct = round(($kpis['month'] / 12) * 100);
 @endphp
 
-{{-- Hero header --}}
+{{-- Section 1 — Hero --}}
 <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap;">
     <div>
         <h1 style="font-size:24px;font-weight:700;letter-spacing:-0.03em;color:var(--text);margin-bottom:4px;">
@@ -23,7 +24,7 @@
     </a>
 </div>
 
-{{-- KPI Grid --}}
+{{-- Section 2 — KPIs du mois --}}
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px;">
 
     {{-- Revenus --}}
@@ -88,13 +89,85 @@
     </div>
 </div>
 
-{{-- Charts row --}}
+{{-- Section 3 — Vue annuelle --}}
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+
+    {{-- Revenus YTD --}}
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;">
+            REVENUS YTD
+        </div>
+        <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text);">
+            {{ number_format($ytd['revenue'], 0, ',', ' ') }} <span style="font-size:15px;font-weight:500;color:var(--text-3);">€</span>
+        </div>
+        <div style="margin-top:14px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:6px;">
+                <span>Janvier → {{ $monthNames[$kpis['month']] }}</span>
+                <span>{{ $yearPct }}% de l'année</span>
+            </div>
+            <div style="height:4px;background:var(--surface-2);border-radius:2px;">
+                <div style="height:4px;background:var(--accent);border-radius:2px;width:{{ $yearPct }}%;"></div>
+            </div>
+        </div>
+        @if($growthTrend != 0)
+        <div style="margin-top:12px;display:flex;align-items:center;gap:4px;font-size:11px;{{ $growthTrend >= 0 ? 'color:#10b981' : 'color:#ef4444' }}">
+            @if($growthTrend >= 0)
+                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+            @else
+                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+            @endif
+            {{ $growthTrend >= 0 ? '+' : '' }}{{ $growthTrend }}% tendance 3 mois
+        </div>
+        @endif
+    </div>
+
+    {{-- Projection annuelle --}}
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;">
+            PROJECTION ANNUELLE
+        </div>
+        <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text);">
+            {{ number_format($projection, 0, ',', ' ') }} <span style="font-size:15px;font-weight:500;color:var(--text-3);">€</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:10px;display:flex;align-items:center;gap:6px;">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
+            Basé sur la moyenne des 3 derniers mois
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text-3);">
+            YTD : {{ number_format($ytd['revenue'], 0, ',', ' ') }} € +
+            {{ number_format($projection - $ytd['revenue'], 0, ',', ' ') }} € projetés
+        </div>
+    </div>
+
+    {{-- Top projet --}}
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;">
+            TOP PROJET CE MOIS
+        </div>
+        @if($topProject)
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{{ $topProject['project']->color }};flex-shrink:0;"></span>
+                <span style="font-size:15px;font-weight:600;color:var(--text);">{{ $topProject['project']->name }}</span>
+            </div>
+            <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--green);">
+                {{ number_format($topProject['revenue'], 0, ',', ' ') }} <span style="font-size:15px;font-weight:500;opacity:0.7;">€</span>
+            </div>
+            <div style="margin-top:10px;font-size:11px;color:var(--text-3);">
+                {{ $kpis['revenue'] > 0 ? round(($topProject['revenue'] / $kpis['revenue']) * 100) : 0 }}% des revenus du mois
+            </div>
+        @else
+            <div style="font-size:13px;color:var(--text-3);margin-top:8px;">Aucune donnée ce mois</div>
+        @endif
+    </div>
+</div>
+
+{{-- Section 4 — Graphiques --}}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
     <div class="card-flush">
         <div class="card-header">
             <div>
                 <div class="card-title">Revenus par projet</div>
-                <div class="card-subtitle">12 mois glissants</div>
+                <div class="card-subtitle">12 mois glissants + projection</div>
             </div>
         </div>
         <div style="padding:20px;">
@@ -118,7 +191,7 @@
     </div>
 </div>
 
-{{-- Chart + table row --}}
+{{-- Section 5 — Répartition + Tableau --}}
 <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;">
     <div class="card-flush">
         <div class="card-header">
@@ -153,11 +226,15 @@
             </thead>
             <tbody>
                 @forelse($projects as $item)
-                    <tr>
+                    @php $isTop = $topProject && $topProject['project']->id === $item['project']->id && $item['revenue'] > 0; @endphp
+                    <tr style="{{ $isTop ? 'background:rgba(16,185,129,0.06);' : '' }}">
                         <td>
                             <div style="display:flex;align-items:center;gap:10px;">
                                 <span class="project-dot" style="background-color:{{ $item['project']->color }};"></span>
                                 <span style="color:var(--text);font-weight:500;font-size:13px;">{{ $item['project']->name }}</span>
+                                @if($isTop)
+                                    <span style="font-size:9px;font-weight:600;letter-spacing:0.06em;background:rgba(16,185,129,0.15);color:#10b981;border-radius:4px;padding:2px 6px;text-transform:uppercase;">TOP</span>
+                                @endif
                             </div>
                         </td>
                         <td class="text-right">
@@ -194,16 +271,71 @@ const chartScales = {
     }
 };
 
-new Chart(document.getElementById('revenueChart'), {
-    type: 'line',
-    data: @json($revenueChart),
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#888888', font: { size: 11 }, boxWidth: 10, padding: 12 } } },
-        scales: chartScales
-    }
-});
+// Build revenue chart with projection dataset
+(function() {
+    const base = @json($revenueChart);
+
+    // Add projection dataset: null for past months, projected value for future months
+    @php
+        $currentMonth = $kpis['month'];
+        $currentYear = $kpis['year'];
+        // revenueChart has 12 months ending at current month
+        // Index of current month in the 12-month window is index 11 (last)
+        // Future months of the year need to be appended as labels + data
+        $futureMonthNames = [];
+        $monthNamesShort = ['', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        for ($m = $currentMonth + 1; $m <= 12; $m++) {
+            $futureMonthNames[] = $monthNamesShort[$m] . ' ' . $currentYear;
+        }
+        $projectionValues = array_values($yearProjection);
+    @endphp
+
+    const futureLabels = @json($futureMonthNames);
+    const projectionValues = @json($projectionValues);
+    const currentMonthIdx = base.labels.length - 1; // last label is current month
+
+    // Extend labels with future months
+    const allLabels = [...base.labels, ...futureLabels];
+
+    // Extend each project dataset with nulls for future months
+    const extendedDatasets = base.datasets.map(ds => ({
+        ...ds,
+        data: [...ds.data, ...futureLabels.map(() => null)],
+        spanGaps: false,
+    }));
+
+    // Build projection dataset: null for past 11 months + last historical as bridge + future values
+    const projData = new Array(currentMonthIdx).fill(null);
+    // bridge: show projection starting from current month value (average)
+    const avgProjection = projectionValues.length > 0 ? projectionValues[0] : null;
+    projData.push(avgProjection); // current month position as bridge
+    projData.push(...projectionValues);
+
+    extendedDatasets.push({
+        label: 'Projection (moy. 3 mois)',
+        data: projData,
+        borderColor: '#888888',
+        backgroundColor: 'rgba(136,136,136,0.05)',
+        borderDash: [5, 4],
+        borderWidth: 1.5,
+        tension: 0,
+        fill: false,
+        pointRadius: 3,
+        pointBackgroundColor: '#888888',
+        spanGaps: false,
+    });
+
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: { labels: allLabels, datasets: extendedDatasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#888888', font: { size: 11 }, boxWidth: 10, padding: 12 } } },
+            scales: chartScales
+        }
+    });
+})();
 
 new Chart(document.getElementById('cashflowChart'), {
     type: 'bar',

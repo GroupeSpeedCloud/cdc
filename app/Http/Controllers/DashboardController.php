@@ -26,6 +26,16 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('dashboard', compact('kpis', 'revenueChart', 'cashflowChart', 'expensesChart', 'projects'));
+        $ytd = [
+            'revenue' => $this->finance->getYTDRevenue(),
+            'expenses' => $this->finance->getYTDExpenses(),
+            'profit' => $this->finance->getYTDProfit(),
+        ];
+        $projection = $this->finance->getProjectedAnnualRevenue();
+        $topProject = $this->finance->getTopProjectForMonth($kpis['year'], $kpis['month']);
+        $growthTrend = $this->finance->getGrowthTrend();
+        $yearProjection = $this->finance->getYearRevenueProjection();
+
+        return view('dashboard', compact('kpis', 'revenueChart', 'cashflowChart', 'expensesChart', 'projects', 'ytd', 'projection', 'topProject', 'growthTrend', 'yearProjection'));
     }
 }

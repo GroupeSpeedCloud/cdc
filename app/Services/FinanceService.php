@@ -231,6 +231,113 @@ class FinanceService
         ];
     }
 
+    public function getYearRevenueProjection(): array
+    {
+        $now = Carbon::now();
+        $year = $now->year;
+        $currentMonth = $now->month;
+
+        // Get last 3 months with data
+        $monthlyRevenues = [];
+        for ($i = 3; $i >= 1; $i--) {
+            $date = $now->copy()->subMonths($i);
+            $rev = $this->getTotalRevenueForMonth($date->year, $date->month);
+            if ($rev > 0) {
+                $monthlyRevenues[] = $rev;
+            }
+        }
+
+        if (empty($monthlyRevenues)) {
+            // fallback: use current month
+            $monthlyRevenues[] = $this->getTotalRevenueForMonth($year, $currentMonth);
+        }
+
+        $avg = array_sum($monthlyRevenues) / count($monthlyRevenues);
+
+        $projection = [];
+        for ($m = $currentMonth + 1; $m <= 12; $m++) {
+            $projection[$m] = round($avg, 2);
+        }
+
+        return $projection;
+    }
+
+    public function getYTDRevenue(): float
+    {
+        $now = Carbon::now();
+        $total = 0.0;
+        for ($m = 1; $m <= $now->month; $m++) {
+            $total += $this->getTotalRevenueForMonth($now->year, $m);
+        }
+        return $total;
+    }
+
+    public function getYTDExpenses(): float
+    {
+        $now = Carbon::now();
+        $total = 0.0;
+        for ($m = 1; $m <= $now->month; $m++) {
+            $total += $this->getTotalExpensesForMonth($now->year, $m);
+        }
+        return $total;
+    }
+
+    public function getYTDProfit(): float
+    {
+        return $this->getYTDRevenue() - $this->getYTDExpenses();
+    }
+
+    public function getTopProjectForMonth(int $year, int $month): ?array
+    {
+        $projects = Project::where('status', 'active')->get();
+        $top = null;
+        $topRevenue = 0.0;
+
+        foreach ($projects as $project) {
+            $revenue = $project->getRevenueForMonth($year, $month);
+            if ($revenue > $topRevenue) {
+                $topRevenue = $revenue;
+                $top = $project;
+            }
+        }
+
+        if ($top === null) {
+            return null;
+        }
+
+        return ['project' => $top, 'revenue' => $topRevenue];
+    }
+
+    public function getProjectedAnnualRevenue(): float
+    {
+        $ytd = $this->getYTDRevenue();
+        $projection = $this->getYearRevenueProjection();
+        return $ytd + array_sum($projection);
+    }
+
+    public function getGrowthTrend(): float
+    {
+        $now = Carbon::now();
+
+        $recent = 0.0;
+        for ($i = 1; $i <= 3; $i++) {
+            $date = $now->copy()->subMonths($i);
+            $recent += $this->getTotalRevenueForMonth($date->year, $date->month);
+        }
+
+        $older = 0.0;
+        for ($i = 4; $i <= 6; $i++) {
+            $date = $now->copy()->subMonths($i);
+            $older += $this->getTotalRevenueForMonth($date->year, $date->month);
+        }
+
+        if ($older == 0) {
+            return 0.0;
+        }
+
+        return round((($recent - $older) / $older) * 100, 1);
+    }
+
     public function getYearSummary(int $year): array
     {
         $months = [];
