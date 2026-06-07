@@ -16,6 +16,11 @@ class ReportController extends Controller
         $years = range(Carbon::now()->year - 3, Carbon::now()->year + 1);
         $summary = $this->finance->getYearSummary($year);
 
-        return view('reports.index', compact('year', 'years', 'summary'));
+        $chartLabels = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+        $chartRevenues = array_values(array_map(fn($m) => $m['revenue'], $summary['months']));
+        $chartExpenses = array_values(array_map(fn($m) => $m['expenses'], $summary['months']));
+        $chartProfits  = array_values(array_map(fn($m) => $m['profit'],  $summary['months']));
+
+        return view('reports.index', compact('year', 'years', 'summary', 'chartLabels', 'chartRevenues', 'chartExpenses', 'chartProfits'));
     }
 }
