@@ -1,61 +1,84 @@
 @extends('layouts.app')
 @section('title', 'Revenus')
 @section('page-title', 'Revenus')
+
 @section('content')
-<div class="flex items-center justify-between mb-6">
-    <p class="text-zinc-400 text-sm">{{ $revenues->total() }} revenu(s) enregistré(s)</p>
-    <a href="{{ route('revenues.create') }}" class="btn-primary">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Nouveau revenu
-    </a>
+@php
+$monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+@endphp
+
+<div class="flex items-center gap-4 mb-6">
+    <form method="GET" class="flex items-center gap-2">
+        <label class="text-sm text-zinc-400">Année :</label>
+        <select name="year" onchange="this.form.submit()" class="input w-auto">
+            @foreach($years as $y)
+                <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
+            @endforeach
+        </select>
+    </form>
 </div>
-<div class="card overflow-hidden p-0">
-    <table class="w-full text-sm">
+
+<div class="card overflow-x-auto p-0">
+    <table class="w-full text-sm min-w-max">
         <thead class="bg-zinc-800/50">
             <tr>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Client</th>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Description</th>
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Montant</th>
-                <th class="text-center px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Statut</th>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Date</th>
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Actions</th>
+                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase sticky left-0 bg-zinc-800/50">Projet</th>
+                @foreach($monthNames as $i => $name)
+                    <th class="text-center px-3 py-3 text-xs font-medium text-zinc-500 uppercase min-w-[90px]">
+                        <div>{{ $name }}</div>
+                        <a href="{{ route('revenues.edit', [$year, $i + 1]) }}" class="text-indigo-400 hover:text-indigo-300 text-xs font-normal">Saisir</a>
+                    </th>
+                @endforeach
+                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Total</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($revenues as $revenue)
-            <tr class="table-row border-zinc-800">
-                <td class="px-4 py-3 font-medium text-white">{{ $revenue->client?->name }}</td>
-                <td class="px-4 py-3 text-zinc-400">{{ $revenue->description ?: ($revenue->subscription?->service?->name ?? '—') }}</td>
-                <td class="px-4 py-3 text-right font-medium text-green-400">+{{ number_format($revenue->amount, 2, ',', ' ') }} €</td>
-                <td class="px-4 py-3 text-center">
-                    @if($revenue->status === 'paid')
-                        <span class="badge badge-green">Payé</span>
-                    @else
-                        <span class="badge badge-yellow">En attente</span>
-                    @endif
-                </td>
-                <td class="px-4 py-3 text-zinc-400">{{ $revenue->date->format('d/m/Y') }}</td>
-                <td class="px-4 py-3 text-right">
-                    <div class="flex items-center justify-end gap-2">
-                        <a href="{{ route('revenues.edit', $revenue) }}" class="text-zinc-400 hover:text-indigo-400">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        </a>
-                        <form method="POST" action="{{ route('revenues.destroy', $revenue) }}" onsubmit="return confirm('Supprimer ?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="text-zinc-400 hover:text-red-400">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            </button>
-                        </form>
+            @forelse($projects as $project)
+            <tr class="table-row">
+                <td class="px-4 py-3 sticky left-0 bg-zinc-900">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full" style="background-color: {{ $project->color }}"></span>
+                        <a href="{{ route('projects.show', $project) }}" class="text-white hover:text-indigo-400 font-medium">{{ $project->name }}</a>
                     </div>
+                </td>
+                @php $rowTotal = 0; @endphp
+                @for($m = 1; $m <= 12; $m++)
+                    @php $amount = $grid[$project->id][$m] ?? null; $rowTotal += $amount ?? 0; @endphp
+                    <td class="px-3 py-3 text-center">
+                        @if($amount !== null)
+                            <span class="text-green-400 text-xs font-medium">{{ number_format($amount, 0, ',', ' ') }} €</span>
+                        @else
+                            <span class="text-zinc-700">—</span>
+                        @endif
+                    </td>
+                @endfor
+                <td class="px-4 py-3 text-right">
+                    <span class="text-white font-medium">{{ number_format($rowTotal, 2, ',', ' ') }} €</span>
                 </td>
             </tr>
             @empty
-            <tr><td colspan="6" class="px-4 py-10 text-center text-zinc-500">Aucun revenu enregistré.</td></tr>
+            <tr><td colspan="14" class="px-4 py-8 text-center text-zinc-500">Aucun projet actif. <a href="{{ route('projects.create') }}" class="text-indigo-400 hover:underline">Créer un projet</a></td></tr>
             @endforelse
         </tbody>
+        @if($projects->isNotEmpty())
+        <tfoot class="bg-zinc-800/30 border-t border-zinc-700">
+            <tr>
+                <td class="px-4 py-3 text-xs font-semibold text-zinc-300 uppercase sticky left-0 bg-zinc-800/30">Total</td>
+                @php $grandTotal = 0; @endphp
+                @for($m = 1; $m <= 12; $m++)
+                    @php $monthTotal = collect($projects)->sum(fn($p) => $grid[$p->id][$m] ?? 0); $grandTotal += $monthTotal; @endphp
+                    <td class="px-3 py-3 text-center">
+                        @if($monthTotal > 0)
+                            <span class="text-zinc-300 text-xs font-medium">{{ number_format($monthTotal, 0, ',', ' ') }} €</span>
+                        @else
+                            <span class="text-zinc-700">—</span>
+                        @endif
+                    </td>
+                @endfor
+                <td class="px-4 py-3 text-right text-white font-bold">{{ number_format($grandTotal, 2, ',', ' ') }} €</td>
+            </tr>
+        </tfoot>
+        @endif
     </table>
-    @if($revenues->hasPages())
-    <div class="px-4 py-3 border-t border-zinc-800">{{ $revenues->links() }}</div>
-    @endif
 </div>
 @endsection

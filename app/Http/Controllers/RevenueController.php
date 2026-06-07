@@ -2,66 +2,76 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;
-use App\Models\Revenue;
-use App\Models\Subscription;
+use App\Models\MonthlyRevenue;
+use App\Models\Project;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class RevenueController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $revenues = Revenue::with(['client', 'subscription.service'])
-            ->orderByDesc('date')
-            ->paginate(15);
-        return view('revenues.index', compact('revenues'));
+        $year = (int) ($request->get('year', Carbon::now()->year));
+        $projects = Project::where('status', 'active')->get();
+
+        $grid = [];
+        foreach ($projects as $project) {
+            $grid[$project->id] = [];
+            for ($m = 1; $m <= 12; $m++) {
+                $rev = MonthlyRevenue::where('project_id', $project->id)
+                    ->where('year', $year)
+                    ->where('month', $m)
+                    ->first();
+                $grid[$project->id][$m] = $rev ? $rev->amount : null;
+            }
+        }
+
+        $years = range(Carbon::now()->year - 2, Carbon::now()->year + 1);
+
+        return view('revenues.index', compact('projects', 'grid', 'year', 'years'));
     }
 
-    public function create()
+    public function edit(int $year, int $month)
     {
-        $clients = Client::orderBy('name')->get();
-        $subscriptions = Subscription::with(['client', 'service'])->where('status', 'actif')->get();
-        return view('revenues.create', compact('clients', 'subscriptions'));
+        $projects = Project::where('status', 'active')->get();
+        $existing = MonthlyRevenue::where('year', $year)
+            ->where('month', $month)
+            ->get()
+            ->keyBy('project_id');
+
+        $monthName = Carbon::createFromDate($year, $month, 1)->translatedFormat('F Y');
+
+        return view('revenues.edit', compact('projects', 'existing', 'year', 'month', 'monthName'));
     }
 
-    public function store(Request $request)
+    public function update(Request $request, int $year, int $month)
     {
         $data = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'subscription_id' => 'nullable|exists:subscriptions,id',
-            'amount' => 'required|numeric|min:0',
-            'date' => 'required|date',
-            'description' => 'nullable|string|max:500',
-            'status' => 'required|in:paid,pending',
+            'revenues' => 'array',
+            'revenues.*' => 'nullable|numeric|min:0',
+            'notes' => 'array',
+            'notes.*' => 'nullable|string',
         ]);
-        Revenue::create($data);
-        return redirect()->route('revenues.index')->with('success', 'Revenu ajouté.');
-    }
 
-    public function edit(Revenue $revenue)
-    {
-        $clients = Client::orderBy('name')->get();
-        $subscriptions = Subscription::with(['client', 'service'])->get();
-        return view('revenues.edit', compact('revenue', 'clients', 'subscriptions'));
-    }
+        foreach ($data['revenues'] ?? [] as $projectId => $amount) {
+            if ($amount === null || $amount === '') {
+                MonthlyRevenue::where('project_id', $projectId)
+                    ->where('year', $year)
+                    ->where('month', $month)
+                    ->delete();
+                continue;
+            }
 
-    public function update(Request $request, Revenue $revenue)
-    {
-        $data = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'subscription_id' => 'nullable|exists:subscriptions,id',
-            'amount' => 'required|numeric|min:0',
-            'date' => 'required|date',
-            'description' => 'nullable|string|max:500',
-            'status' => 'required|in:paid,pending',
-        ]);
-        $revenue->update($data);
-        return redirect()->route('revenues.index')->with('success', 'Revenu mis à jour.');
-    }
+            MonthlyRevenue::updateOrCreate(
+                ['project_id' => $projectId, 'year' => $year, 'month' => $month],
+                [
+                    'amount' => (float) $amount,
+                    'notes' => $data['notes'][$projectId] ?? null,
+                ]
+            );
+        }
 
-    public function destroy(Revenue $revenue)
-    {
-        $revenue->delete();
-        return redirect()->route('revenues.index')->with('success', 'Revenu supprimé.');
+        return redirect()->route('revenues.index', ['year' => $year])
+            ->with('success', 'Revenus enregistrés.');
     }
 }

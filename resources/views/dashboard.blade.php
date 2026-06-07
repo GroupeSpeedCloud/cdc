@@ -3,175 +3,171 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
-<!-- KPI Grid -->
-<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-    @php
-        $kpiCards = [
-            ['label' => 'MRR', 'value' => number_format($kpis['mrr'], 2, ',', ' ') . ' €', 'color' => 'indigo'],
-            ['label' => 'ARR', 'value' => number_format($kpis['arr'], 2, ',', ' ') . ' €', 'color' => 'teal'],
-            ['label' => 'Revenus du mois', 'value' => number_format($kpis['revenue_month'], 2, ',', ' ') . ' €', 'color' => 'green'],
-            ['label' => 'Dépenses du mois', 'value' => number_format($kpis['expenses_month'], 2, ',', ' ') . ' €', 'color' => 'red'],
-            ['label' => 'Profit net', 'value' => number_format($kpis['net_profit_month'], 2, ',', ' ') . ' €', 'color' => $kpis['net_profit_month'] >= 0 ? 'green' : 'red'],
-            ['label' => 'Marge', 'value' => $kpis['margin_month'] . ' %', 'color' => $kpis['margin_month'] >= 20 ? 'green' : 'yellow'],
-        ];
-        $colorMap = [
-            'indigo' => ['bg' => 'bg-indigo-900/50', 'text' => 'text-indigo-400'],
-            'teal' => ['bg' => 'bg-teal-900/50', 'text' => 'text-teal-400'],
-            'green' => ['bg' => 'bg-green-900/50', 'text' => 'text-green-400'],
-            'red' => ['bg' => 'bg-red-900/50', 'text' => 'text-red-400'],
-            'yellow' => ['bg' => 'bg-yellow-900/50', 'text' => 'text-yellow-400'],
-        ];
-    @endphp
-    @foreach($kpiCards as $card)
+@php
+    $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    $currentMonthName = $monthNames[$kpis['month']] . ' ' . $kpis['year'];
+@endphp
+
+<div class="mb-6 flex items-center justify-between">
+    <p class="text-zinc-400 text-sm">{{ $currentMonthName }}</p>
+    <a href="{{ route('revenues.edit', [$kpis['year'], $kpis['month']]) }}" class="btn-primary">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Saisir les revenus
+    </a>
+</div>
+
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- Revenus -->
     <div class="kpi-card">
         <div class="flex items-center justify-between mb-3">
-            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wide">{{ $card['label'] }}</p>
-            <div class="w-7 h-7 {{ $colorMap[$card['color']]['bg'] }} rounded-lg flex items-center justify-center">
-                <svg class="w-4 h-4 {{ $colorMap[$card['color']]['text'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Revenus du mois</p>
+            <div class="w-8 h-8 bg-indigo-600/20 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
             </div>
         </div>
-        <p class="text-xl font-bold text-white">{{ $card['value'] }}</p>
-        @if($loop->first)
-            <p class="text-xs mt-1 {{ $kpis['growth_rate'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
-                {{ $kpis['growth_rate'] >= 0 ? '▲' : '▼' }} {{ abs($kpis['growth_rate']) }}% vs mois préc.
+        <p class="text-2xl font-bold text-white">{{ number_format($kpis['revenue'], 2, ',', ' ') }} €</p>
+        @if($kpis['revenue_diff_pct'] !== null)
+            <p class="text-xs mt-1 {{ $kpis['revenue_diff_pct'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
+                {{ $kpis['revenue_diff_pct'] >= 0 ? '+' : '' }}{{ $kpis['revenue_diff_pct'] }}% vs mois préc.
             </p>
         @endif
     </div>
-    @endforeach
-</div>
 
-<!-- Client & Service les plus rentables -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-    <div class="card flex items-center gap-4">
-        <div class="w-12 h-12 bg-indigo-900/50 rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg class="w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+    <!-- Dépenses -->
+    <div class="kpi-card">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Dépenses du mois</p>
+            <div class="w-8 h-8 bg-red-600/20 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
         </div>
-        <div>
-            <p class="text-xs text-zinc-500 uppercase tracking-wide font-medium">Client le plus rentable</p>
-            <p class="text-lg font-semibold text-white mt-0.5">{{ $kpis['best_client']?->name ?? 'N/A' }}</p>
-            @if($kpis['best_client'])
-                <p class="text-sm text-green-400">{{ number_format($kpis['best_client']->net_profit, 2, ',', ' ') }} € de profit</p>
-            @endif
-        </div>
+        <p class="text-2xl font-bold text-white">{{ number_format($kpis['expenses'], 2, ',', ' ') }} €</p>
+        <p class="text-xs mt-1 text-zinc-500">Dépenses récurrentes actives</p>
     </div>
-    <div class="card flex items-center gap-4">
-        <div class="w-12 h-12 bg-teal-900/50 rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg class="w-6 h-6 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-        </div>
-        <div>
-            <p class="text-xs text-zinc-500 uppercase tracking-wide font-medium">Service le plus rentable</p>
-            <p class="text-lg font-semibold text-white mt-0.5">{{ $kpis['best_service']?->name ?? 'N/A' }}</p>
-            @if($kpis['best_service'])
-                <p class="text-sm text-teal-400">{{ number_format($kpis['best_service']->total_revenue, 2, ',', ' ') }} € de revenus</p>
-            @endif
-        </div>
-    </div>
-</div>
 
-<!-- Charts -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <div class="card">
-        <h3 class="text-sm font-semibold text-zinc-300 mb-4">Revenus — 12 derniers mois</h3>
-        <canvas id="revenueChart" height="160"></canvas>
+    <!-- Profit net -->
+    <div class="kpi-card">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Profit net</p>
+            <div class="w-8 h-8 {{ $kpis['profit'] >= 0 ? 'bg-green-600/20' : 'bg-red-600/20' }} rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 {{ $kpis['profit'] >= 0 ? 'text-green-400' : 'text-red-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+        </div>
+        <p class="text-2xl font-bold {{ $kpis['profit'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
+            {{ $kpis['profit'] >= 0 ? '+' : '' }}{{ number_format($kpis['profit'], 2, ',', ' ') }} €
+        </p>
+        <p class="text-xs mt-1 text-zinc-500">Revenus - Dépenses</p>
     </div>
-    <div class="card">
-        <h3 class="text-sm font-semibold text-zinc-300 mb-4">Dépenses — 12 derniers mois</h3>
-        <canvas id="expensesChart" height="160"></canvas>
-    </div>
-    <div class="card">
-        <h3 class="text-sm font-semibold text-zinc-300 mb-4">Répartition par service</h3>
-        <canvas id="serviceChart" height="160"></canvas>
-    </div>
-    <div class="card">
-        <h3 class="text-sm font-semibold text-zinc-300 mb-4">Cashflow mensuel</h3>
-        <canvas id="cashflowChart" height="160"></canvas>
+
+    <!-- Marge -->
+    <div class="kpi-card">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Marge nette</p>
+            <div class="w-8 h-8 bg-amber-600/20 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-white">{{ $kpis['margin'] }}%</p>
+        <p class="text-xs mt-1 text-zinc-500">Sur les revenus du mois</p>
     </div>
 </div>
 
-<!-- Recent Transactions -->
-<div class="card">
-    <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-semibold text-zinc-300">Dernières transactions</h3>
-        <a href="{{ route('revenues.index') }}" class="text-xs text-indigo-400 hover:text-indigo-300">Voir tout →</a>
+<!-- Charts row 1 -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="card">
+        <h3 class="text-sm font-semibold text-white mb-4">Revenus par projet — 12 mois glissants</h3>
+        <canvas id="revenueChart" height="250"></canvas>
     </div>
-    @if(count($recentTransactions) > 0)
-    <table class="w-full text-sm">
-        <thead>
-            <tr class="border-b border-zinc-800">
-                <th class="text-left pb-3 text-xs font-medium text-zinc-500 uppercase">Type</th>
-                <th class="text-left pb-3 text-xs font-medium text-zinc-500 uppercase">Description</th>
-                <th class="text-left pb-3 text-xs font-medium text-zinc-500 uppercase">Client</th>
-                <th class="text-right pb-3 text-xs font-medium text-zinc-500 uppercase">Montant</th>
-                <th class="text-right pb-3 text-xs font-medium text-zinc-500 uppercase">Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($recentTransactions as $tx)
-            <tr class="table-row">
-                <td class="py-3">
-                    @if($tx['type'] === 'revenue')
-                        <span class="badge badge-green">Revenu</span>
-                    @else
-                        <span class="badge badge-red">Dépense</span>
-                    @endif
-                </td>
-                <td class="py-3 text-zinc-300">{{ $tx['label'] }}</td>
-                <td class="py-3 text-zinc-400">{{ $tx['client'] ?? '—' }}</td>
-                <td class="py-3 text-right font-medium {{ $tx['amount'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
-                    {{ $tx['amount'] >= 0 ? '+' : '' }}{{ number_format($tx['amount'], 2, ',', ' ') }} €
-                </td>
-                <td class="py-3 text-right text-zinc-500">{{ \Carbon\Carbon::parse($tx['date'])->format('d/m/Y') }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    @else
-        <p class="text-zinc-500 text-sm text-center py-8">Aucune transaction enregistrée.</p>
-    @endif
+    <div class="card">
+        <h3 class="text-sm font-semibold text-white mb-4">Cashflow — 12 mois glissants</h3>
+        <canvas id="cashflowChart" height="250"></canvas>
+    </div>
+</div>
+
+<!-- Charts row 2 + Table -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="card">
+        <h3 class="text-sm font-semibold text-white mb-4">Dépenses par catégorie</h3>
+        <canvas id="expensesChart" height="250"></canvas>
+    </div>
+
+    <div class="card lg:col-span-2 p-0 overflow-hidden">
+        <div class="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-white">Revenus ce mois — {{ $currentMonthName }}</h3>
+            <a href="{{ route('revenues.edit', [$kpis['year'], $kpis['month']]) }}" class="text-xs text-indigo-400 hover:text-indigo-300">Modifier →</a>
+        </div>
+        <table class="w-full text-sm">
+            <thead class="bg-zinc-800/50">
+                <tr>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Projet</th>
+                    <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Montant</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($projects as $item)
+                    <tr class="table-row">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: {{ $item['project']->color }}"></span>
+                                <span class="text-white font-medium">{{ $item['project']->name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            @if($item['revenue'] > 0)
+                                <span class="text-green-400 font-medium">{{ number_format($item['revenue'], 2, ',', ' ') }} €</span>
+                            @else
+                                <span class="text-zinc-600">—</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="2" class="px-4 py-6 text-center text-zinc-500">Aucun projet actif</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-    const chartDefaults = {
-        scales: {
-            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', font: { size: 11 } } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', font: { size: 11 } } }
-        },
-        plugins: { legend: { display: false } }
-    };
-    const revenueData = @json(collect($revenueByMonth)->pluck('value'));
-    const revenueLabels = @json(collect($revenueByMonth)->pluck('label'));
-    const expensesData = @json(collect($expensesByMonth)->pluck('value'));
-    const cashflowData = @json(collect($cashflowByMonth)->pluck('value'));
-    const serviceLabels = @json(collect($serviceDistribution)->pluck('label'));
-    const serviceValues = @json(collect($serviceDistribution)->pluck('value'));
+const chartDefaults = {
+    plugins: { legend: { labels: { color: '#a1a1aa', font: { size: 11 } } } },
+    scales: {
+        x: { grid: { color: '#27272a' }, ticks: { color: '#71717a', font: { size: 10 } } },
+        y: { grid: { color: '#27272a' }, ticks: { color: '#71717a', font: { size: 10 } } }
+    }
+};
 
-    new Chart(document.getElementById('revenueChart'), {
-        type: 'line',
-        data: { labels: revenueLabels, datasets: [{ data: revenueData, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', tension: 0.4, fill: true, pointRadius: 3 }] },
-        options: chartDefaults
-    });
-    new Chart(document.getElementById('expensesChart'), {
-        type: 'line',
-        data: { labels: revenueLabels, datasets: [{ data: expensesData, borderColor: '#f43f5e', backgroundColor: 'rgba(244,63,94,0.1)', tension: 0.4, fill: true, pointRadius: 3 }] },
-        options: chartDefaults
-    });
-    new Chart(document.getElementById('serviceChart'), {
-        type: 'doughnut',
-        data: {
-            labels: serviceLabels.length > 0 ? serviceLabels : ['Aucun service'],
-            datasets: [{ data: serviceValues.length > 0 ? serviceValues : [1], backgroundColor: ['#6366f1','#14b8a6','#f59e0b','#ef4444','#8b5cf6','#06b6d4'], borderWidth: 0 }]
-        },
-        options: { plugins: { legend: { display: true, position: 'bottom', labels: { color: '#a1a1aa', font: { size: 11 } } } }, cutout: '65%' }
-    });
-    new Chart(document.getElementById('cashflowChart'), {
-        type: 'bar',
-        data: {
-            labels: revenueLabels,
-            datasets: [{ data: cashflowData, backgroundColor: cashflowData.map(v => v >= 0 ? 'rgba(52,211,153,0.7)' : 'rgba(248,113,113,0.7)'), borderRadius: 4 }]
-        },
-        options: chartDefaults
-    });
+// Revenue chart
+const revenueData = @json($revenueChart);
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: revenueData,
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+});
+
+// Cashflow chart
+const cashflowData = @json($cashflowChart);
+new Chart(document.getElementById('cashflowChart'), {
+    type: 'bar',
+    data: cashflowData,
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+});
+
+// Expenses doughnut
+const expensesData = @json($expensesChart);
+new Chart(document.getElementById('expensesChart'), {
+    type: 'doughnut',
+    data: expensesData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { color: '#a1a1aa', font: { size: 10 }, padding: 10 } }
+        }
+    }
+});
 </script>
 @endpush

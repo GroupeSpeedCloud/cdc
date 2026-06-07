@@ -2,24 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ReportService;
+use App\Services\FinanceService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    public function index(ReportService $report)
-    {
-        $data = $report->getReportData();
-        return view('reports.index', compact('data'));
-    }
+    public function __construct(private FinanceService $finance) {}
 
-    public function downloadPDF(ReportService $report)
+    public function index(Request $request)
     {
-        $data = $report->getReportData();
-        $html = view('reports.pdf', compact('data'))->render();
+        $year = (int) ($request->get('year', Carbon::now()->year));
+        $years = range(Carbon::now()->year - 3, Carbon::now()->year + 1);
+        $summary = $this->finance->getYearSummary($year);
 
-        return response($html, 200, [
-            'Content-Type' => 'text/html',
-            'Content-Disposition' => 'inline; filename="rapport-financier-' . now()->format('Y-m-d') . '.html"',
-        ]);
+        return view('reports.index', compact('year', 'years', 'summary'));
     }
 }
