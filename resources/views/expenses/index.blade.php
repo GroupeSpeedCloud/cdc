@@ -17,38 +17,43 @@ $categoryBadge = [
     'hebergement' => 'badge-green',
     'infrastructure' => 'badge-yellow',
     'marketing' => 'badge-red',
-    'locaux' => 'badge-indigo',
-    'autre' => 'badge-zinc',
+    'locaux' => 'badge-blue',
+    'autre' => 'badge-muted',
 ];
 @endphp
 
-<div class="flex items-center justify-between mb-6">
-    <p class="text-zinc-400 text-sm">
-        {{ $expenses->count() }} dépense(s) récurrente(s) —
-        Total estimé ce mois : <span class="text-white font-medium">{{ number_format($totalMonthly, 2, ',', ' ') }} €</span>
-    </p>
-    <div class="flex gap-2">
-        <a href="{{ route('expenses.override', [$now->year, $now->month]) }}" class="btn-secondary">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Dépenses récurrentes</h1>
+        <span class="count-badge">{{ $expenses->count() }}</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+        {{-- Monthly total card --}}
+        <div style="display:flex;align-items:center;gap:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:6px 14px;">
+            <span style="font-size:11px;color:#60a5fa;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Ce mois</span>
+            <span style="font-size:15px;font-weight:700;color:#93c5fd;">{{ number_format($totalMonthly, 0, ',', ' ') }} €</span>
+        </div>
+        <a href="{{ route('expenses.override', [$now->year, $now->month]) }}" class="btn btn-secondary">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             Overrides du mois
         </a>
-        <a href="{{ route('expenses.create') }}" class="btn-primary">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <a href="{{ route('expenses.create') }}" class="btn btn-primary">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             Nouvelle dépense
         </a>
     </div>
 </div>
 
-<div class="card overflow-hidden p-0">
-    <table class="w-full text-sm">
-        <thead class="bg-zinc-800/50">
+<div class="card-flush">
+    <table class="data-table">
+        <thead>
             <tr>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Nom</th>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Catégorie</th>
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Montant</th>
-                <th class="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Période</th>
-                <th class="text-center px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Ce mois</th>
-                <th class="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase">Actions</th>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th class="text-right">Montant</th>
+                <th>Période</th>
+                <th class="text-center">Ce mois</th>
+                <th class="text-right">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -56,46 +61,54 @@ $categoryBadge = [
             @php
                 $monthAmount = $expense->getAmountForMonth($now->year, $now->month);
             @endphp
-            <tr class="table-row">
-                <td class="px-4 py-3">
-                    <span class="font-medium text-white">{{ $expense->name }}</span>
+            <tr>
+                <td>
+                    <span style="font-weight:500;color:var(--text);font-size:13px;">{{ $expense->name }}</span>
                     @if($expense->notes)
-                        <p class="text-xs text-zinc-500 mt-0.5">{{ $expense->notes }}</p>
+                        <p style="font-size:11px;color:var(--text-3);margin-top:2px;">{{ $expense->notes }}</p>
                     @endif
                 </td>
-                <td class="px-4 py-3">
-                    <span class="badge {{ $categoryBadge[$expense->category] ?? 'badge-zinc' }}">
+                <td>
+                    <span class="badge {{ $categoryBadge[$expense->category] ?? 'badge-muted' }}">
                         {{ $categoryLabels[$expense->category] ?? $expense->category }}
                     </span>
                 </td>
-                <td class="px-4 py-3 text-right text-white font-medium">{{ number_format($expense->amount, 2, ',', ' ') }} €</td>
-                <td class="px-4 py-3 text-zinc-400 text-xs">
+                <td class="text-right" style="color:var(--text);font-weight:600;">{{ number_format($expense->amount, 2, ',', ' ') }} €</td>
+                <td style="font-size:12px;color:var(--text-3);">
                     {{ \Carbon\Carbon::parse($expense->start_month)->format('m/Y') }}
                     @if($expense->end_month)
-                        → {{ \Carbon\Carbon::parse($expense->end_month)->format('m/Y') }}
+                        <span style="color:var(--text-3);margin:0 3px;">→</span>{{ \Carbon\Carbon::parse($expense->end_month)->format('m/Y') }}
                     @else
-                        → ∞
+                        <span style="color:var(--text-3);margin:0 3px;">→</span><span style="color:var(--text-3);">∞</span>
                     @endif
                 </td>
-                <td class="px-4 py-3 text-center">
+                <td class="text-center">
                     @if($monthAmount !== null)
                         <span class="badge badge-green">{{ number_format($monthAmount, 0, ',', ' ') }} €</span>
                     @else
-                        <span class="badge badge-zinc">Inactif</span>
+                        <span class="badge badge-muted">Inactif</span>
                     @endif
                 </td>
-                <td class="px-4 py-3 text-right">
-                    <div class="flex items-center justify-end gap-2">
-                        <a href="{{ route('expenses.edit', $expense) }}" class="text-xs text-zinc-400 hover:text-white px-2 py-1 rounded hover:bg-zinc-800">Modifier</a>
-                        <form method="POST" action="{{ route('expenses.destroy', $expense) }}" onsubmit="return confirm('Supprimer cette dépense ?')">
+                <td class="text-right">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;">
+                        <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-ghost" title="Modifier">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </a>
+                        <form method="POST" action="{{ route('expenses.destroy', $expense) }}" onsubmit="return confirm('Supprimer cette dépense ?')" style="display:inline;">
                             @csrf @method('DELETE')
-                            <button type="submit" class="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-900/20">Supprimer</button>
+                            <button type="submit" class="btn btn-ghost-red" title="Supprimer">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
                         </form>
                     </div>
                 </td>
             </tr>
             @empty
-            <tr><td colspan="6" class="px-4 py-8 text-center text-zinc-500">Aucune dépense récurrente. <a href="{{ route('expenses.create') }}" class="text-indigo-400 hover:underline">Créer la première</a></td></tr>
+            <tr>
+                <td colspan="6" style="text-align:center;padding:48px 16px;color:var(--text-3);">
+                    Aucune dépense récurrente — <a href="{{ route('expenses.create') }}" style="color:var(--accent);text-decoration:none;">Créer la première</a>
+                </td>
+            </tr>
             @endforelse
         </tbody>
     </table>

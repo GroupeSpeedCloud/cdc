@@ -14,80 +14,97 @@ $categoryLabels = [
 ];
 @endphp
 
-<div class="mb-6">
-    <h2 class="text-xl font-bold text-white">Dépenses de {{ $monthName }}</h2>
-    <p class="text-zinc-400 text-sm mt-1">Activez, désactivez ou modifiez les montants pour ce mois uniquement.</p>
+<div style="max-width:720px;">
+    <div style="margin-bottom:28px;">
+        <h1 style="font-size:22px;font-weight:700;letter-spacing:-0.03em;color:var(--text);margin-bottom:4px;">
+            Dépenses — {{ $monthName }}
+        </h1>
+        <p style="font-size:13px;color:var(--text-3);">Activez, désactivez ou modifiez les montants pour ce mois uniquement.</p>
+    </div>
+
+    <form method="POST" action="{{ route('expenses.storeOverride', [$year, $month]) }}">
+        @csrf
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+            @forelse($expenses as $expense)
+            @php
+                $override = $overrides[$expense->id] ?? null;
+                $isDefaultActive = $expense->isActiveForMonth($year, $month);
+                $isEnabled = $override ? ($override->amount !== null) : $isDefaultActive;
+                $currentAmount = $override ? ($override->amount ?? $expense->amount) : $expense->amount;
+            @endphp
+            <div class="card" style="border-radius:14px;" id="expense-card-{{ $expense->id }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;">
+                        {{-- Toggle switch --}}
+                        <label class="toggle-wrap" for="enabled_{{ $expense->id }}" style="flex-shrink:0;">
+                            <div class="toggle">
+                                <input
+                                    type="checkbox"
+                                    name="overrides[{{ $expense->id }}][enabled]"
+                                    value="1"
+                                    {{ $isEnabled ? 'checked' : '' }}
+                                    id="enabled_{{ $expense->id }}"
+                                >
+                                <span class="toggle-track"></span>
+                                <span class="toggle-thumb"></span>
+                            </div>
+                        </label>
+                        <div style="min-width:0;">
+                            <label for="enabled_{{ $expense->id }}" style="font-size:13px;font-weight:600;color:var(--text);cursor:pointer;display:block;">{{ $expense->name }}</label>
+                            <p style="font-size:11px;color:var(--text-3);margin-top:2px;">
+                                {{ $categoryLabels[$expense->category] ?? $expense->category }}
+                                <span style="color:var(--text-3);margin:0 4px;">·</span>
+                                Base : <span style="color:var(--text-2);">{{ number_format($expense->amount, 2, ',', ' ') }} €</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:flex-end;gap:10px;flex-shrink:0;">
+                        <div>
+                            <label class="form-label" style="margin-bottom:4px;">Montant ce mois</label>
+                            <div class="amount-input-wrap">
+                                <input
+                                    type="number"
+                                    name="overrides[{{ $expense->id }}][amount]"
+                                    value="{{ old('overrides.' . $expense->id . '.amount', $currentAmount) }}"
+                                    step="0.01"
+                                    min="0"
+                                    class="amount-input"
+                                    placeholder="{{ $expense->amount }}"
+                                    style="width:140px;font-size:15px;"
+                                >
+                                <span class="amount-suffix">€</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:12px;">
+                    <input
+                        type="text"
+                        name="overrides[{{ $expense->id }}][notes]"
+                        value="{{ old('overrides.' . $expense->id . '.notes', $override?->notes ?? '') }}"
+                        class="form-input"
+                        placeholder="Notes pour ce mois (optionnel)"
+                        style="font-size:12px;"
+                    >
+                </div>
+            </div>
+            @empty
+            <div class="card" style="text-align:center;color:var(--text-3);">
+                Aucune dépense récurrente — <a href="{{ route('expenses.create') }}" style="color:var(--accent);text-decoration:none;">Créer une dépense</a>
+            </div>
+            @endforelse
+        </div>
+
+        @if($expenses->isNotEmpty())
+        <div style="display:flex;flex-direction:column;gap:10px;">
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px 20px;font-size:15px;box-shadow:0 0 20px rgba(99,102,241,0.2);">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                Enregistrer les overrides
+            </button>
+            <a href="{{ route('expenses.index') }}" class="btn btn-secondary" style="justify-content:center;">Annuler</a>
+        </div>
+        @endif
+    </form>
 </div>
-
-<form method="POST" action="{{ route('expenses.storeOverride', [$year, $month]) }}">
-    @csrf
-
-    <div class="space-y-3 mb-6">
-        @forelse($expenses as $expense)
-        @php
-            $override = $overrides[$expense->id] ?? null;
-            $isDefaultActive = $expense->isActiveForMonth($year, $month);
-            $isEnabled = $override ? ($override->amount !== null) : $isDefaultActive;
-            $currentAmount = $override ? ($override->amount ?? $expense->amount) : $expense->amount;
-        @endphp
-        <div class="card">
-            <div class="flex items-start justify-between gap-4">
-                <div class="flex items-start gap-3 flex-1">
-                    <label class="flex items-center gap-2 cursor-pointer mt-0.5">
-                        <input
-                            type="checkbox"
-                            name="overrides[{{ $expense->id }}][enabled]"
-                            value="1"
-                            {{ $isEnabled ? 'checked' : '' }}
-                            class="w-4 h-4 rounded bg-zinc-800 border-zinc-600 text-indigo-600"
-                            id="enabled_{{ $expense->id }}"
-                        >
-                    </label>
-                    <div class="flex-1">
-                        <label for="enabled_{{ $expense->id }}" class="font-medium text-white cursor-pointer">{{ $expense->name }}</label>
-                        <p class="text-xs text-zinc-500">{{ $categoryLabels[$expense->category] ?? $expense->category }} — Montant de base : {{ number_format($expense->amount, 2, ',', ' ') }} €</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div>
-                        <label class="label text-xs">Montant ce mois (€)</label>
-                        <input
-                            type="number"
-                            name="overrides[{{ $expense->id }}][amount]"
-                            value="{{ old('overrides.' . $expense->id . '.amount', $currentAmount) }}"
-                            step="0.01"
-                            min="0"
-                            class="input w-36"
-                            placeholder="{{ $expense->amount }}"
-                        >
-                    </div>
-                </div>
-            </div>
-            <div class="mt-3">
-                <input
-                    type="text"
-                    name="overrides[{{ $expense->id }}][notes]"
-                    value="{{ old('overrides.' . $expense->id . '.notes', $override?->notes ?? '') }}"
-                    class="input text-xs"
-                    placeholder="Notes pour ce mois (optionnel)"
-                >
-            </div>
-        </div>
-        @empty
-        <div class="card text-center text-zinc-500">
-            Aucune dépense récurrente. <a href="{{ route('expenses.create') }}" class="text-indigo-400 hover:underline">Créer une dépense</a>
-        </div>
-        @endforelse
-    </div>
-
-    @if($expenses->isNotEmpty())
-    <div class="flex gap-3">
-        <button type="submit" class="btn-primary">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            Enregistrer
-        </button>
-        <a href="{{ route('expenses.index') }}" class="btn-secondary">Annuler</a>
-    </div>
-    @endif
-</form>
 @endsection
