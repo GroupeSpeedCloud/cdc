@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         </div>
         <div class="kpi-value" style="color:var(--accent);">
-            {{ number_format($ytdRevenue, 0, ',', ' ') }} €
+            {{ number_format($ytdRevenue, 2, ',', ' ') }} €
         </div>
         <div class="kpi-sub">
             Jan → {{ $monthNames[$currentMonth] }} réels
@@ -152,19 +152,19 @@ document.addEventListener('DOMContentLoaded', function () {
             <span class="proj-badge">Projection</span>
         </div>
         <div class="kpi-value" style="color:var(--accent);font-size:28px;">
-            {{ number_format($projectedAnnualRevenue, 0, ',', ' ') }} €
+            {{ number_format($projectedAnnualRevenue, 2, ',', ' ') }} €
         </div>
         <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;">
             <div style="display:flex;justify-content:space-between;font-size:12px;">
                 <span style="color:var(--text-3);">Réels</span>
-                <span style="color:var(--text-2);">{{ number_format($ytdRevenue, 0, ',', ' ') }} €</span>
+                <span style="color:var(--text-2);">{{ number_format($ytdRevenue, 2, ',', ' ') }} €</span>
             </div>
             @php
                 $forecastSum = array_sum(array_column($forecast, 'revenue'));
             @endphp
             <div style="display:flex;justify-content:space-between;font-size:12px;">
                 <span style="color:var(--text-3);">Projetés</span>
-                <span style="color:var(--accent);font-style:italic;">{{ number_format($forecastSum, 0, ',', ' ') }} €</span>
+                <span style="color:var(--accent);font-style:italic;">{{ number_format($forecastSum, 2, ',', ' ') }} €</span>
             </div>
         </div>
     </div>
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         </div>
         <div class="kpi-value" style="color:{{ $projectedAnnualProfit >= 0 ? 'var(--green)' : 'var(--red)' }};">
-            {{ $projectedAnnualProfit >= 0 ? '+' : '' }}{{ number_format($projectedAnnualProfit, 0, ',', ' ') }} €
+            {{ $projectedAnnualProfit >= 0 ? '+' : '' }}{{ number_format($projectedAnnualProfit, 2, ',', ' ') }} €
         </div>
         @php
             $projMargin = $projectedAnnualRevenue > 0 ? round($projectedAnnualProfit / $projectedAnnualRevenue * 100, 1) : 0;
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="text-right">
                         @if($row['revenue'] > 0)
                             <span class="amt" style="color:{{ $isProjected ? 'var(--accent)' : 'var(--green)' }};">
-                                {{ number_format($row['revenue'], 0, ',', ' ') }} €
+                                {{ number_format($row['revenue'], 2, ',', ' ') }} €
                             </span>
                         @else
                             <span style="color:var(--text-3);">—</span>
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="text-right">
                         @if($row['expenses'] > 0)
                             <span class="amt" style="color:var(--red);">
-                                {{ number_format($row['expenses'], 0, ',', ' ') }} €
+                                {{ number_format($row['expenses'], 2, ',', ' ') }} €
                             </span>
                         @else
                             <span style="color:var(--text-3);">—</span>
@@ -296,9 +296,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>
                     <td class="text-right">
                         @if($row['profit'] >= 0)
-                            <span class="trend-up amt">▲ +{{ number_format($row['profit'], 0, ',', ' ') }} €</span>
+                            <span class="trend-up amt">▲ +{{ number_format($row['profit'], 2, ',', ' ') }} €</span>
                         @else
-                            <span class="trend-down amt">▼ {{ number_format($row['profit'], 0, ',', ' ') }} €</span>
+                            <span class="trend-down amt">▼ {{ number_format($row['profit'], 2, ',', ' ') }} €</span>
                         @endif
                     </td>
                     <td class="text-right">
@@ -313,16 +313,16 @@ document.addEventListener('DOMContentLoaded', function () {
             <tr class="forecast-total">
                 <td style="font-weight:700;color:var(--text);">TOTAL {{ $year }}</td>
                 <td class="text-right" style="font-weight:700;color:var(--accent);">
-                    {{ number_format($totalRevenue, 0, ',', ' ') }} €
+                    {{ number_format($totalRevenue, 2, ',', ' ') }} €
                 </td>
                 <td class="text-right" style="font-weight:700;color:var(--red);">
-                    {{ number_format($totalExpenses, 0, ',', ' ') }} €
+                    {{ number_format($totalExpenses, 2, ',', ' ') }} €
                 </td>
                 <td class="text-right">
                     @if($totalProfit >= 0)
-                        <span style="font-weight:700;color:var(--green);">▲ +{{ number_format($totalProfit, 0, ',', ' ') }} €</span>
+                        <span style="font-weight:700;color:var(--green);">▲ +{{ number_format($totalProfit, 2, ',', ' ') }} €</span>
                     @else
-                        <span style="font-weight:700;color:var(--red);">▼ {{ number_format($totalProfit, 0, ',', ' ') }} €</span>
+                        <span style="font-weight:700;color:var(--red);">▼ {{ number_format($totalProfit, 2, ',', ' ') }} €</span>
                     @endif
                 </td>
                 <td class="text-right" style="font-weight:700;">

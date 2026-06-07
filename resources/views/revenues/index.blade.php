@@ -53,7 +53,7 @@ $monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 
                     @php $isCurrentCol = ($m === (int)now()->format('m') && $year === (int)now()->format('Y')); @endphp
                     <td class="text-center" style="{{ $amount !== null ? 'background:#0d1f10;' : '' }}{{ $isCurrentCol ? 'border-left:1px solid rgba(99,102,241,0.2);border-right:1px solid rgba(99,102,241,0.2);' : '' }}">
                         @if($amount !== null)
-                            <span style="color:var(--green);font-size:12px;font-weight:600;">{{ number_format($amount, 0, ',', ' ') }} €</span>
+                            <span style="color:var(--green);font-size:12px;font-weight:600;">{{ number_format($amount, 2, ',', ' ') }} €</span>
                         @else
                             <span style="color:var(--text-3);">—</span>
                         @endif
@@ -78,7 +78,7 @@ $monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 
                     @php $monthTotal = collect($projects)->sum(fn($p) => $grid[$p->id][$m] ?? 0); $grandTotal += $monthTotal; @endphp
                     <td class="text-center">
                         @if($monthTotal > 0)
-                            <span style="color:var(--text);font-size:12px;font-weight:700;">{{ number_format($monthTotal, 0, ',', ' ') }} €</span>
+                            <span style="color:var(--text);font-size:12px;font-weight:700;">{{ number_format($monthTotal, 2, ',', ' ') }} €</span>
                         @else
                             <span style="color:var(--text-3);">—</span>
                         @endif

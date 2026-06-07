@@ -27,16 +27,16 @@ $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juill
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
     <div class="kpi-card">
         <span class="kpi-label">Revenus {{ $year }}</span>
-        <div class="kpi-value" style="margin-top:10px;color:var(--green);">{{ number_format($summary['total_revenue'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span></div>
+        <div class="kpi-value" style="margin-top:10px;color:var(--green);">{{ number_format($summary['total_revenue'], 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span></div>
     </div>
     <div class="kpi-card">
         <span class="kpi-label">Dépenses {{ $year }}</span>
-        <div class="kpi-value" style="margin-top:10px;color:var(--red);">{{ number_format($summary['total_expenses'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span></div>
+        <div class="kpi-value" style="margin-top:10px;color:var(--red);">{{ number_format($summary['total_expenses'], 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span></div>
     </div>
     <div class="kpi-card">
         <span class="kpi-label">Profit net {{ $year }}</span>
         <div class="kpi-value" style="margin-top:10px;color:{{ $summary['total_profit'] >= 0 ? 'var(--green)' : 'var(--red)' }}">
-            {{ $summary['total_profit'] >= 0 ? '+' : '' }}{{ number_format($summary['total_profit'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span>
+            {{ $summary['total_profit'] >= 0 ? '+' : '' }}{{ number_format($summary['total_profit'], 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span>
         </div>
     </div>
     <div class="kpi-card">

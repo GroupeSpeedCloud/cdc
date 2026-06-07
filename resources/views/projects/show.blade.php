@@ -38,11 +38,11 @@ $fullMonthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'J
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px;">
     <div class="kpi-card">
         <span class="kpi-label">Total cumulé</span>
-        <div class="kpi-value" style="margin-top:10px;">{{ number_format($project->getTotalRevenue(), 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
+        <div class="kpi-value" style="margin-top:10px;">{{ number_format($project->getTotalRevenue(), 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
     </div>
     <div class="kpi-card">
         <span class="kpi-label">Moy. mensuelle</span>
-        <div class="kpi-value" style="margin-top:10px;">{{ number_format($project->getAverageMonthlyRevenue(), 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
+        <div class="kpi-value" style="margin-top:10px;">{{ number_format($project->getAverageMonthlyRevenue(), 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
     </div>
     <div class="kpi-card">
         <span class="kpi-label">Mois avec données</span>
