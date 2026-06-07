@@ -9,6 +9,7 @@ use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ForecastController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -39,4 +40,8 @@ Route::middleware(['auth', 'restrict.domain'])->group(function () {
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
 
     Route::get('forecasts', [ForecastController::class, 'index'])->name('forecasts.index');
+
+    Route::get('admin/whitelist', [AdminController::class, 'whitelist'])->name('admin.whitelist');
+    Route::post('admin/whitelist', [AdminController::class, 'whitelistStore'])->name('admin.whitelist.store');
+    Route::delete('admin/whitelist/{whitelistedEmail}', [AdminController::class, 'whitelistDestroy'])->name('admin.whitelist.destroy');
 });

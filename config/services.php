@@ -43,7 +43,7 @@ return [
 
     'auth' => [
         'domain' => env('AUTH_DOMAIN', '@groupe-speed.cloud'),
-        'whitelist' => [],
+        'super_admin' => env('SUPER_ADMIN_EMAIL', 'maxime.ponsart@groupe-speed.cloud'),
     ],
 
 ];
