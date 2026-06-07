@@ -35,7 +35,7 @@
                 <svg fill="none" viewBox="0 0 24 24" stroke="#6366f1" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
             </div>
         </div>
-        <div class="kpi-value">{{ number_format($kpis['revenue'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
+        <div class="kpi-value">{{ number_format($kpis['revenue'], 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
         @if($kpis['revenue_diff_pct'] !== null)
             <div style="margin-top:10px;display:flex;align-items:center;gap:4px;font-size:12px;{{ $kpis['revenue_diff_pct'] >= 0 ? 'color:#10b981' : 'color:#ef4444' }}">
                 @if($kpis['revenue_diff_pct'] >= 0)
@@ -58,7 +58,7 @@
                 <svg fill="none" viewBox="0 0 24 24" stroke="#ef4444" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </div>
         </div>
-        <div class="kpi-value">{{ number_format($kpis['expenses'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
+        <div class="kpi-value">{{ number_format($kpis['expenses'], 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;color:var(--text-3);">€</span></div>
         <div class="kpi-sub">Dépenses récurrentes actives</div>
     </div>
 
@@ -71,7 +71,7 @@
             </div>
         </div>
         <div class="kpi-value" style="color:{{ $kpis['profit'] >= 0 ? 'var(--green)' : 'var(--red)' }}">
-            {{ $kpis['profit'] >= 0 ? '+' : '' }}{{ number_format($kpis['profit'], 0, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span>
+            {{ $kpis['profit'] >= 0 ? '+' : '' }}{{ number_format($kpis['profit'], 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span>
         </div>
         <div class="kpi-sub">Revenus − Dépenses</div>
     </div>
@@ -98,7 +98,7 @@
             REVENUS YTD
         </div>
         <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text);">
-            {{ number_format($ytd['revenue'], 0, ',', ' ') }} <span style="font-size:15px;font-weight:500;color:var(--text-3);">€</span>
+            {{ number_format($ytd['revenue'], 2, ',', ' ') }} <span style="font-size:15px;font-weight:500;color:var(--text-3);">€</span>
         </div>
         <div style="margin-top:14px;">
             <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:6px;">
@@ -127,15 +127,15 @@
             PROJECTION ANNUELLE
         </div>
         <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text);">
-            {{ number_format($projection, 0, ',', ' ') }} <span style="font-size:15px;font-weight:500;color:var(--text-3);">€</span>
+            {{ number_format($projection, 2, ',', ' ') }} <span style="font-size:15px;font-weight:500;color:var(--text-3);">€</span>
         </div>
         <div style="font-size:11px;color:var(--text-3);margin-top:10px;display:flex;align-items:center;gap:6px;">
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
             Basé sur la moyenne des 3 derniers mois
         </div>
         <div style="margin-top:12px;font-size:11px;color:var(--text-3);">
-            YTD : {{ number_format($ytd['revenue'], 0, ',', ' ') }} € +
-            {{ number_format($projection - $ytd['revenue'], 0, ',', ' ') }} € projetés
+            YTD : {{ number_format($ytd['revenue'], 2, ',', ' ') }} € +
+            {{ number_format($projection - $ytd['revenue'], 2, ',', ' ') }} € projetés
         </div>
     </div>
 
@@ -150,7 +150,7 @@
                 <span style="font-size:15px;font-weight:600;color:var(--text);">{{ $topProject['project']->name }}</span>
             </div>
             <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--green);">
-                {{ number_format($topProject['revenue'], 0, ',', ' ') }} <span style="font-size:15px;font-weight:500;opacity:0.7;">€</span>
+                {{ number_format($topProject['revenue'], 2, ',', ' ') }} <span style="font-size:15px;font-weight:500;opacity:0.7;">€</span>
             </div>
             <div style="margin-top:10px;font-size:11px;color:var(--text-3);">
                 {{ $kpis['revenue'] > 0 ? round(($topProject['revenue'] / $kpis['revenue']) * 100) : 0 }}% des revenus du mois
