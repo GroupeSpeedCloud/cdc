@@ -35,17 +35,17 @@
         .notice-text { color: #6a5aa8; font-size: 8.5px; margin-top: 1px; }
 
         /* ============ Bloc émetteur légal ============ */
-        .legal { width: 100%; border-collapse: collapse; background: #f8f9fc; border: 1px solid #ebeef5; border-radius: 9px; margin: 0 0 8px; }
-        .legal td { padding: 8px 16px; vertical-align: top; }
+        .legal { width: 100%; border-collapse: separate; border-spacing: 0; background: #f8f9fc; border: 1px solid #ebeef5; border-radius: 9px; margin: 0 0 8px; }
+        .legal td { padding: 8px 16px; vertical-align: top; border: none; }
         .legal .box-label { margin-bottom: 4px; }
         .legal-name { font-size: 12px; font-weight: bold; color: #1a1d29; margin-bottom: 2px; }
-        .legal-grid { width: 100%; border-collapse: collapse; }
+        .legal-grid { width: 100%; border-collapse: separate; border-spacing: 0; }
         .legal-grid td { padding: 1px 0; vertical-align: top; border: none; }
         .legal-k { color: #9aa0b3; font-size: 8.5px; width: 42%; }
         .legal-v { color: #4a5062; font-size: 9px; font-weight: bold; }
 
         /* ============ Parties ============ */
-        .parties { width: 100%; border-collapse: collapse; margin: 0 0 8px; }
+        .parties { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 8px; }
         .parties .card { vertical-align: top; background: #f8f9fc; border: 1px solid #ebeef5; border-radius: 9px; padding: 9px 16px; }
         .parties .gap { width: 20px; }
         .box-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.09em; color: #9aa0b3; margin-bottom: 4px; font-weight: bold; }
@@ -53,7 +53,7 @@
         .box-line { color: #7a8096; font-size: 9.5px; line-height: 1.45; }
 
         /* ============ Bandeau infos ============ */
-        .infos { width: 100%; border-collapse: collapse; margin: 0 0 6px; }
+        .infos { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 6px; }
         .infos .cell { background: #fbfbfe; border: 1px solid #eef0f6; border-radius: 8px; padding: 6px 13px; vertical-align: top; }
         .infos .gap { width: 12px; }
         .infos .cell.hl { background: #8a4dfd; border-color: #8a4dfd; }
@@ -88,14 +88,16 @@
         .m-block.strong { color: #4a5062; font-weight: bold; }
 
         .tbox { width: 50%; }
-        .tbox table { width: 100%; border-collapse: collapse; }
-        .tbox .row td { padding: 8px 14px; font-size: 11px; }
+        .tbox table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .tbox .row td { padding: 8px 14px; font-size: 11px; border: none; }
         .tbox .row td.k { color: #7a8096; }
         .tbox .row td.v { text-align: right; font-weight: bold; color: #2b3040; }
         .tbox .subtotal td { border-bottom: 1px solid #edeff4; }
-        .tbox .grand td { background: #8a4dfd; color: #fff; padding: 12px 14px; }
-        .tbox .grand td.k { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 8px 0 0 8px; }
-        .tbox .grand td.v { text-align: right; font-size: 16px; font-weight: bold; border-radius: 0 8px 8px 0; }
+        .tbox .grand-wrap { margin-top: 6px; background: #8a4dfd; border-radius: 9px; }
+        .tbox .grand-wrap table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .tbox .grand-wrap td { padding: 13px 16px; border: none; color: #fff; }
+        .tbox .grand-wrap td.k { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; }
+        .tbox .grand-wrap td.v { text-align: right; font-size: 18px; font-weight: bold; }
         .tbox .foot-note { font-size: 8px; color: #aeb3c1; text-align: right; padding: 6px 14px 0; }
     </style>
 </head>
@@ -269,8 +271,12 @@
                     <table>
                         <tr class="row"><td class="k">Sous-total HT</td><td class="v">{{ $document->montantHtFormate() }}</td></tr>
                         <tr class="row subtotal"><td class="k">TVA ({{ $tauxLabel }} %)</td><td class="v">{{ $document->montantTvaFormate() }}</td></tr>
-                        <tr class="grand"><td class="k">Total TTC</td><td class="v">{{ $document->montantTtcFormate() }}</td></tr>
                     </table>
+                    <div class="grand-wrap">
+                        <table>
+                            <tr><td class="k">Total TTC</td><td class="v">{{ $document->montantTtcFormate() }}</td></tr>
+                        </table>
+                    </div>
                     <div class="foot-note">Montant non exigible — usage interne uniquement</div>
                 </td>
             </tr>
