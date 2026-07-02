@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\LigneDocument;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class DocumentInterneRequest extends FormRequest
 {
@@ -23,7 +25,7 @@ class DocumentInterneRequest extends FormRequest
             'taux_tva' => ['required', 'numeric', 'min:0', 'max:100'],
             'lignes' => ['required', 'array', 'min:1'],
             'lignes.*.description_ligne' => ['required', 'string', 'max:255'],
-            'lignes.*.type_prestation' => ['required', 'in:Temps Interne,Achat Externe'],
+            'lignes.*.type_prestation' => ['required', Rule::in(LigneDocument::TYPES)],
             'lignes.*.personne_id' => ['nullable', 'exists:personnes,id'],
             'lignes.*.description_achat' => ['nullable', 'string', 'max:255'],
             'lignes.*.quantite' => ['required', 'numeric', 'min:0'],

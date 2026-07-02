@@ -60,9 +60,11 @@
 <div class="table-responsive">
     <table class="table align-middle" id="lignesTable">
         <thead><tr>
-            <th style="width:24%">Description</th><th style="width:15%">Type</th>
-            <th style="width:23%">Personne / Achat</th><th style="width:11%">Quantité</th>
-            <th style="width:12%">P.U. HT</th><th style="width:12%" class="text-end">Montant HT</th><th></th>
+            <th style="width:24%">Description</th><th style="width:16%">Type</th>
+            <th style="width:22%">Personne / Détail</th>
+            <th style="width:10%" class="text-end">Quantité</th>
+            <th style="width:12%" class="text-end">P.U. HT</th>
+            <th style="width:12%" class="text-end">Montant HT</th><th style="width:4%"></th>
         </tr></thead>
         <tbody id="lignesBody"></tbody>
     </table>
@@ -88,6 +90,7 @@
 @push('scripts')
 <script>
 const PERSONNES = {!! json_encode($personnes->map(fn($p) => ['id' => $p->id, 'nom' => $p->nomAffiche(), 'tarif' => (float)$p->tarif_horaire_par_defaut])->values()) !!};
+const TYPES = {!! json_encode(\App\Models\LigneDocument::TYPES) !!};
 const EXISTING = {!! json_encode($existingLignes) !!};
 let ligneIdx = 0;
 const fmt = n => n.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
@@ -100,26 +103,28 @@ function personneOptions(selected) {
     return html;
 }
 
+function typeOptions(selected) {
+    return TYPES.map(t => `<option value="${t}" ${t === selected ? 'selected' : ''}>${t}</option>`).join('');
+}
+
 function addLigne(data = {}) {
     const i = ligneIdx++;
-    const isTemps = (data.type_prestation ?? 'Temps Interne') === 'Temps Interne';
+    const type = data.type_prestation ?? 'Temps Interne';
+    const isTemps = type === 'Temps Interne';
     const tr = document.createElement('tr');
     tr.innerHTML = `
         <td><input name="lignes[${i}][description_ligne]" class="form-control form-control-sm" value="${(data.description_ligne ?? '').replace(/"/g,'&quot;')}" required></td>
         <td>
-            <select name="lignes[${i}][type_prestation]" class="form-select form-select-sm" onchange="toggleType(this, ${i})">
-                <option value="Temps Interne" ${isTemps ? 'selected' : ''}>Temps Interne</option>
-                <option value="Achat Externe" ${!isTemps ? 'selected' : ''}>Achat Externe</option>
-            </select>
+            <select name="lignes[${i}][type_prestation]" class="form-select form-select-sm" onchange="toggleType(this, ${i})">${typeOptions(type)}</select>
         </td>
         <td>
             <select name="lignes[${i}][personne_id]" class="form-select form-select-sm cell-personne" onchange="fillTarif(this, ${i})" style="display:${isTemps ? 'block':'none'}">${personneOptions(data.personne_id)}</select>
-            <input name="lignes[${i}][description_achat]" class="form-control form-control-sm cell-achat" placeholder="Description achat" value="${(data.description_achat ?? '').replace(/"/g,'&quot;')}" style="display:${isTemps ? 'none':'block'}">
+            <input name="lignes[${i}][description_achat]" class="form-control form-control-sm cell-achat" placeholder="Descriptif" value="${(data.description_achat ?? '').replace(/"/g,'&quot;')}" style="display:${isTemps ? 'none':'block'}">
         </td>
-        <td><input name="lignes[${i}][quantite]" type="number" step="0.01" min="0" class="form-control form-control-sm cell-qte" value="${data.quantite ?? 0}" oninput="calc(${i})" required></td>
-        <td><input name="lignes[${i}][tarif_unitaire]" type="number" step="0.01" min="0" class="form-control form-control-sm cell-tarif" value="${data.tarif_unitaire ?? 0}" oninput="calc(${i})" required></td>
-        <td class="text-end cell-montant">0,00 €</td>
-        <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove();total()"><i class="bi bi-trash"></i></button></td>
+        <td><input name="lignes[${i}][quantite]" type="number" step="0.01" min="0" class="form-control form-control-sm text-end cell-qte" value="${data.quantite ?? 0}" oninput="calc(${i})" required></td>
+        <td><input name="lignes[${i}][tarif_unitaire]" type="number" step="0.01" min="0" class="form-control form-control-sm text-end cell-tarif" value="${data.tarif_unitaire ?? 0}" oninput="calc(${i})" required></td>
+        <td class="text-end fw-semibold cell-montant">0,00 €</td>
+        <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove();total()"><i class="bi bi-trash"></i></button></td>
     `;
     tr.dataset.idx = i;
     document.getElementById('lignesBody').appendChild(tr);

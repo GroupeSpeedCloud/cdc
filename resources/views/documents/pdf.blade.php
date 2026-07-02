@@ -175,17 +175,14 @@
             </thead>
             <tbody>
             @foreach($document->lignes as $l)
-                @php
-                    $detail = $l->type_prestation === 'Temps Interne' ? ($l->personne?->nomAffiche()) : $l->description_achat;
-                    $isTemps = $l->type_prestation === 'Temps Interne';
-                @endphp
+                @php $detail = $l->detail(); @endphp
                 <tr>
                     <td>
                         <div class="l-title">{{ $l->description_ligne }}</div>
                         @if($detail)<div class="l-sub">{{ $detail }}</div>@endif
                     </td>
-                    <td><span class="tag {{ $isTemps ? 'tag-t' : 'tag-a' }}">{{ $l->type_prestation }}</span></td>
-                    <td class="r num">{{ rtrim(rtrim(number_format($l->quantite, 2, ',', ' '), '0'), ',') }}{{ $isTemps ? ' h' : '' }}</td>
+                    <td><span class="tag" style="{{ $l->typeStyle() }}">{{ $l->type_prestation }}</span></td>
+                    <td class="r num">{{ rtrim(rtrim(number_format($l->quantite, 2, ',', ' '), '0'), ',') }}{{ $l->estTemps() ? ' h' : '' }}</td>
                     <td class="r num">{{ number_format($l->tarif_unitaire, 2, ',', ' ') }} €</td>
                     <td class="r" style="font-weight:bold;color:#1a1d29;">{{ number_format($l->montant_ligne, 2, ',', ' ') }} €</td>
                 </tr>

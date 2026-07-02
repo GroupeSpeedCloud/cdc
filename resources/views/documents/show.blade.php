@@ -98,9 +98,9 @@
             @foreach($document->lignes as $l)
                 <tr>
                     <td>{{ $l->description_ligne }}</td>
-                    <td><span class="badge bg-secondary">{{ $l->type_prestation }}</span></td>
-                    <td>{{ $l->type_prestation === 'Temps Interne' ? ($l->personne?->nomAffiche() ?? '—') : $l->description_achat }}</td>
-                    <td class="text-end">{{ rtrim(rtrim(number_format($l->quantite, 2, ',', ' '), '0'), ',') }}{{ $l->type_prestation === 'Temps Interne' ? ' h' : '' }}</td>
+                    <td><span class="badge rounded-pill" style="{{ $l->typeStyle() }}">{{ $l->type_prestation }}</span></td>
+                    <td>{{ $l->detail() ?: '—' }}</td>
+                    <td class="text-end">{{ rtrim(rtrim(number_format($l->quantite, 2, ',', ' '), '0'), ',') }}{{ $l->estTemps() ? ' h' : '' }}</td>
                     <td class="text-end">{{ number_format($l->tarif_unitaire, 2, ',', ' ') }} €</td>
                     <td class="text-end fw-semibold">{{ number_format($l->montant_ligne, 2, ',', ' ') }} €</td>
                 </tr>
