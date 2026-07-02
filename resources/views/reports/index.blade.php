@@ -1,189 +1,123 @@
 @extends('layouts.app')
-@section('title', 'Rapport annuel')
-@section('page-title', 'Rapport annuel')
+@section('title', 'Rapports')
+@section('page-title', 'Rapports')
 
 @section('content')
-@php
-$monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-@endphp
-
-<div class="page-header">
-    <div class="page-header-left">
-        <h1 class="page-title">Rapport annuel</h1>
-        <span class="count-badge">{{ $year }}</span>
-    </div>
-    <div class="year-nav">
-        <a href="?year={{ $year - 1 }}" class="year-nav-btn" style="text-decoration:none;">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        </a>
-        <span class="year-nav-value">{{ $year }}</span>
-        <a href="?year={{ $year + 1 }}" class="year-nav-btn" style="text-decoration:none;">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </a>
-    </div>
-</div>
-
-{{-- Summary KPIs --}}
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
-    <div class="kpi-card">
-        <span class="kpi-label">Revenus {{ $year }}</span>
-        <div class="kpi-value" style="margin-top:10px;color:var(--green);">{{ number_format($summary['total_revenue'], 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span></div>
-    </div>
-    <div class="kpi-card">
-        <span class="kpi-label">Dépenses {{ $year }}</span>
-        <div class="kpi-value" style="margin-top:10px;color:var(--red);">{{ number_format($summary['total_expenses'], 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span></div>
-    </div>
-    <div class="kpi-card">
-        <span class="kpi-label">Profit net {{ $year }}</span>
-        <div class="kpi-value" style="margin-top:10px;color:{{ $summary['total_profit'] >= 0 ? 'var(--green)' : 'var(--red)' }}">
-            {{ $summary['total_profit'] >= 0 ? '+' : '' }}{{ number_format($summary['total_profit'], 2, ',', ' ') }} <span style="font-size:16px;font-weight:500;opacity:0.7;">€</span>
-        </div>
-    </div>
-    <div class="kpi-card">
-        <span class="kpi-label">Marge moyenne</span>
-        <div class="kpi-value" style="margin-top:10px;">{{ $summary['avg_margin'] }}<span style="font-size:18px;font-weight:500;color:var(--text-3);">%</span></div>
-    </div>
-</div>
-
-{{-- Chart --}}
-<div class="card-flush" style="margin-bottom:20px;">
-    <div class="card-header">
-        <div>
-            <div class="card-title">Vue mensuelle {{ $year }}</div>
-            <div class="card-subtitle">Revenus et dépenses mois par mois</div>
-        </div>
-    </div>
-    <div style="padding:20px;">
-        <div class="chart-wrap" style="height:200px;">
-            <canvas id="reportChart"></canvas>
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="row g-2 align-items-end">
+            @unless($filtres['restreint'] ?? false)
+            <div class="col-md-3">
+                <label class="form-label small">Service</label>
+                <select name="service_id" class="form-select form-select-sm">
+                    <option value="">Tous</option>
+                    @foreach($services as $s)
+                        <option value="{{ $s->id }}" @selected(($filtres['service_id'] ?? null) == $s->id)>{{ $s->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @endunless
+            <div class="col-md-2">
+                <label class="form-label small">Du</label>
+                <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ $filtres['date_debut'] }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Au</label>
+                <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ $filtres['date_fin'] }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Statut</label>
+                <select name="statut" class="form-select form-select-sm">
+                    <option value="">Tous</option>
+                    @foreach($statuts as $s)
+                        <option value="{{ $s }}" @selected(($filtres['statut'] ?? null) === $s)>{{ $s }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Personne</label>
+                <select name="personne_id" class="form-select form-select-sm">
+                    <option value="">Toutes</option>
+                    @foreach($personnes as $p)
+                        <option value="{{ $p->id }}" @selected(($filtres['personne_id'] ?? null) == $p->id)>{{ $p->nomAffiche() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-1 d-flex gap-1">
+                <button class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i></button>
+            </div>
+        </form>
+        <div class="mt-2">
+            <a href="{{ route('reports.export', request()->query()) }}" class="btn btn-sm btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Exporter en Excel</a>
         </div>
     </div>
 </div>
 
-{{-- Monthly table --}}
-<div class="card-flush">
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Mois</th>
-                <th class="text-right" style="color:rgba(16,185,129,0.7);">Revenus</th>
-                <th class="text-right" style="color:rgba(239,68,68,0.7);">Dépenses</th>
-                <th class="text-right">Profit net</th>
-                <th class="text-right">Marge</th>
-                <th class="text-center">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($summary['months'] as $m => $data)
-            <tr>
-                <td style="color:var(--text);font-weight:500;">{{ $monthNames[$m] }}</td>
-                <td class="text-right">
-                    @if($data['revenue'] > 0)
-                        <span style="color:var(--green);font-weight:500;">{{ number_format($data['revenue'], 2, ',', ' ') }} €</span>
-                    @else
-                        <span style="color:var(--text-3);">—</span>
-                    @endif
-                </td>
-                <td class="text-right">
-                    @if($data['expenses'] > 0)
-                        <span style="color:var(--red);">{{ number_format($data['expenses'], 2, ',', ' ') }} €</span>
-                    @else
-                        <span style="color:var(--text-3);">—</span>
-                    @endif
-                </td>
-                <td class="text-right">
-                    @if($data['revenue'] > 0 || $data['expenses'] > 0)
-                        <span style="color:{{ $data['profit'] >= 0 ? 'var(--green)' : 'var(--red)' }};font-weight:600;">
-                            {{ $data['profit'] >= 0 ? '+' : '' }}{{ number_format($data['profit'], 2, ',', ' ') }} €
-                        </span>
-                    @else
-                        <span style="color:var(--text-3);">—</span>
-                    @endif
-                </td>
-                <td class="text-right">
-                    @if($data['revenue'] > 0)
-                        <span style="color:{{ $data['margin'] >= 0 ? 'var(--green)' : 'var(--red)' }};">{{ $data['margin'] }}%</span>
-                    @else
-                        <span style="color:var(--text-3);">—</span>
-                    @endif
-                </td>
-                <td class="text-center">
-                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-                        <a href="{{ route('revenues.edit', [$year, $m]) }}" style="font-size:11px;color:var(--accent);text-decoration:none;padding:3px 8px;border-radius:6px;background:var(--accent-bg);transition:opacity 0.15s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">Revenus</a>
-                        <a href="{{ route('expenses.override', [$year, $m]) }}" style="font-size:11px;color:var(--text-3);text-decoration:none;padding:3px 8px;border-radius:6px;background:var(--surface-2);transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-3)'">Dépenses</a>
-                    </div>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-        <tfoot>
-            <tr style="background:linear-gradient(90deg, rgba(99,102,241,0.05) 0%, rgba(99,102,241,0.02) 100%);">
-                <td style="font-weight:700;color:var(--text);font-size:12px;text-transform:uppercase;letter-spacing:0.06em;">Total {{ $year }}</td>
-                <td class="text-right" style="font-weight:700;color:var(--green);">{{ number_format($summary['total_revenue'], 2, ',', ' ') }} €</td>
-                <td class="text-right" style="font-weight:700;color:var(--red);">{{ number_format($summary['total_expenses'], 2, ',', ' ') }} €</td>
-                <td class="text-right" style="font-weight:700;color:{{ $summary['total_profit'] >= 0 ? 'var(--green)' : 'var(--red)' }}">
-                    {{ $summary['total_profit'] >= 0 ? '+' : '' }}{{ number_format($summary['total_profit'], 2, ',', ' ') }} €
-                </td>
-                <td class="text-right" style="font-weight:700;color:var(--text);">{{ $summary['avg_margin'] }}%</td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">Coûts par service (émis vs reçus)</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead><tr><th>Service</th><th class="text-end">Émis</th><th class="text-end">Reçus</th><th class="text-end">Budget</th><th class="text-end">Dépensé</th><th class="text-end">Restant</th></tr></thead>
+                    <tbody>
+                    @foreach($coutsParService as $c)
+                        <tr>
+                            <td>{{ $c['service']->name }}</td>
+                            <td class="text-end">{{ number_format($c['emis'], 0, ',', ' ') }} €</td>
+                            <td class="text-end">{{ number_format($c['recus'], 0, ',', ' ') }} €</td>
+                            <td class="text-end">{{ number_format($c['budget_initial'], 0, ',', ' ') }} €</td>
+                            <td class="text-end">{{ number_format($c['depense'], 0, ',', ' ') }} €</td>
+                            <td class="text-end">{{ number_format($c['budget_restant'], 0, ',', ' ') }} €</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">Suivi budgétaire</div>
+            <div class="card-body"><canvas id="budgetReportChart" height="200"></canvas></div>
+        </div>
+    </div>
 </div>
-@endsection
+
+<div class="card mt-3">
+    <div class="card-header fw-semibold">Temps passé par personne</div>
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead><tr><th>Personne</th><th>Service</th><th class="text-end">Heures</th><th class="text-end">Montant</th></tr></thead>
+            <tbody>
+            @forelse($tempsParPersonne as $t)
+                <tr>
+                    <td>{{ $t['personne']?->nomAffiche() ?? '—' }}</td>
+                    <td>{{ $t['personne']?->service?->name ?? '—' }}</td>
+                    <td class="text-end">{{ number_format($t['heures'], 2, ',', ' ') }} h</td>
+                    <td class="text-end">{{ number_format($t['montant'], 2, ',', ' ') }} €</td>
+                </tr>
+            @empty
+                <tr><td colspan="4" class="text-center text-secondary py-4">Aucune donnée</td></tr>
+            @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
 
 @push('scripts')
 <script>
-const reportLabels = @json($chartLabels);
-const reportRevenues = @json($chartRevenues);
-const reportExpenses = @json($chartExpenses);
-const reportProfits = @json($chartProfits);
-
-new Chart(document.getElementById('reportChart'), {
+new Chart(document.getElementById('budgetReportChart'), {
     type: 'bar',
     data: {
-        labels: reportLabels,
+        labels: {!! json_encode($coutsParService->pluck('service.name')) !!},
         datasets: [
-            {
-                label: 'Revenus',
-                data: reportRevenues,
-                backgroundColor: 'rgba(16,185,129,0.25)',
-                borderColor: '#10b981',
-                borderWidth: 1.5,
-                borderRadius: 4,
-            },
-            {
-                label: 'Dépenses',
-                data: reportExpenses,
-                backgroundColor: 'rgba(239,68,68,0.2)',
-                borderColor: '#ef4444',
-                borderWidth: 1.5,
-                borderRadius: 4,
-            },
-            {
-                label: 'Profit',
-                data: reportProfits,
-                type: 'line',
-                borderColor: '#6366f1',
-                backgroundColor: 'transparent',
-                borderWidth: 2,
-                tension: 0.3,
-                pointBackgroundColor: '#6366f1',
-                pointRadius: 3,
-            }
+            { label: 'Budget initial', data: {!! json_encode($coutsParService->pluck('budget_initial')) !!}, backgroundColor: '#6366f1' },
+            { label: 'Dépensé', data: {!! json_encode($coutsParService->pluck('depense')) !!}, backgroundColor: '#ef4444' }
         ]
     },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { labels: { color: '#888', font: { size: 11 }, padding: 16, boxWidth: 12 } }
-        },
-        scales: {
-            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555', font: { size: 11 } }, border: { color: '#1e1e1e' } },
-            y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555', font: { size: 11 } }, border: { color: '#1e1e1e' } }
-        }
-    }
+    options: { indexAxis: 'y', scales: { x: { beginAtZero: true } } }
 });
 </script>
 @endpush
+@endsection

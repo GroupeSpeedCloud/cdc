@@ -14,6 +14,7 @@ class WhitelistedEmail extends Model
         if (strtolower($email) === $superAdmin) {
             return true;
         }
+
         return static::whereRaw('LOWER(email) = ?', [strtolower($email)])->exists();
     }
 }
