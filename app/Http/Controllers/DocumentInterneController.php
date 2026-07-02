@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AppNotification;
+use App\Http\Requests\DocumentInterneRequest;
 use App\Models\DocumentInterne;
 use App\Models\LigneDocument;
 use App\Models\Personne;
 use App\Models\Service;
+use App\Services\DocumentWorkflow;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class DocumentInterneController extends Controller
 {
+    public function __construct(private DocumentWorkflow $workflow) {}
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -37,46 +40,41 @@ class DocumentInterneController extends Controller
         }
 
         $documents = $query->paginate(20)->withQueryString();
-        $statuts = [
-            DocumentInterne::STATUT_BROUILLON,
-            DocumentInterne::STATUT_EN_ATTENTE,
-            DocumentInterne::STATUT_VALIDE,
-            DocumentInterne::STATUT_REFUSE,
-            DocumentInterne::STATUT_ARCHIVE,
-        ];
 
-        return view('documents.index', compact('documents', 'statuts'));
+        return view('documents.index', [
+            'documents' => $documents,
+            'statuts' => $this->statuts(),
+        ]);
     }
 
     public function create()
     {
-        $services = Service::orderBy('name')->get();
-        $personnes = Personne::with(['user', 'service'])->get();
-
-        return view('documents.create', compact('services', 'personnes'));
+        return view('documents.create', $this->formData());
     }
 
-    public function store(Request $request)
+    public function store(DocumentInterneRequest $request)
     {
-        $data = $this->validateDocument($request);
-        $document = null;
-
-        DB::transaction(function () use ($request, $data, &$document) {
+        $document = DB::transaction(function () use ($request) {
             $document = DocumentInterne::create([
                 'numero_document' => DocumentInterne::genererNumero(),
-                'service_emetteur_id' => $data['service_emetteur_id'],
-                'service_destinataire_id' => $data['service_destinataire_id'],
-                'date_emission' => $data['date_emission'],
-                'description_globale' => $data['description_globale'] ?? null,
+                'service_emetteur_id' => $request->service_emetteur_id,
+                'service_destinataire_id' => $request->service_destinataire_id,
+                'date_emission' => $request->date_emission,
+                'date_echeance' => $request->date_echeance,
+                'description_globale' => $request->description_globale,
+                'notes' => $request->notes,
+                'taux_tva' => $request->taux_tva,
                 'statut' => DocumentInterne::STATUT_BROUILLON,
                 'demandeur_id' => Auth::id(),
             ]);
             $this->syncLignes($document, $request->input('lignes', []));
             $document->recalculerTotal();
+
+            return $document;
         });
 
         return redirect()->route('documents.show', $document)
-            ->with('success', "Document {$document->numero_document} créé en brouillon.");
+            ->with('success', "Facture {$document->numero_document} créée en brouillon.");
     }
 
     public function show(DocumentInterne $document)
@@ -88,159 +86,100 @@ class DocumentInterneController extends Controller
 
     public function edit(DocumentInterne $document)
     {
-        abort_if(! in_array($document->statut, [DocumentInterne::STATUT_BROUILLON, DocumentInterne::STATUT_REFUSE], true), 403,
-            'Seuls les brouillons ou documents refusés peuvent être modifiés.');
         $this->autoriserEdition($document);
+        abort_unless($document->estModifiable(), 403, 'Seuls les brouillons ou factures refusées peuvent être modifiés.');
 
         $document->load('lignes');
-        $services = Service::orderBy('name')->get();
-        $personnes = Personne::with(['user', 'service'])->get();
 
-        return view('documents.edit', compact('document', 'services', 'personnes'));
+        return view('documents.edit', array_merge(['document' => $document], $this->formData()));
     }
 
-    public function update(Request $request, DocumentInterne $document)
+    public function update(DocumentInterneRequest $request, DocumentInterne $document)
     {
-        abort_if(! in_array($document->statut, [DocumentInterne::STATUT_BROUILLON, DocumentInterne::STATUT_REFUSE], true), 403);
         $this->autoriserEdition($document);
-        $data = $this->validateDocument($request);
+        abort_unless($document->estModifiable(), 403);
 
-        DB::transaction(function () use ($request, $data, $document) {
+        DB::transaction(function () use ($request, $document) {
             $document->update([
-                'service_emetteur_id' => $data['service_emetteur_id'],
-                'service_destinataire_id' => $data['service_destinataire_id'],
-                'date_emission' => $data['date_emission'],
-                'description_globale' => $data['description_globale'] ?? null,
+                'service_emetteur_id' => $request->service_emetteur_id,
+                'service_destinataire_id' => $request->service_destinataire_id,
+                'date_emission' => $request->date_emission,
+                'date_echeance' => $request->date_echeance,
+                'description_globale' => $request->description_globale,
+                'notes' => $request->notes,
+                'taux_tva' => $request->taux_tva,
             ]);
             $document->lignes()->delete();
             $this->syncLignes($document, $request->input('lignes', []));
             $document->recalculerTotal();
         });
 
-        return redirect()->route('documents.show', $document)
-            ->with('success', 'Document mis à jour.');
+        return redirect()->route('documents.show', $document)->with('success', 'Facture mise à jour.');
     }
 
     public function destroy(DocumentInterne $document)
     {
-        abort_if($document->statut !== DocumentInterne::STATUT_BROUILLON && ! Auth::user()->isAdmin(), 403);
         $this->autoriserEdition($document);
+        abort_if($document->statut !== DocumentInterne::STATUT_BROUILLON && ! Auth::user()->isAdmin(), 403);
         $document->delete();
 
-        return redirect()->route('documents.index')->with('success', 'Document supprimé.');
+        return redirect()->route('documents.index')->with('success', 'Facture supprimée.');
     }
 
-    /** Soumettre un brouillon pour validation. */
     public function soumettre(DocumentInterne $document)
     {
         $this->autoriserEdition($document);
-        abort_if(! in_array($document->statut, [DocumentInterne::STATUT_BROUILLON, DocumentInterne::STATUT_REFUSE], true), 403);
+        abort_unless($document->estModifiable(), 403);
 
         if ($document->lignes()->count() === 0) {
-            return back()->with('error', 'Impossible de soumettre un document sans lignes.');
+            return back()->with('error', 'Impossible de soumettre une facture sans ligne.');
         }
 
-        $document->update([
-            'statut' => DocumentInterne::STATUT_EN_ATTENTE,
-            'motif_refus' => null,
-        ]);
+        $this->workflow->soumettre($document);
 
-        // Notifier le manager du service destinataire.
-        $manager = $document->serviceDestinataire->manager;
-        if ($manager) {
-            AppNotification::notifier(
-                $manager->id,
-                "Nouveau document {$document->numero_document} à valider (".number_format($document->montant_total_ht, 2, ',', ' ').' €).',
-                'demande',
-                $document->id
-            );
-        }
-
-        return redirect()->route('documents.show', $document)
-            ->with('success', 'Document soumis pour validation.');
+        return redirect()->route('documents.show', $document)->with('success', 'Facture soumise pour validation.');
     }
 
-    /** Valider un document (manager du service destinataire ou admin). */
     public function valider(DocumentInterne $document)
     {
         $this->autoriserValidation($document);
         abort_if($document->statut !== DocumentInterne::STATUT_EN_ATTENTE, 403);
 
-        DB::transaction(function () use ($document) {
-            $document->update([
-                'statut' => DocumentInterne::STATUT_VALIDE,
-                'validateur_id' => Auth::id(),
-                'date_validation' => now(),
-            ]);
+        $this->workflow->valider($document, Auth::user());
 
-            // Déduire le montant du budget restant du service destinataire.
-            $service = $document->serviceDestinataire()->lockForUpdate()->first();
-            $service->budget_restant = (float) $service->budget_restant - (float) $document->montant_total_ht;
-            $service->save();
-
-            // Historiser sur le budget annuel de l'année d'émission.
-            $annee = $document->date_emission->year;
-            $budget = $service->budgetPour($annee);
-            if ($budget) {
-                $budget->montant_depense = (float) $budget->montant_depense + (float) $document->montant_total_ht;
-                $budget->save();
-            }
-        });
-
-        AppNotification::notifier(
-            $document->demandeur_id,
-            "Votre document {$document->numero_document} a été validé.",
-            'validation',
-            $document->id
-        );
-
-        return redirect()->route('documents.show', $document)
-            ->with('success', 'Document validé, budget mis à jour.');
+        return redirect()->route('documents.show', $document)->with('success', 'Facture validée, budget mis à jour.');
     }
 
-    /** Refuser un document. */
     public function refuser(Request $request, DocumentInterne $document)
     {
         $this->autoriserValidation($document);
         abort_if($document->statut !== DocumentInterne::STATUT_EN_ATTENTE, 403);
 
-        $request->validate([
-            'motif_refus' => ['required', 'string', 'min:3'],
-        ], [], ['motif_refus' => 'motif de refus']);
-
-        $document->update([
-            'statut' => DocumentInterne::STATUT_REFUSE,
-            'validateur_id' => Auth::id(),
-            'date_validation' => now(),
-            'motif_refus' => $request->motif_refus,
-        ]);
-
-        AppNotification::notifier(
-            $document->demandeur_id,
-            "Votre document {$document->numero_document} a été refusé : {$request->motif_refus}",
-            'refus',
-            $document->id
+        $validated = $request->validate(
+            ['motif_refus' => ['required', 'string', 'min:3']],
+            [],
+            ['motif_refus' => 'motif de refus']
         );
 
-        return redirect()->route('documents.show', $document)
-            ->with('success', 'Document refusé, le demandeur a été notifié.');
+        $this->workflow->refuser($document, Auth::user(), $validated['motif_refus']);
+
+        return redirect()->route('documents.show', $document)->with('success', 'Facture refusée, le demandeur a été notifié.');
     }
 
-    /** Archiver un document validé (admin uniquement). */
     public function archiver(DocumentInterne $document)
     {
         abort_unless(Auth::user()->isAdmin(), 403);
         abort_if($document->statut !== DocumentInterne::STATUT_VALIDE, 403);
-        $document->update(['statut' => DocumentInterne::STATUT_ARCHIVE]);
 
-        return back()->with('success', 'Document archivé.');
+        $this->workflow->archiver($document);
+
+        return back()->with('success', 'Facture archivée.');
     }
 
-    /** Export PDF d'un document individuel. */
     public function pdf(DocumentInterne $document)
     {
         $document->load(['lignes.personne.user', 'serviceEmetteur', 'serviceDestinataire', 'demandeur', 'validateur']);
-        $pdf = Pdf::loadView('documents.pdf', compact('document'));
+        $pdf = Pdf::loadView('documents.pdf', compact('document'))->setPaper('a4');
 
         return $pdf->download($document->numero_document.'.pdf');
     }
@@ -249,21 +188,23 @@ class DocumentInterneController extends Controller
     // Helpers
     // ------------------------------------------------------------------
 
-    private function validateDocument(Request $request): array
+    private function statuts(): array
     {
-        return $request->validate([
-            'service_emetteur_id' => ['required', 'exists:services,id'],
-            'service_destinataire_id' => ['required', 'exists:services,id'],
-            'date_emission' => ['required', 'date'],
-            'description_globale' => ['nullable', 'string'],
-            'lignes' => ['nullable', 'array'],
-            'lignes.*.description_ligne' => ['required_with:lignes', 'string'],
-            'lignes.*.type_prestation' => ['required_with:lignes', 'in:Temps Interne,Achat Externe'],
-            'lignes.*.personne_id' => ['nullable', 'exists:personnes,id'],
-            'lignes.*.description_achat' => ['nullable', 'string'],
-            'lignes.*.quantite' => ['required_with:lignes', 'numeric', 'min:0'],
-            'lignes.*.tarif_unitaire' => ['required_with:lignes', 'numeric', 'min:0'],
-        ]);
+        return [
+            DocumentInterne::STATUT_BROUILLON,
+            DocumentInterne::STATUT_EN_ATTENTE,
+            DocumentInterne::STATUT_VALIDE,
+            DocumentInterne::STATUT_REFUSE,
+            DocumentInterne::STATUT_ARCHIVE,
+        ];
+    }
+
+    private function formData(): array
+    {
+        return [
+            'services' => Service::orderBy('name')->get(),
+            'personnes' => Personne::with(['user', 'service'])->orderBy('nom')->get(),
+        ];
     }
 
     private function syncLignes(DocumentInterne $document, array $lignes): void
@@ -296,6 +237,6 @@ class DocumentInterneController extends Controller
         $user = Auth::user();
         $estManagerDestinataire = $document->serviceDestinataire->manager_id === $user->id;
         abort_unless($user->isAdmin() || $estManagerDestinataire, 403,
-            'Seul le manager du service destinataire ou un administrateur peut valider ce document.');
+            'Seul le manager du service destinataire ou un administrateur peut valider cette facture.');
     }
 }

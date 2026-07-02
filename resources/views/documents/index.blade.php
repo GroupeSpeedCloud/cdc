@@ -20,7 +20,7 @@
         <table class="table table-hover mb-0 align-middle">
             <thead><tr>
                 <th>N°</th><th>Émetteur</th><th>Destinataire</th><th>Demandeur</th>
-                <th>Date</th><th class="text-end">Montant HT</th><th>Statut</th>
+                <th>Date</th><th class="text-end">Total TTC</th><th>Statut</th>
             </tr></thead>
             <tbody>
             @forelse($documents as $doc)
@@ -30,7 +30,7 @@
                     <td>{{ $doc->serviceDestinataire->name }}</td>
                     <td>{{ $doc->demandeur->name }}</td>
                     <td>{{ $doc->date_emission->format('d/m/Y') }}</td>
-                    <td class="text-end">{{ number_format($doc->montant_total_ht, 2, ',', ' ') }} €</td>
+                    <td class="text-end">{{ $doc->montantTtcFormate() }}</td>
                     <td><span class="badge {{ $doc->statutBadgeClass() }}">{{ $doc->statut }}</span></td>
                 </tr>
             @empty
