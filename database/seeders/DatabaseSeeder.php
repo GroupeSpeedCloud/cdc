@@ -61,6 +61,7 @@ class DatabaseSeeder extends Seeder
                 'service_destinataire_id' => $mktg->id,
                 'date_emission' => now(),
                 'description_globale' => 'Développement landing page campagne Q3',
+                'taux_tva' => 20,
                 'statut' => DocumentInterne::STATUT_BROUILLON,
                 'demandeur_id' => $userStd->id,
             ]);
