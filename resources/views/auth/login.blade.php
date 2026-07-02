@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion — Speed Cloud</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Connexion — Groupe Speed Cloud</title>
     <style>
         :root {
             --bg: #0a0a0a;
@@ -134,10 +133,7 @@
 <div class="login-bg"></div>
 <div class="login-wrap">
     <div class="login-logo">
-        <div class="logo-icon">
-            @include('partials.logo', ['color' => '#ffffff', 'size' => 28])
-        </div>
-        <span class="logo-name">Speed Cloud</span>
+        <span class="logo-name">Groupe Speed Cloud</span>
     </div>
 
     <div class="login-card">
@@ -168,7 +164,7 @@
         </a>
     </div>
 
-    <div class="login-footer">Speed Cloud — Facturation interne</div>
+    <div class="login-footer">Groupe Speed Cloud — Facturation interne</div>
 </div>
 </body>
 </html>

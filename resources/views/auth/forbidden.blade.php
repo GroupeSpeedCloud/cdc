@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accès refusé — Speed Cloud</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Accès refusé — Groupe Speed Cloud</title>
     <style>
         :root {
             --bg: #0a0a0a;
@@ -183,10 +182,7 @@
 <div class="bg-glow"></div>
 <div class="wrap">
     <div class="logo">
-        <div class="logo-icon">
-            @include('partials.logo', ['color' => '#ffffff', 'size' => 24])
-        </div>
-        <span class="logo-name">Speed Cloud</span>
+        <span class="logo-name">Groupe Speed Cloud</span>
     </div>
 
     <div class="card">
@@ -227,7 +223,7 @@
         </a>
     </div>
 
-    <div class="footer">Speed Cloud — Facturation interne</div>
+    <div class="footer">Groupe Speed Cloud — Facturation interne</div>
 </div>
 </body>
 </html>

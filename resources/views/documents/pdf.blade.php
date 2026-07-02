@@ -91,13 +91,8 @@
     <table class="page-head">
         <tr>
             <td style="width:55%;">
-                <table><tr>
-                    <td style="width:42px;"><div class="logo"><img src="data:image/png;base64,{{ base64_encode(file_get_contents(resource_path('images/logo-white.png'))) }}" style="width:28px;height:26px;vertical-align:middle;"></div></td>
-                    <td style="padding-left:11px;">
-                        <div class="brand-name">Groupe Speed Cloud</div>
-                        <div class="brand-sub">Facturation interne inter-services</div>
-                    </td>
-                </tr></table>
+                <div class="brand-name">Groupe Speed Cloud</div>
+                <div class="brand-sub">Facturation interne inter-services</div>
             </td>
             <td style="width:45%;">
                 <div class="doc-title">FACTURE INTERNE</div>

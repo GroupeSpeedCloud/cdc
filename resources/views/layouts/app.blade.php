@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    <title>@yield('title', 'Speed Cloud') — Facturation interne</title>
+    <title>@yield('title', 'Groupe Speed Cloud') — Facturation interne</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -50,8 +49,7 @@
             display: flex; flex-direction: column; padding: 1rem .75rem; z-index: 1040;
             transition: transform .2s;
         }
-        .cdc-brand { display:flex; align-items:center; gap:.6rem; font-weight:700; font-size:1.15rem; padding:.25rem .5rem 1rem; }
-        .cdc-brand-icon { width:34px; height:34px; border-radius:9px; background:var(--cdc-accent); color:#fff; display:flex; align-items:center; justify-content:center; }
+        .cdc-brand { display:flex; align-items:center; gap:.6rem; font-weight:700; font-size:1.05rem; color:var(--cdc-accent); padding:.25rem .5rem 1rem; }
         .cdc-nav-label { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--bs-secondary-color); padding:.75rem .5rem .25rem; }
         .cdc-link { display:flex; align-items:center; gap:.6rem; padding:.5rem .6rem; border-radius:8px; color:var(--bs-body-color); text-decoration:none; font-size:.9rem; margin-bottom:1px; }
         .cdc-link:hover { background:var(--bs-secondary-bg); }
@@ -73,8 +71,7 @@
 @auth
 <aside class="cdc-sidebar" id="cdcSidebar">
     <div class="cdc-brand">
-        <span class="cdc-brand-icon">@include('partials.logo', ['color' => '#ffffff', 'size' => 22])</span>
-        <span>Speed Cloud</span>
+        <span>Groupe Speed Cloud</span>
     </div>
     <nav class="flex-grow-1 overflow-auto">
         <a href="{{ route('dashboard') }}" class="cdc-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"><i class="bi bi-grid-1x2"></i> Tableau de bord</a>
