@@ -2,40 +2,76 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MonthlyRevenue;
-use App\Models\Project;
-use App\Services\FinanceService;
-use Carbon\Carbon;
+use App\Models\DocumentInterne;
+use App\Models\Service;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    public function __construct(private FinanceService $finance) {}
-
     public function index()
     {
-        $kpis = $this->finance->getCurrentKPIs();
-        $revenueChart = $this->finance->getRevenueChartData(12);
-        $cashflowChart = $this->finance->getCashflowChartData(12);
-        $expensesChart = $this->finance->getExpensesByCategoryForMonth($kpis['year'], $kpis['month']);
+        $user = Auth::user();
 
-        $now = Carbon::now();
-        $projects = Project::where('status', 'active')->get()->map(function ($project) use ($now) {
-            return [
-                'project' => $project,
-                'revenue' => $project->getRevenueForMonth($now->year, $now->month),
-            ];
-        });
+        if ($user->isAdmin()) {
+            return $this->admin();
+        }
+        if ($user->isManager()) {
+            return $this->manager();
+        }
 
-        $ytd = [
-            'revenue' => $this->finance->getYTDRevenue(),
-            'expenses' => $this->finance->getYTDExpenses(),
-            'profit' => $this->finance->getYTDProfit(),
+        return $this->user();
+    }
+
+    private function user()
+    {
+        $user = Auth::user();
+        $derniers = DocumentInterne::where('demandeur_id', $user->id)
+            ->with(['serviceDestinataire'])
+            ->latest()->take(5)->get();
+        $brouillons = DocumentInterne::where('demandeur_id', $user->id)
+            ->where('statut', DocumentInterne::STATUT_BROUILLON)->get();
+        $stats = [
+            'total' => DocumentInterne::where('demandeur_id', $user->id)->count(),
+            'en_attente' => DocumentInterne::where('demandeur_id', $user->id)->where('statut', DocumentInterne::STATUT_EN_ATTENTE)->count(),
+            'valides' => DocumentInterne::where('demandeur_id', $user->id)->where('statut', DocumentInterne::STATUT_VALIDE)->count(),
         ];
-        $projection = $this->finance->getProjectedAnnualRevenue();
-        $topProject = $this->finance->getTopProjectForMonth($kpis['year'], $kpis['month']);
-        $growthTrend = $this->finance->getGrowthTrend();
-        $yearProjection = $this->finance->getYearRevenueProjection();
 
-        return view('dashboard', compact('kpis', 'revenueChart', 'cashflowChart', 'expensesChart', 'projects', 'ytd', 'projection', 'topProject', 'growthTrend', 'yearProjection'));
+        return view('dashboard.user', compact('derniers', 'brouillons', 'stats'));
+    }
+
+    private function manager()
+    {
+        $user = Auth::user();
+        $service = $user->serviceGere;
+
+        $enAttente = collect();
+        if ($service) {
+            $enAttente = DocumentInterne::where('service_destinataire_id', $service->id)
+                ->where('statut', DocumentInterne::STATUT_EN_ATTENTE)
+                ->with(['serviceEmetteur', 'demandeur'])
+                ->latest()->get();
+        }
+
+        $mesDerniers = DocumentInterne::where('demandeur_id', $user->id)
+            ->with('serviceDestinataire')->latest()->take(5)->get();
+
+        return view('dashboard.manager', compact('service', 'enAttente', 'mesDerniers'));
+    }
+
+    private function admin()
+    {
+        $services = Service::with('manager')->orderBy('name')->get();
+        $activites = DocumentInterne::with(['serviceEmetteur', 'serviceDestinataire', 'demandeur'])
+            ->latest()->take(10)->get();
+
+        $stats = [
+            'services' => $services->count(),
+            'documents' => DocumentInterne::count(),
+            'en_attente' => DocumentInterne::where('statut', DocumentInterne::STATUT_EN_ATTENTE)->count(),
+            'budget_total' => $services->sum('budget_annuel_courant'),
+            'budget_restant' => $services->sum('budget_restant'),
+        ];
+
+        return view('dashboard.admin', compact('services', 'activites', 'stats'));
     }
 }

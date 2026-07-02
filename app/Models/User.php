@@ -10,7 +10,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'role', 'password'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -20,5 +20,36 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+
+    public function personne()
+    {
+        return $this->hasOne(Personne::class);
+    }
+
+    /** Service dont l'utilisateur est le responsable. */
+    public function serviceGere()
+    {
+        return $this->hasOne(Service::class, 'manager_id');
+    }
+
+    public function appNotifications()
+    {
+        return $this->hasMany(AppNotification::class)->latest();
+    }
+
+    public function unreadNotificationsCount(): int
+    {
+        return $this->appNotifications()->where('lu', false)->count();
     }
 }
