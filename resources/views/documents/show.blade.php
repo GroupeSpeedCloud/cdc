@@ -19,7 +19,8 @@
         <div class="text-secondary small">Créée par {{ $document->demandeur->name }} · {{ $document->created_at->format('d/m/Y H:i') }}</div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('documents.pdf', $document) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-pdf"></i> PDF</a>
+        <a href="{{ route('documents.apercu', $document) }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i> Aperçu</a>
+        <a href="{{ route('documents.pdf', $document) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Télécharger</a>
         @if($peutEditer)
             <a href="{{ route('documents.edit', $document) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Modifier</a>
         @endif
