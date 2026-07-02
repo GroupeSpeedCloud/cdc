@@ -15,7 +15,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
     <div>
-        <h4 class="mb-1">{{ $document->numero_document }} <span class="badge {{ $document->statutBadgeClass() }}">{{ $document->statut }}</span></h4>
+        <h4 class="mb-1">{{ $document->numero_document }} <span class="badge {{ $document->statutBadgeClass() }}">{{ $document->statut }}</span> <span class="badge bg-light text-secondary border">Non payable · usage interne</span></h4>
         <div class="text-secondary small">Créée par {{ $document->demandeur->name }} · {{ $document->created_at->format('d/m/Y H:i') }}</div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
