@@ -4,12 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'CDC') — Documents Internes</title>
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <title>@yield('title', 'Speed Cloud') — Facturation interne</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
-        :root { --cdc-accent: #6366f1; }
+        /* ===== Charte graphique Speed Cloud ===== */
+        :root {
+            --cdc-accent: #8a4dfd;
+            --cdc-accent-dark: #592aa9;
+            --cdc-accent-100: #f1e7fd;
+            --cdc-accent-200: #d8bdfa;
+            --bs-primary: #8a4dfd;
+            --bs-primary-rgb: 138, 77, 253;
+            --bs-link-color: #8a4dfd;
+            --bs-link-color-rgb: 138, 77, 253;
+            --bs-link-hover-color: #592aa9;
+        }
+        .btn-primary {
+            --bs-btn-bg: #8a4dfd; --bs-btn-border-color: #8a4dfd;
+            --bs-btn-hover-bg: #7a3af5; --bs-btn-hover-border-color: #7a3af5;
+            --bs-btn-active-bg: #592aa9; --bs-btn-active-border-color: #592aa9;
+            --bs-btn-disabled-bg: #8a4dfd; --bs-btn-disabled-border-color: #8a4dfd;
+        }
+        .btn-outline-primary {
+            --bs-btn-color: #8a4dfd; --bs-btn-border-color: #8a4dfd;
+            --bs-btn-hover-bg: #8a4dfd; --bs-btn-hover-border-color: #8a4dfd;
+            --bs-btn-active-bg: #8a4dfd; --bs-btn-active-border-color: #8a4dfd;
+        }
+        .text-primary { color: #8a4dfd !important; }
+        .bg-primary, .text-bg-primary { background-color: #8a4dfd !important; }
+        .badge.bg-primary, .badge.text-bg-primary { color: #fff !important; }
+        .progress-bar { background-color: #8a4dfd; }
+        a { color: #8a4dfd; }
+        a:hover { color: #592aa9; }
+        .form-control:focus, .form-select:focus {
+            border-color: #b78bfb;
+            box-shadow: 0 0 0 .2rem rgba(138, 77, 253, .25);
+        }
         body { min-height: 100vh; }
         .cdc-sidebar {
             width: 240px; position: fixed; top: 0; bottom: 0; left: 0;
@@ -18,7 +51,7 @@
             transition: transform .2s;
         }
         .cdc-brand { display:flex; align-items:center; gap:.6rem; font-weight:700; font-size:1.15rem; padding:.25rem .5rem 1rem; }
-        .cdc-brand-icon { width:32px; height:32px; border-radius:8px; background:var(--cdc-accent); color:#fff; display:flex; align-items:center; justify-content:center; }
+        .cdc-brand-icon { width:34px; height:34px; border-radius:9px; background:var(--cdc-accent); color:#fff; display:flex; align-items:center; justify-content:center; }
         .cdc-nav-label { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--bs-secondary-color); padding:.75rem .5rem .25rem; }
         .cdc-link { display:flex; align-items:center; gap:.6rem; padding:.5rem .6rem; border-radius:8px; color:var(--bs-body-color); text-decoration:none; font-size:.9rem; margin-bottom:1px; }
         .cdc-link:hover { background:var(--bs-secondary-bg); }
@@ -40,8 +73,8 @@
 @auth
 <aside class="cdc-sidebar" id="cdcSidebar">
     <div class="cdc-brand">
-        <span class="cdc-brand-icon"><i class="bi bi-file-earmark-text"></i></span>
-        <span>CDC</span>
+        <span class="cdc-brand-icon">@include('partials.logo', ['color' => '#ffffff', 'size' => 22])</span>
+        <span>Speed Cloud</span>
     </div>
     <nav class="flex-grow-1 overflow-auto">
         <a href="{{ route('dashboard') }}" class="cdc-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"><i class="bi bi-grid-1x2"></i> Tableau de bord</a>

@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion — Flow</title>
+    <title>Connexion — Speed Cloud</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <style>
         :root {
             --bg: #0a0a0a;
@@ -14,8 +15,8 @@
             --text: #ffffff;
             --text-2: #888888;
             --text-3: #555555;
-            --accent: #6366f1;
-            --accent-bg: rgba(99, 102, 241, 0.12);
+            --accent: #8a4dfd;
+            --accent-bg: rgba(138, 77, 253, 0.12);
             --red: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,7 +32,7 @@
         .login-bg {
             position: fixed;
             inset: 0;
-            background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.08), transparent);
+            background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(138,77,253,0.10), transparent);
             pointer-events: none;
         }
         .login-wrap {
@@ -56,7 +57,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 24px rgba(99,102,241,0.4);
+            box-shadow: 0 0 24px rgba(138,77,253,0.45);
         }
         .logo-name {
             font-size: 22px;
@@ -134,11 +135,9 @@
 <div class="login-wrap">
     <div class="login-logo">
         <div class="logo-icon">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-            </svg>
+            @include('partials.logo', ['color' => '#ffffff', 'size' => 28])
         </div>
-        <span class="logo-name">Flow</span>
+        <span class="logo-name">Speed Cloud</span>
     </div>
 
     <div class="login-card">
@@ -169,7 +168,7 @@
         </a>
     </div>
 
-    <div class="login-footer">Flow — Gestion financière interne</div>
+    <div class="login-footer">Speed Cloud — Facturation interne</div>
 </div>
 </body>
 </html>

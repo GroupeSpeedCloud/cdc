@@ -10,10 +10,10 @@
         /* ============ En-tête répété ============ */
         .page-head { position: fixed; top: -96px; left: 0; right: 0; height: 92px; }
         .page-head td { vertical-align: middle; }
-        .logo { width: 42px; height: 42px; background: #4f46e5; border-radius: 10px; color: #fff; font-size: 16px; font-weight: bold; text-align: center; line-height: 42px; letter-spacing: 0.5px; }
+        .logo { width: 42px; height: 42px; background: #8a4dfd; border-radius: 10px; color: #fff; font-size: 16px; font-weight: bold; text-align: center; line-height: 42px; letter-spacing: 0.5px; }
         .brand-name { font-size: 15px; font-weight: bold; color: #1a1d29; letter-spacing: 0.3px; }
         .brand-sub { color: #9aa0b3; font-size: 9px; }
-        .doc-title { font-size: 22px; font-weight: bold; text-align: right; color: #4f46e5; letter-spacing: 1px; }
+        .doc-title { font-size: 22px; font-weight: bold; text-align: right; color: #8a4dfd; letter-spacing: 1px; }
         .doc-num { text-align: right; color: #7a8096; font-size: 10.5px; margin-top: 4px; }
         .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 8.5px; font-weight: bold; letter-spacing: 0.5px; }
         .b-valide { background: #e7f7ef; color: #16794c; }
@@ -21,7 +21,7 @@
         .b-refuse { background: #fdeaea; color: #b42318; }
         .b-brouillon { background: #eef0f4; color: #667085; }
         .b-archive { background: #eaeaf0; color: #4a4a68; }
-        .head-rule { height: 3px; background: #4f46e5; border-radius: 3px; margin-top: 12px; }
+        .head-rule { height: 3px; background: #8a4dfd; border-radius: 3px; margin-top: 12px; }
 
         /* ============ Pied de page répété ============ */
         .page-foot { position: fixed; bottom: -58px; left: 0; right: 0; text-align: center; color: #aeb3c1; font-size: 8px; border-top: 1px solid #edeff4; padding-top: 9px; letter-spacing: 0.2px; }
@@ -38,7 +38,7 @@
         .infos { width: 100%; border-collapse: collapse; margin: 0 0 6px; }
         .infos .cell { background: #fbfbfe; border: 1px solid #eef0f6; border-radius: 8px; padding: 10px 13px; vertical-align: top; }
         .infos .gap { width: 12px; }
-        .infos .cell.hl { background: #4f46e5; border-color: #4f46e5; }
+        .infos .cell.hl { background: #8a4dfd; border-color: #8a4dfd; }
         .info-k { font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em; color: #9aa0b3; font-weight: bold; margin-bottom: 3px; }
         .info-v { font-size: 12.5px; font-weight: bold; color: #2b3040; }
         .infos .cell.hl .info-k { color: #cdccff; }
@@ -59,8 +59,6 @@
         .l-title { font-weight: bold; color: #1a1d29; font-size: 10.5px; }
         .l-sub { color: #9aa0b3; font-size: 8.5px; margin-top: 2px; }
         .tag { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 8px; font-weight: bold; white-space: nowrap; }
-        .tag-t { background: #eaf1fe; color: #2563eb; }
-        .tag-a { background: #fdf1e7; color: #c2650f; }
         .num { color: #4a5062; }
 
         /* ============ Bas : mentions + totaux ============ */
@@ -76,7 +74,7 @@
         .tbox .row td.k { color: #7a8096; }
         .tbox .row td.v { text-align: right; font-weight: bold; color: #2b3040; }
         .tbox .subtotal td { border-bottom: 1px solid #edeff4; }
-        .tbox .grand td { background: #4f46e5; color: #fff; padding: 12px 14px; }
+        .tbox .grand td { background: #8a4dfd; color: #fff; padding: 12px 14px; }
         .tbox .grand td.k { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 8px 0 0 8px; }
         .tbox .grand td.v { text-align: right; font-size: 16px; font-weight: bold; border-radius: 0 8px 8px 0; }
     </style>
@@ -94,7 +92,7 @@
         <tr>
             <td style="width:55%;">
                 <table><tr>
-                    <td style="width:42px;"><div class="logo">CDC</div></td>
+                    <td style="width:42px;"><div class="logo"><img src="data:image/png;base64,{{ base64_encode(file_get_contents(resource_path('images/logo-white.png'))) }}" style="width:28px;height:26px;vertical-align:middle;"></div></td>
                     <td style="padding-left:11px;">
                         <div class="brand-name">Groupe Speed Cloud</div>
                         <div class="brand-sub">Facturation interne inter-services</div>
