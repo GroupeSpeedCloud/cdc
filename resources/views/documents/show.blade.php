@@ -19,7 +19,8 @@
         <div class="text-secondary small">Créée par {{ $document->demandeur->name }} · {{ $document->created_at->format('d/m/Y H:i') }}</div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('documents.pdf', $document) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-pdf"></i> PDF</a>
+        <a href="{{ route('documents.apercu', $document) }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i> Aperçu</a>
+        <a href="{{ route('documents.pdf', $document) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Télécharger</a>
         @if($peutEditer)
             <a href="{{ route('documents.edit', $document) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Modifier</a>
         @endif
@@ -97,9 +98,9 @@
             @foreach($document->lignes as $l)
                 <tr>
                     <td>{{ $l->description_ligne }}</td>
-                    <td><span class="badge bg-secondary">{{ $l->type_prestation }}</span></td>
-                    <td>{{ $l->type_prestation === 'Temps Interne' ? ($l->personne?->nomAffiche() ?? '—') : $l->description_achat }}</td>
-                    <td class="text-end">{{ rtrim(rtrim(number_format($l->quantite, 2, ',', ' '), '0'), ',') }}{{ $l->type_prestation === 'Temps Interne' ? ' h' : '' }}</td>
+                    <td><span class="badge rounded-pill" style="{{ $l->typeStyle() }}">{{ $l->type_prestation }}</span></td>
+                    <td>{{ $l->detail() ?: '—' }}</td>
+                    <td class="text-end">{{ rtrim(rtrim(number_format($l->quantite, 2, ',', ' '), '0'), ',') }}{{ $l->estTemps() ? ' h' : '' }}</td>
                     <td class="text-end">{{ number_format($l->tarif_unitaire, 2, ',', ' ') }} €</td>
                     <td class="text-end fw-semibold">{{ number_format($l->montant_ligne, 2, ',', ' ') }} €</td>
                 </tr>

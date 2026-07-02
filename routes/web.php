@@ -30,6 +30,7 @@ Route::middleware(['auth', 'restrict.domain'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Documents internes (cœur du système)
+    Route::get('documents/{document}/apercu', [DocumentInterneController::class, 'apercu'])->name('documents.apercu');
     Route::get('documents/{document}/pdf', [DocumentInterneController::class, 'pdf'])->name('documents.pdf');
     Route::post('documents/{document}/soumettre', [DocumentInterneController::class, 'soumettre'])->name('documents.soumettre');
     Route::post('documents/{document}/valider', [DocumentInterneController::class, 'valider'])->name('documents.valider');

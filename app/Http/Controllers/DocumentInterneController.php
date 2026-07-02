@@ -176,12 +176,23 @@ class DocumentInterneController extends Controller
         return back()->with('success', 'Facture archivée.');
     }
 
+    /** Affiche la facture PDF directement dans le navigateur (aperçu). */
+    public function apercu(DocumentInterne $document)
+    {
+        return $this->genererPdf($document)->stream($document->numero_document.'.pdf');
+    }
+
+    /** Télécharge la facture au format PDF. */
     public function pdf(DocumentInterne $document)
     {
-        $document->load(['lignes.personne.user', 'serviceEmetteur', 'serviceDestinataire', 'demandeur', 'validateur']);
-        $pdf = Pdf::loadView('documents.pdf', compact('document'))->setPaper('a4');
+        return $this->genererPdf($document)->download($document->numero_document.'.pdf');
+    }
 
-        return $pdf->download($document->numero_document.'.pdf');
+    private function genererPdf(DocumentInterne $document)
+    {
+        $document->load(['lignes.personne.user', 'serviceEmetteur', 'serviceDestinataire', 'demandeur', 'validateur']);
+
+        return Pdf::loadView('documents.pdf', compact('document'))->setPaper('a4');
     }
 
     // ------------------------------------------------------------------

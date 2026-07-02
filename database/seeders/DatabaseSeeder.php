@@ -75,10 +75,24 @@ class DatabaseSeeder extends Seeder
             ]);
             $doc->lignes()->create([
                 'description_ligne' => 'Licence template',
-                'type_prestation' => 'Achat Externe',
-                'description_achat' => 'Template premium',
+                'type_prestation' => 'Licence / Abonnement',
+                'description_achat' => 'Template premium (1 an)',
                 'quantite' => 1,
                 'tarif_unitaire' => 300,
+            ]);
+            $doc->lignes()->create([
+                'description_ligne' => 'Nom de domaine + hébergement',
+                'type_prestation' => 'Achat Externe',
+                'description_achat' => 'Prestataire O2Switch',
+                'quantite' => 1,
+                'tarif_unitaire' => 120,
+            ]);
+            $doc->lignes()->create([
+                'description_ligne' => 'Shooting photo produit',
+                'type_prestation' => 'Prestation externe',
+                'description_achat' => 'Studio partenaire',
+                'quantite' => 1,
+                'tarif_unitaire' => 450,
             ]);
             $doc->recalculerTotal();
         }
