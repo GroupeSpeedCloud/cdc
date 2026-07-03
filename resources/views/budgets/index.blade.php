@@ -14,27 +14,57 @@
     </form>
 </div>
 
-<form method="POST" action="{{ route('budgets.store') }}">@csrf
+<form method="POST" action="{{ route('budgets.store') }}" id="budgetsForm">@csrf
     <input type="hidden" name="annee" value="{{ $annee }}">
     <div class="card">
-        <div class="card-header fw-semibold">Allocation des budgets — {{ $annee }}</div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Allocation des budgets — {{ $annee }}</span>
+            <span class="small text-secondary" id="unsavedHint" style="display:none;">
+                <i class="bi bi-pencil-fill text-primary"></i> Modifications non enregistrées
+            </span>
+        </div>
         <div class="table-responsive">
             <table class="table align-middle mb-0">
-                <thead><tr><th>Service</th><th>Code</th><th class="text-end">Budget initial (€)</th><th class="text-end">Dépensé (€)</th><th class="text-end">Restant (€)</th></tr></thead>
+                <thead><tr>
+                    <th>Service</th><th>Code</th>
+                    <th class="text-end" style="width:220px;">Budget initial (€)</th>
+                    <th class="text-end">Écart</th>
+                    <th class="text-end">Dépensé (€)</th>
+                    <th class="text-end">Restant (€)</th>
+                </tr></thead>
                 <tbody>
                 @foreach($services as $s)
-                    @php $b = $s->budgets->first(); @endphp
-                    <tr>
+                    @php
+                        $b = $s->budgets->first();
+                        $initial = (float) ($b?->montant_initial ?? 0);
+                        $depense = (float) ($b?->montant_depense ?? 0);
+                    @endphp
+                    <tr class="budget-row" data-original="{{ $initial }}" data-depense="{{ $depense }}">
                         <td class="fw-semibold">{{ $s->name }}</td>
                         <td><span class="badge bg-secondary">{{ $s->code }}</span></td>
-                        <td class="text-end" style="max-width:180px;">
-                            <input name="budgets[{{ $s->id }}]" type="number" step="0.01" min="0" class="form-control form-control-sm text-end" value="{{ old('budgets.'.$s->id, $b?->montant_initial ?? '') }}" placeholder="0.00">
+                        <td class="text-end">
+                            <input name="budgets[{{ $s->id }}]" type="number" step="0.01" min="0"
+                                   class="form-control form-control-sm text-end budget-input"
+                                   value="{{ old('budgets.'.$s->id, $b?->montant_initial ?? '') }}"
+                                   placeholder="0.00" oninput="onBudgetInput(this)">
                         </td>
-                        <td class="text-end">{{ number_format($b?->montant_depense ?? 0, 2, ',', ' ') }} €</td>
-                        <td class="text-end">{{ number_format(($b?->montant_initial ?? 0) - ($b?->montant_depense ?? 0), 2, ',', ' ') }} €</td>
+                        <td class="text-end écart-cell">
+                            <span class="badge bg-secondary-subtle text-secondary ecart-badge">—</span>
+                        </td>
+                        <td class="text-end text-secondary">{{ number_format($depense, 2, ',', ' ') }} €</td>
+                        <td class="text-end fw-semibold restant-cell">{{ number_format($initial - $depense, 2, ',', ' ') }} €</td>
                     </tr>
                 @endforeach
                 </tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <td colspan="2" class="text-end fw-semibold">Total</td>
+                        <td class="text-end fw-semibold" id="totalInitial">—</td>
+                        <td class="text-end fw-semibold" id="totalEcart">—</td>
+                        <td class="text-end fw-semibold" id="totalDepense">—</td>
+                        <td class="text-end fw-semibold" id="totalRestant">—</td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
         <div class="card-footer text-end">
@@ -42,4 +72,69 @@
         </div>
     </div>
 </form>
+
+@push('scripts')
+<script>
+const fmt = n => n.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+
+function onBudgetInput(input) {
+    const row = input.closest('.budget-row');
+    const original = parseFloat(row.dataset.original) || 0;
+    const depense = parseFloat(row.dataset.depense) || 0;
+    const value = parseFloat(input.value);
+    const current = isNaN(value) ? original : value;
+    const delta = current - original;
+
+    const badge = row.querySelector('.ecart-badge');
+    if (Math.abs(delta) < 0.005) {
+        badge.textContent = '—';
+        badge.className = 'badge bg-secondary-subtle text-secondary ecart-badge';
+    } else if (delta > 0) {
+        badge.textContent = '+' + fmt(delta);
+        badge.className = 'badge bg-success-subtle text-success ecart-badge';
+    } else {
+        badge.textContent = fmt(delta);
+        badge.className = 'badge bg-danger-subtle text-danger ecart-badge';
+    }
+
+    row.querySelector('.restant-cell').textContent = fmt(current - depense);
+
+    document.getElementById('unsavedHint').style.display = 'inline';
+    recalcTotals();
+}
+
+function recalcTotals() {
+    let totalInitial = 0, totalOriginal = 0, totalDepense = 0, totalRestant = 0;
+    document.querySelectorAll('.budget-row').forEach(row => {
+        const original = parseFloat(row.dataset.original) || 0;
+        const depense = parseFloat(row.dataset.depense) || 0;
+        const inputVal = parseFloat(row.querySelector('.budget-input').value);
+        const current = isNaN(inputVal) ? original : inputVal;
+        totalInitial += current;
+        totalOriginal += original;
+        totalDepense += depense;
+        totalRestant += current - depense;
+    });
+    const totalDelta = totalInitial - totalOriginal;
+
+    document.getElementById('totalInitial').textContent = fmt(totalInitial);
+    document.getElementById('totalDepense').textContent = fmt(totalDepense);
+    document.getElementById('totalRestant').textContent = fmt(totalRestant);
+
+    const totalEcartEl = document.getElementById('totalEcart');
+    if (Math.abs(totalDelta) < 0.005) {
+        totalEcartEl.textContent = '—';
+        totalEcartEl.className = 'text-end fw-semibold text-secondary';
+    } else if (totalDelta > 0) {
+        totalEcartEl.textContent = '+' + fmt(totalDelta);
+        totalEcartEl.className = 'text-end fw-semibold text-success';
+    } else {
+        totalEcartEl.textContent = fmt(totalDelta);
+        totalEcartEl.className = 'text-end fw-semibold text-danger';
+    }
+}
+
+recalcTotals();
+</script>
+@endpush
 @endsection
