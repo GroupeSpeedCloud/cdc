@@ -30,6 +30,7 @@ class BudgetController extends Controller
 
         $annee = (int) $data['annee'];
         $anneeCourante = now()->year;
+        $variations = [];
 
         foreach ($data['budgets'] as $serviceId => $montant) {
             if ($montant === null || $montant === '') {
@@ -52,9 +53,19 @@ class BudgetController extends Controller
                 $service->budget_restant = (float) $service->budget_restant + $delta;
                 $service->save();
             }
+
+            if (abs($delta) >= 0.01) {
+                $signe = $delta > 0 ? '+' : '';
+                $variations[] = "{$service->name} ({$signe}".number_format($delta, 2, ',', ' ').' €)';
+            }
+        }
+
+        $message = "Budgets de l'année {$annee} enregistrés.";
+        if ($variations) {
+            $message .= ' Écarts : '.implode(', ', $variations).'.';
         }
 
         return redirect()->route('budgets.index', ['annee' => $annee])
-            ->with('success', "Budgets de l'année {$annee} enregistrés.");
+            ->with('success', $message);
     }
 }
