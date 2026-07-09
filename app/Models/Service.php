@@ -45,6 +45,11 @@ class Service extends Model
         return $this->hasMany(DocumentInterne::class, 'service_destinataire_id');
     }
 
+    /**
+     * Part du budget annuel consommée, entre 0 et 100. Un solde supérieur au
+     * budget initial (le service a été crédité par d'autres services, comme
+     * un virement bancaire entrant) donne 0 — voir excedent().
+     */
     public function pourcentageConsomme(): float
     {
         if ((float) $this->budget_annuel_courant <= 0) {
@@ -52,6 +57,12 @@ class Service extends Model
         }
         $depense = (float) $this->budget_annuel_courant - (float) $this->budget_restant;
 
-        return round($depense / (float) $this->budget_annuel_courant * 100, 1);
+        return round(max(0, $depense) / (float) $this->budget_annuel_courant * 100, 1);
+    }
+
+    /** Montant du solde au-delà du budget initial (crédits reçus nets), 0 si aucun excédent. */
+    public function excedent(): float
+    {
+        return max(0, (float) $this->budget_restant - (float) $this->budget_annuel_courant);
     }
 }

@@ -17,7 +17,12 @@
                     <td><span class="badge bg-secondary">{{ $s->code }}</span></td>
                     <td>{{ $s->manager->name ?? '—' }}</td>
                     <td class="text-end">{{ number_format($s->budget_annuel_courant, 2, ',', ' ') }} €</td>
-                    <td class="text-end">{{ number_format($s->budget_restant, 2, ',', ' ') }} €</td>
+                    <td class="text-end">
+                        {{ number_format($s->budget_restant, 2, ',', ' ') }} €
+                        @if($s->excedent() > 0)
+                            <br><span class="badge bg-success-subtle text-success" title="Crédité par d'autres services au-delà du budget initial">+{{ number_format($s->excedent(), 2, ',', ' ') }} € crédité</span>
+                        @endif
+                    </td>
                     <td style="min-width:120px;">
                         <div class="progress" style="height:8px;">
                             <div class="progress-bar {{ $s->pourcentageConsomme() > 90 ? 'bg-danger' : 'bg-primary' }}" style="width:{{ min(100, $s->pourcentageConsomme()) }}%"></div>

@@ -42,6 +42,12 @@
                         <span class="text-secondary">Restant</span>
                         <strong>{{ number_format($service->budget_restant, 2, ',', ' ') }} € / {{ number_format($service->budget_annuel_courant, 2, ',', ' ') }} €</strong>
                     </div>
+                    @if($service->excedent() > 0)
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-secondary">Dont crédité par d'autres services</span>
+                            <strong class="text-success">+{{ number_format($service->excedent(), 2, ',', ' ') }} €</strong>
+                        </div>
+                    @endif
                 @else
                     <p class="text-secondary mb-0">Aucun service assigné.</p>
                 @endif
@@ -53,13 +59,20 @@
 @if($service)
 @push('scripts')
 <script>
+@php
+    $initial = (float) $service->budget_annuel_courant;
+    $restant = (float) $service->budget_restant;
+    $depense = max(0, $initial - $restant);
+    $restantDansBudget = max(0, min($restant, $initial));
+    $excedent = $service->excedent();
+@endphp
 new Chart(document.getElementById('budgetChart'), {
     type: 'doughnut',
     data: {
-        labels: ['Dépensé', 'Restant'],
+        labels: ['Dépensé', 'Restant', 'Crédité (excédent)'],
         datasets: [{
-            data: [{{ (float)$service->budget_annuel_courant - (float)$service->budget_restant }}, {{ (float)$service->budget_restant }}],
-            backgroundColor: ['#ef4444', '#10b981']
+            data: [{{ $depense }}, {{ $restantDansBudget }}, {{ $excedent }}],
+            backgroundColor: ['#ef4444', '#10b981', '#8a4dfd']
         }]
     },
     options: { plugins: { legend: { position: 'bottom' } } }
