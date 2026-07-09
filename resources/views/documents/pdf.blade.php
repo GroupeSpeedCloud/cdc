@@ -11,113 +11,105 @@
             font-family: 'Titillium Web'; font-weight: 600; font-style: normal;
             src: url({{ resource_path('fonts/titillium/TitilliumWeb-SemiBold.ttf') }}) format('truetype');
         }
-        @font-face {
-            font-family: 'Titillium Web'; font-weight: 700; font-style: normal;
-            src: url({{ resource_path('fonts/titillium/TitilliumWeb-Bold.ttf') }}) format('truetype');
-        }
-        @font-face {
-            font-family: 'Titillium Web'; font-weight: 900; font-style: normal;
-            src: url({{ resource_path('fonts/titillium/TitilliumWeb-Black.ttf') }}) format('truetype');
-        }
 
-        /* ============ Tons Material Design 3 — mêmes rôles que l'application ============ */
-        @page { margin: 150px 46px 92px; }
-        * { box-sizing: border-box; }
-        body { font-family: 'Titillium Web', DejaVu Sans, sans-serif; font-size: 10.5px; color: #19181b; margin: 0; line-height: 1.45; }
-        b, strong { font-weight: 700; }
+        /* Palette : tokens MD3 de l'app (seed #8a4dfd). Deux graisses seulement : 400 / 600. */
+        @page { margin: 183px 0 46px; }
+        body, div, p, table, td, th { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Titillium Web', DejaVu Sans, sans-serif; font-size: 10px; color: #19181b; line-height: 1.5; font-weight: 400; }
+        table { border-collapse: collapse; border-spacing: 0; }
 
-        /* ============ En-tête répété ============ */
-        .page-head { position: fixed; top: -118px; left: 0; right: 0; height: 114px; }
-        .page-head td { vertical-align: middle; }
-        .brand-name { font-size: 16px; font-weight: 900; color: #19181b; letter-spacing: 0.2px; }
-        .brand-legal { color: #9489a9; font-size: 8.5px; margin-top: 1px; font-weight: 600; }
-        .brand-sub { color: #9489a9; font-size: 9px; }
-        .doc-title { font-size: 21px; font-weight: 900; text-align: right; color: #8a4dfd; letter-spacing: 1px; }
-        .doc-num { text-align: right; color: #494059; font-size: 10.5px; margin-top: 4px; font-weight: 600; }
-        .badge { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 8.5px; font-weight: 700; letter-spacing: 0.5px; vertical-align: middle; }
+        .px { padding-left: 48px; padding-right: 48px; }
+
+        /* ===== Lettre a en-tete fixe : bandeau + ligne de statut, plein bord, sur chaque page ===== */
+        .letterhead { position: fixed; top: -183px; left: 0; right: 0; }
+
+        /* ===== Bandeau de marque ===== */
+        .masthead { width: 100%; background: #8a4dfd; color: #fff; }
+        .masthead td { vertical-align: baseline; }
+        .masthead .lft { text-align: left; padding-left: 48px; }
+        .masthead .rgt { text-align: right; padding-right: 48px; }
+        .masthead .row-k td { padding-top: 24px; }
+        .masthead .row-v td { padding-bottom: 22px; }
+        .mh-k { font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #dfd1fa; font-weight: 600; }
+        .mh-brand { font-size: 18px; font-weight: 600; letter-spacing: 0.2px; color: #fff; }
+        .mh-doc-num { font-size: 18px; font-weight: 600; color: #fff; }
+
+        /* ===== Ligne de statut sous le bandeau ===== */
+        .statusbar { width: 100%; background: #f4effd; }
+        .statusbar td { padding: 5px 48px 10px; vertical-align: top; }
+        .statusbar td.sb-badges { padding-top: 10px; padding-bottom: 7px; }
+        .sb-text { font-size: 8.5px; color: #592aa9; letter-spacing: 0.3px; }
+        .sb-text .sep { color: #b39aec; padding: 0 6px; }
+        .badge { display: inline-block; padding: 2px 11px; border-radius: 999px; font-size: 8px; font-weight: 600; letter-spacing: 0.4px; }
         .b-valide { background: #d3f0e0; color: #0f5132; }
-        .b-attente { background: #fdf0d2; color: #7a4e05; }
-        .b-refuse { background: #f9dedc; color: #410e0b; }
+        .b-attente { background: #fbecc7; color: #7a4e05; }
+        .b-refuse { background: #f9dedc; color: #8c1d18; }
         .b-brouillon { background: #e4e1ea; color: #494059; }
-        .b-archive { background: #eae9ec; color: #37353b; }
-        .b-nonpayable { background: #e4e1ea; color: #494059; }
-        .head-rule { height: 3px; background: #8a4dfd; border-radius: 999px; margin-top: 10px; }
-        .head-legal { color: #9489a9; font-size: 7.5px; margin-top: 6px; letter-spacing: 0.1px; font-weight: 600; }
+        .b-archive { background: #e4e1ea; color: #37353b; }
+        .b-np { background: #fff; color: #592aa9; border: 1px solid #d8bdfa; }
+        .sb-badges { text-align: right; }
 
-        /* ============ Pied de page répété ============ */
-        .page-foot { position: fixed; bottom: -66px; left: 0; right: 0; text-align: center; color: #9489a9; font-size: 7.5px; border-top: 1px solid #e4e1ea; padding-top: 9px; letter-spacing: 0.2px; line-height: 1.6; }
-        .page-foot strong { color: #494059; }
+        /* ===== Libellés ===== */
+        .k { font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.14em; color: #8a4dfd; font-weight: 600; }
 
-        /* ============ Bandeau non payable = "primary container" MD3 ============ */
-        .notice { background: #dfd1fa; border: 1px solid #d8bdfa; border-radius: 12px; padding: 5px 16px; margin: 0 0 8px; text-align: center; }
-        .notice-title { color: #14082b; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-        .notice-text { color: #390e8b; font-size: 8.5px; margin-top: 1px; font-weight: 400; }
+        /* ===== De / À ===== */
+        .parties { width: 100%; margin-top: 0; }
+        .parties td { vertical-align: top; }
+        .parties .col { width: 44%; }
+        .parties .mid { width: 12%; }
+        .p-name { font-size: 14px; font-weight: 600; color: #19181b; margin: 5px 0 2px; }
+        .p-line { font-size: 9.5px; color: #494059; }
+        .p-dim { font-size: 8.5px; color: #9489a9; }
 
-        /* ============ Bloc émetteur légal = "surface container low" MD3 ============ */
-        .legal { width: 100%; border-collapse: separate; border-spacing: 0; background: #f5f4f5; border: 1px solid #e4e1ea; border-radius: 16px; margin: 0 0 8px; }
-        .legal td { padding: 8px 16px; vertical-align: top; border: none; }
-        .legal .box-label { margin-bottom: 4px; }
-        .legal-name { font-size: 12px; font-weight: 700; color: #19181b; margin-bottom: 2px; }
-        .legal-grid { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .legal-grid td { padding: 1px 0; vertical-align: top; border: none; }
-        .legal-k { color: #9489a9; font-size: 8.5px; width: 42%; font-weight: 600; }
-        .legal-v { color: #494059; font-size: 9px; font-weight: 700; }
+        /* ===== Méta ===== */
+        .meta { width: 100%; margin-top: 20px; border-top: 1.2px solid #19181b; border-bottom: 1px solid #e4e1ea; }
+        .meta td { padding: 9px 0 8px; }
+        .meta .mcell { border-left: 1px solid #e4e1ea; padding-left: 14px; }
+        .meta td:first-child .mcell { border-left: none; padding-left: 0; }
+        .meta .v { font-size: 12.5px; color: #19181b; margin-top: 2px; font-weight: 600; }
+        .meta .v.accent { color: #592aa9; }
 
-        /* ============ Parties ============ */
-        .parties { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 8px; }
-        .parties .card { vertical-align: top; background: #f5f4f5; border: 1px solid #e4e1ea; border-radius: 16px; padding: 9px 16px; }
-        .parties .gap { width: 20px; }
-        .box-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.09em; color: #9489a9; margin-bottom: 4px; font-weight: 700; }
-        .box-name { font-size: 13px; font-weight: 700; color: #19181b; margin-bottom: 3px; }
-        .box-line { color: #494059; font-size: 9.5px; line-height: 1.45; font-weight: 400; }
+        /* ===== Objet ===== */
+        .objet { margin-top: 16px; }
+        .objet-text { font-size: 11px; color: #19181b; margin-top: 2px; }
 
-        /* ============ Bandeau infos ============ */
-        .infos { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 6px; }
-        .infos .cell { background: #f5f4f5; border: 1px solid #e4e1ea; border-radius: 12px; padding: 6px 13px; vertical-align: top; }
-        .infos .gap { width: 12px; }
-        .infos .cell.hl { background: #8a4dfd; border-color: #8a4dfd; }
-        .info-k { font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em; color: #9489a9; font-weight: 700; margin-bottom: 3px; }
-        .info-v { font-size: 12.5px; font-weight: 700; color: #19181b; }
-        .infos .cell.hl .info-k { color: #e6dafb; }
-        .infos .cell.hl .info-v { color: #fff; }
+        /* ===== Tableau des lignes ===== */
+        .lines { width: 100%; margin-top: 16px; }
+        .lines th { font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.14em; color: #8a4dfd; font-weight: 600; text-align: left; padding: 0 12px 6px; border-bottom: 1.2px solid #19181b; }
+        .lines th:first-child, .lines td:first-child { padding-left: 0; }
+        .lines th:last-child, .lines td:last-child { padding-right: 0; }
+        .lines .r { text-align: right; }
+        .lines td { padding: 8px 12px; border-bottom: 1px solid #eceaf0; vertical-align: top; }
+        .li-t { font-size: 10.5px; color: #19181b; }
+        .li-d { font-size: 8.5px; color: #9489a9; margin-top: 1px; }
+        .tag { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 7.5px; font-weight: 600; white-space: nowrap; margin-top: 4px; }
+        .num { color: #494059; font-size: 10.5px; }
+        .amt { color: #19181b; font-size: 10.5px; font-weight: 600; }
 
-        .objet { margin: 8px 2px 2px; }
-        .objet-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.07em; color: #9489a9; font-weight: 700; margin-bottom: 3px; }
-        .objet-text { font-size: 10.5px; color: #494059; }
+        /* ===== Totaux + mentions ===== */
+        .closing { width: 100%; margin-top: 4px; }
+        .closing td { vertical-align: top; }
+        .notes-col { width: 52%; padding-right: 36px; padding-top: 14px; }
+        .n-block { margin-bottom: 10px; font-size: 9px; color: #494059; line-height: 1.55; }
+        .n-block .k { display: block; margin-bottom: 2px; }
+        .totals-col { width: 48%; }
+        .totals { width: 100%; }
+        .totals td { padding: 7px 0; font-size: 10.5px; border-bottom: 1px solid #eceaf0; }
+        .totals .tk { color: #494059; }
+        .totals .tv { text-align: right; color: #19181b; }
+        .grand { width: 100%; margin-top: -1px; border-top: 1.2px solid #19181b; }
+        .grand td { padding: 10px 0 0; vertical-align: top; }
+        /* dompdf ignore vertical-align:baseline entre cellules : delta de baseline 9px/21px mesure = 19px */
+        .grand td.gkc { padding-top: 35px; }
+        .grand .gk { font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: #19181b; font-weight: 600; }
+        .grand .gv { text-align: right; font-size: 21px; font-weight: 600; color: #8a4dfd; }
 
-        /* ============ Lignes ============ */
-        table.lines { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        table.lines th { background: #19181b; color: #fff; padding: 8px 12px; font-size: 8.5px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-        table.lines th:first-child { border-radius: 12px 0 0 0; }
-        table.lines th:last-child { border-radius: 0 12px 0 0; }
-        table.lines th.r, table.lines td.r { text-align: right; }
-        table.lines td { padding: 9px 12px; border-bottom: 1px solid #e4e1ea; }
-        table.lines tbody tr:last-child td { border-bottom: 2px solid #c9c4d4; }
-        .l-title { font-weight: 700; color: #19181b; font-size: 10.5px; }
-        .l-sub { color: #9489a9; font-size: 8.5px; margin-top: 2px; font-weight: 400; }
-        .tag { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 8px; font-weight: 700; white-space: nowrap; }
-        .num { color: #494059; font-weight: 400; }
+        /* ===== Juridique, une seule fois ===== */
+        .legal { margin-top: 26px; border-top: 1px solid #e4e1ea; padding-top: 9px; font-size: 7.5px; color: #9489a9; line-height: 1.65; }
+        .legal .co { color: #494059; font-weight: 600; }
 
-        /* ============ Bas : mentions + totaux ============ */
-        .bottom { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        .bottom > td { vertical-align: top; }
-        .mentions { width: 50%; padding-right: 24px; }
-        .m-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.07em; color: #9489a9; font-weight: 700; margin-bottom: 4px; }
-        .m-block { margin-bottom: 9px; color: #494059; font-size: 9.5px; line-height: 1.5; font-weight: 400; }
-        .m-block.strong { color: #19181b; font-weight: 700; }
-
-        .tbox { width: 50%; }
-        .tbox table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .tbox .row td { padding: 8px 14px; font-size: 11px; border: none; }
-        .tbox .row td.k { color: #494059; font-weight: 600; }
-        .tbox .row td.v { text-align: right; font-weight: 700; color: #19181b; }
-        .tbox .subtotal td { border-bottom: 1px solid #e4e1ea; }
-        .tbox .grand-wrap { margin-top: 6px; background: #8a4dfd; border-radius: 16px; }
-        .tbox .grand-wrap table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .tbox .grand-wrap td { padding: 13px 16px; border: none; color: #fff; }
-        .tbox .grand-wrap td.k { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
-        .tbox .grand-wrap td.v { text-align: right; font-size: 18px; font-weight: 900; }
-        .tbox .foot-note { font-size: 8px; color: #9489a9; text-align: right; padding: 6px 14px 0; font-weight: 400; }
+        /* ===== Pied de page répété ===== */
+        .page-foot { position: fixed; bottom: -34px; left: 48px; right: 48px; font-size: 7.5px; color: #9489a9; border-top: 1px solid #e4e1ea; padding-top: 6px; text-align: center; }
     </style>
 </head>
 <body>
@@ -131,108 +123,86 @@
         $companyAddress = $company['address_line'].', '.$company['postal_code'].' '.$company['city'];
     @endphp
 
-    <table class="page-head">
-        <tr>
-            <td style="width:55%;">
-                <div class="brand-name">{{ $company['name'] }}</div>
-                <div class="brand-legal">{{ $company['legal_form'] }} · SIREN {{ $company['siren'] }} · SIRET {{ $company['siret'] }}</div>
-                <div class="brand-sub">{{ $companyAddress }} · {{ $company['website'] }}</div>
-            </td>
-            <td style="width:45%;">
-                <div class="doc-title">FACTURE INTERNE</div>
-                <div class="doc-num">{{ $document->numero_document }} &nbsp;·&nbsp; <span class="badge {{ $badge }}">{{ mb_strtoupper($document->statut) }}</span> &nbsp;<span class="badge b-nonpayable">NON PAYABLE</span></div>
-            </td>
-        </tr>
-        <tr><td colspan="2"><div class="head-rule"></div></td></tr>
-        <tr>
-            <td colspan="2">
-                <div class="head-legal">
-                    {{ $company['name'] }} · {{ $company['legal_form'] }} · NAF/APE {{ $company['naf_code'] }} ({{ $company['naf_label'] }}) · RNA {{ $company['rna'] }} · TVA non applicable
-                </div>
-            </td>
-        </tr>
-    </table>
-
     <div class="page-foot">
-        <strong>{{ $company['name'] }}</strong> · {{ $company['legal_form'] }} · SIREN {{ $company['siren'] }} · SIRET {{ $company['siret'] }} · {{ $companyAddress }} · {{ $company['website'] }}<br>
-        Document de facturation interne {{ $document->numero_document }} — non payable, aucun règlement n'est dû — montants exprimés en euros — généré le {{ now()->format('d/m/Y à H:i') }}
+        {{ $company['name'] }} · SIREN {{ $company['siren'] }} · {{ $document->numero_document }} · document interne non payable
     </div>
 
-    <main>
-        <div class="notice">
-            <div class="notice-title">Document interne — non payable</div>
-            <div class="notice-text">Ce document sert exclusivement à l'imputation budgétaire entre services internes de {{ $company['name'] }}. Il ne constitue pas une facture commerciale et n'appelle aucun règlement.</div>
-        </div>
-
-        <table class="legal">
-            <tr>
-                <td>
-                    <div class="box-label">Émetteur légal</div>
-                    <div class="legal-name">{{ $company['name'] }}</div>
-                    <table class="legal-grid">
-                        <tr><td class="legal-k">Forme juridique</td><td class="legal-v">{{ $company['legal_form'] }}</td></tr>
-                        <tr><td class="legal-k">SIREN</td><td class="legal-v">{{ $company['siren'] }}</td></tr>
-                        <tr><td class="legal-k">SIRET (siège)</td><td class="legal-v">{{ $company['siret'] }}</td></tr>
-                        <tr><td class="legal-k">Code NAF/APE</td><td class="legal-v">{{ $company['naf_code'] }} — {{ $company['naf_label'] }}</td></tr>
-                    </table>
-                </td>
-                <td>
-                    <div class="box-label">&nbsp;</div>
-                    <table class="legal-grid" style="margin-top:20px;">
-                        <tr><td class="legal-k">N° RNA</td><td class="legal-v">{{ $company['rna'] }}</td></tr>
-                        <tr><td class="legal-k">N° TVA intracom.</td><td class="legal-v">Non applicable</td></tr>
-                        <tr><td class="legal-k">Adresse du siège</td><td class="legal-v">{{ $companyAddress }}, {{ $company['country'] }}</td></tr>
-                        <tr><td class="legal-k">Site web</td><td class="legal-v">{{ $company['website'] }}</td></tr>
-                    </table>
-                </td>
+    <div class="letterhead">
+        <table class="masthead">
+            <tr class="row-k">
+                <td class="lft" style="width:55%;"><span class="mh-k">Facturation interne entre services</span></td>
+                <td class="rgt" style="width:45%;"><span class="mh-k">Facture interne</span></td>
+            </tr>
+            <tr class="row-v">
+                <td class="lft"><span class="mh-brand">{{ $company['name'] }}</span></td>
+                <td class="rgt"><span class="mh-doc-num">{{ $document->numero_document }}</span></td>
             </tr>
         </table>
 
+        <table class="statusbar">
+            <tr>
+                <td style="width:62%;">
+                    <span class="sb-text">Document interne — non payable<span class="sep">·</span>imputation budgétaire entre services, aucun règlement n'est dû</span>
+                </td>
+                <td style="width:38%;" class="sb-badges">
+                    <span class="badge {{ $badge }}">{{ mb_strtoupper($document->statut) }}</span>
+                    <span class="badge b-np">NON PAYABLE</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="px">
         <table class="parties">
             <tr>
-                <td class="card" style="width:50%;">
-                    <div class="box-label">Service émetteur</div>
-                    <div class="box-name">{{ $document->serviceEmetteur->name }}</div>
-                    <div class="box-line">Code service : {{ $document->serviceEmetteur->code }}</div>
-                    <div class="box-line">Demandeur : {{ $document->demandeur->name }}</div>
+                <td class="col">
+                    <div class="k">De — service émetteur</div>
+                    <div class="p-name">{{ $document->serviceEmetteur->name }}</div>
+                    <div class="p-line">{{ $company['name'] }} · code {{ $document->serviceEmetteur->code }}</div>
+                    <div class="p-dim">Demandeur : {{ $document->demandeur->name }}</div>
                 </td>
-                <td class="gap"></td>
-                <td class="card" style="width:50%;">
-                    <div class="box-label">Service destinataire</div>
-                    <div class="box-name">{{ $document->serviceDestinataire->name }}</div>
-                    <div class="box-line">Code service : {{ $document->serviceDestinataire->code }}</div>
-                    <div class="box-line">Responsable : {{ $document->serviceDestinataire->manager->name ?? '—' }}</div>
+                <td class="mid"></td>
+                <td class="col">
+                    <div class="k">À — service destinataire</div>
+                    <div class="p-name">{{ $document->serviceDestinataire->name }}</div>
+                    <div class="p-line">{{ $company['name'] }} · code {{ $document->serviceDestinataire->code }}</div>
+                    <div class="p-dim">Responsable : {{ $document->serviceDestinataire->manager->name ?? '—' }}</div>
                 </td>
             </tr>
         </table>
 
-        <table class="infos">
+        <table class="meta">
             <tr>
-                <td class="cell" style="width:24%;">
-                    <div class="info-k">Date d'émission</div>
-                    <div class="info-v">{{ $document->date_emission->format('d/m/Y') }}</div>
+                <td style="width:25%;">
+                    <div class="mcell">
+                        <div class="k">Émission</div>
+                        <div class="v">{{ $document->date_emission->format('d/m/Y') }}</div>
+                    </div>
                 </td>
-                <td class="gap"></td>
-                <td class="cell" style="width:24%;">
-                    <div class="info-k">Échéance</div>
-                    <div class="info-v">{{ optional($document->date_echeance)->format('d/m/Y') ?? '—' }}</div>
+                <td style="width:25%;">
+                    <div class="mcell">
+                        <div class="k">Échéance</div>
+                        <div class="v">{{ optional($document->date_echeance)->format('d/m/Y') ?? '—' }}</div>
+                    </div>
                 </td>
-                <td class="gap"></td>
-                <td class="cell" style="width:24%;">
-                    <div class="info-k">Taux de TVA</div>
-                    <div class="info-v">{{ $tauxLabel }} %</div>
+                <td style="width:22%;">
+                    <div class="mcell">
+                        <div class="k">TVA</div>
+                        <div class="v">{{ $tauxLabel }} %</div>
+                    </div>
                 </td>
-                <td class="gap"></td>
-                <td class="cell hl" style="width:24%;">
-                    <div class="info-k">Total TTC</div>
-                    <div class="info-v">{{ $document->montantTtcFormate() }}</div>
+                <td style="width:28%;">
+                    <div class="mcell">
+                        <div class="k">Total TTC</div>
+                        <div class="v accent">{{ $document->montantTtcFormate() }}</div>
+                    </div>
                 </td>
             </tr>
         </table>
 
         @if($document->description_globale)
             <div class="objet">
-                <div class="objet-label">Objet de la facture</div>
+                <div class="k">Objet</div>
                 <div class="objet-text">{{ $document->description_globale }}</div>
             </div>
         @endif
@@ -240,11 +210,11 @@
         <table class="lines">
             <thead>
                 <tr>
-                    <th style="width:42%">Description</th>
-                    <th style="width:14%">Type</th>
-                    <th class="r" style="width:11%">Qté</th>
-                    <th class="r" style="width:16%">P.U. HT</th>
-                    <th class="r" style="width:17%">Montant HT</th>
+                    <th style="width:44%">Description</th>
+                    <th style="width:15%">Type</th>
+                    <th class="r" style="width:10%">Qté</th>
+                    <th class="r" style="width:15%">P.U. HT</th>
+                    <th class="r" style="width:16%">Montant HT</th>
                 </tr>
             </thead>
             <tbody>
@@ -252,54 +222,59 @@
                 @php $detail = $l->detail(); @endphp
                 <tr>
                     <td>
-                        <div class="l-title">{{ $l->description_ligne }}</div>
-                        @if($detail)<div class="l-sub">{{ $detail }}</div>@endif
+                        <div class="li-t">{{ $l->description_ligne }}</div>
+                        @if($detail)<div class="li-d">{{ $detail }}</div>@endif
                     </td>
                     <td><span class="tag" style="{{ $l->typeStyle() }}">{{ $l->type_prestation }}</span></td>
                     <td class="r num">{{ rtrim(rtrim(number_format($l->quantite, 2, ',', ' '), '0'), ',') }}{{ $l->estTemps() ? ' h' : '' }}</td>
                     <td class="r num">{{ number_format($l->tarif_unitaire, 2, ',', ' ') }} €</td>
-                    <td class="r" style="font-weight:700;color:#19181b;">{{ number_format($l->montant_ligne, 2, ',', ' ') }} €</td>
+                    <td class="r amt">{{ number_format($l->montant_ligne, 2, ',', ' ') }} €</td>
                 </tr>
             @endforeach
             </tbody>
         </table>
 
-        <table class="bottom">
+        <table class="closing">
             <tr>
-                <td class="mentions">
+                <td class="notes-col">
                     @if($document->notes)
-                        <div class="m-block">
-                            <div class="m-label">Notes</div>
+                        <div class="n-block">
+                            <span class="k">Notes</span>
                             {{ $document->notes }}
                         </div>
                     @endif
                     @if($document->validateur)
-                        <div class="m-block">
-                            <div class="m-label">Validation</div>
+                        <div class="n-block">
+                            <span class="k">Validation</span>
                             Traitée par {{ $document->validateur->name }} le {{ optional($document->date_validation)->format('d/m/Y à H:i') }}.
                             @if($document->statut === 'Refusé' && $document->motif_refus)
-                                <br><strong style="color:#b3261e;">Motif du refus :</strong> {{ $document->motif_refus }}
+                                <br><span style="color:#8c1d18;font-weight:600;">Motif du refus :</span> {{ $document->motif_refus }}
                             @endif
                         </div>
                     @endif
                     @if(! $document->notes && ! $document->validateur)
-                        <div class="m-block strong">Document interne à {{ $company['name'] }} — non payable, à imputer sur le budget du service destinataire.</div>
+                        <div class="n-block">
+                            <span class="k">Imputation</span>
+                            Montant à imputer sur le budget du service destinataire.
+                        </div>
                     @endif
                 </td>
-                <td class="tbox">
-                    <table>
-                        <tr class="row"><td class="k">Sous-total HT</td><td class="v">{{ $document->montantHtFormate() }}</td></tr>
-                        <tr class="row subtotal"><td class="k">TVA ({{ $tauxLabel }} %)</td><td class="v">{{ $document->montantTvaFormate() }}</td></tr>
+                <td class="totals-col">
+                    <table class="totals">
+                        <tr><td class="tk">Sous-total HT</td><td class="tv">{{ $document->montantHtFormate() }}</td></tr>
+                        <tr><td class="tk">TVA ({{ $tauxLabel }} %)</td><td class="tv">{{ $document->montantTvaFormate() }}</td></tr>
                     </table>
-                    <div class="grand-wrap">
-                        <table>
-                            <tr><td class="k">Total TTC</td><td class="v">{{ $document->montantTtcFormate() }}</td></tr>
-                        </table>
-                    </div>
-                    <div class="foot-note">Montant non exigible — usage interne uniquement</div>
+                    <table class="grand">
+                        <tr><td class="gk gkc">Total TTC</td><td class="gv">{{ $document->montantTtcFormate() }}</td></tr>
+                    </table>
                 </td>
             </tr>
         </table>
-    </main>
+
+        <div class="legal">
+            <span class="co">{{ $company['name'] }}</span> — {{ $company['legal_form'] }} · SIREN {{ $company['siren'] }} · SIRET (siège) {{ $company['siret'] }} · NAF/APE {{ $company['naf_code'] }} ({{ $company['naf_label'] }}) · RNA {{ $company['rna'] }} · TVA non applicable · {{ $companyAddress }}, {{ $company['country'] }} · {{ $company['website'] }}<br>
+            Document de facturation interne servant exclusivement à l'imputation budgétaire entre services. Il ne constitue pas une facture commerciale et n'appelle aucun règlement. Montants exprimés en euros. Généré le {{ now()->format('d/m/Y à H:i') }}.
+        </div>
+    </div>
 </body>
 </html>
