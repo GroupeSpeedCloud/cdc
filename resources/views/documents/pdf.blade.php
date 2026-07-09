@@ -14,52 +14,50 @@
 
         /* ============ Tons Material Design 3 — mêmes rôles que l'application ============ */
         /* Poids de police volontairement limités à 400 (texte) et 600 (repères/légendes) : pas de gras appuyé. */
-        @page { margin: 172px 46px 86px; }
+        @page { margin: 124px 46px 28px; }
         * { box-sizing: border-box; }
-        body { font-family: 'Titillium Web', DejaVu Sans, sans-serif; font-size: 10.5px; color: #19181b; margin: 0; line-height: 1.5; font-weight: 400; }
+        body { font-family: 'Titillium Web', DejaVu Sans, sans-serif; font-size: 10.5px; color: #19181b; margin: 0; line-height: 1.45; font-weight: 400; }
         b, strong { font-weight: 600; }
 
         .label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em; color: #9489a9; font-weight: 600; }
 
-        /* ============ En-tête répété ============ */
-        .page-head { position: fixed; top: -140px; left: 0; right: 0; height: 136px; }
+        /* ============ En-tête répété — un seul bloc d'identité légale, pas de répétition ============ */
+        .page-head { position: fixed; top: -122px; left: 0; right: 0; height: 114px; border-collapse: collapse; border-spacing: 0; }
         .page-head td { vertical-align: top; }
-        .brand-mark { display: inline-block; width: 21px; height: 21px; background: #8a4dfd; color: #fff; border-radius: 6px; text-align: center; line-height: 21px; font-size: 8.5px; font-weight: 600; letter-spacing: 0.2px; vertical-align: middle; }
-        .brand-name { display: inline-block; font-size: 14.5px; font-weight: 600; color: #19181b; letter-spacing: 0.1px; vertical-align: middle; margin-left: 8px; }
-        .brand-legal { color: #9489a9; font-size: 8.5px; margin-top: 5px; }
-        .brand-sub { color: #9489a9; font-size: 8.5px; margin-top: 1px; }
-        .doc-label { text-align: right; font-size: 8px; text-transform: uppercase; letter-spacing: 0.14em; color: #8a4dfd; font-weight: 600; }
-        .doc-num { text-align: right; color: #19181b; font-size: 15px; margin-top: 4px; letter-spacing: 0.2px; }
+        .brand-mark { display: inline-block; width: 22px; height: 22px; background: #8a4dfd; color: #fff; border-radius: 6px; text-align: center; line-height: 22px; font-size: 8.5px; font-weight: 600; letter-spacing: 0.2px; vertical-align: middle; }
+        .brand-name { display: inline-block; font-size: 14px; font-weight: 600; color: #19181b; letter-spacing: 0.1px; vertical-align: middle; margin-left: 9px; }
+        .brand-legal { color: #9489a9; font-size: 8.5px; margin-top: 6px; }
+        .doc-label { text-align: right; font-size: 8px; text-transform: uppercase; letter-spacing: 0.16em; color: #8a4dfd; font-weight: 600; }
+        .doc-num { text-align: right; color: #592aa9; font-size: 17px; font-weight: 600; letter-spacing: 0.1px; margin-top: 4px; }
         .doc-badges { text-align: right; margin-top: 6px; }
-        .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 8px; font-weight: 600; letter-spacing: 0.3px; vertical-align: middle; border: 1px solid transparent; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 8px; font-weight: 600; letter-spacing: 0.3px; vertical-align: middle; border: 1px solid transparent; margin-left: 6px; }
         .b-valide { background: #eaf7f0; color: #0f5132; border-color: #cdebd9; }
         .b-attente { background: #fdf6e4; color: #7a4e05; border-color: #f6e4b0; }
         .b-refuse { background: #fbeceb; color: #8c1d18; border-color: #f3c8c5; }
         .b-brouillon { background: #f5f4f5; color: #494059; border-color: #e4e1ea; }
         .b-archive { background: #f5f4f5; color: #37353b; border-color: #e4e1ea; }
         .b-nonpayable { background: #ffffff; color: #796b94; border-color: #d8cfe6; }
-        .head-rule { height: 1.5px; background: #8a4dfd; margin-top: 10px; }
-        .head-legal { color: #9489a9; font-size: 7.5px; margin-top: 6px; letter-spacing: 0.1px; }
+        .head-rule { height: 1.5px; background: #8a4dfd; margin-top: 12px; }
 
-        /* ============ Pied de page répété ============ */
-        .page-foot { position: fixed; bottom: -62px; left: 0; right: 0; text-align: center; color: #9489a9; font-size: 7.5px; border-top: 1px solid #e4e1ea; padding-top: 9px; letter-spacing: 0.1px; line-height: 1.6; }
+        /* ============ Pied de page répété — rappel court, le détail légal est dans le corps ============ */
+        .page-foot { position: fixed; bottom: -32px; left: 0; right: 0; text-align: center; color: #9489a9; font-size: 7.5px; border-top: 1px solid #e4e1ea; padding-top: 6px; letter-spacing: 0.1px; line-height: 1.5; }
         .page-foot .co { color: #494059; font-weight: 600; }
 
         /* ============ Bandeau non payable — sobre, contour seulement ============ */
-        .notice { border: 1px solid #e4dcf7; background: #faf8fe; border-radius: 10px; padding: 8px 16px; margin: 0 0 14px; text-align: center; }
+        .notice { border: 1px solid #e4dcf7; background: #faf8fe; border-radius: 10px; padding: 6px 16px; margin: 0 0 8px; text-align: center; }
         .notice-title { color: #592aa9; font-size: 9px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
         .notice-text { color: #6a5f80; font-size: 8.5px; margin-top: 2px; }
 
-        /* ============ Émetteur légal — plus de fond, simple séparation ============ */
-        .legal { margin: 0 0 16px; padding: 12px 0; border-top: 1px solid #e4e1ea; border-bottom: 1px solid #e4e1ea; }
-        .legal-name { font-size: 11.5px; font-weight: 600; color: #19181b; margin: 3px 0 8px; }
+        /* ============ Émetteur légal — source unique de la mention légale complète ============ */
+        .legal { margin: 0 0 8px; padding: 7px 0; border-top: 1px solid #e4e1ea; border-bottom: 1px solid #e4e1ea; }
+        .legal-name { font-size: 11.5px; font-weight: 600; color: #19181b; margin: 2px 0 6px; }
         .legal-grid { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .legal-grid td { padding: 2px 0; vertical-align: top; border: none; }
+        .legal-grid td { padding: 1px 0; vertical-align: top; border: none; }
         .legal-k { color: #9489a9; font-size: 8.5px; width: 40%; }
         .legal-v { color: #494059; font-size: 9px; }
 
         /* ============ Parties — texte simple séparé par un filet ============ */
-        .parties { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 16px; }
+        .parties { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 8px; }
         .parties .cell { vertical-align: top; padding: 0 18px 0 0; }
         .parties .divider { width: 1px; background: #e4e1ea; }
         .parties .cell.second { padding: 0 0 0 18px; }
@@ -67,15 +65,15 @@
         .box-line { color: #6a5f80; font-size: 9px; line-height: 1.5; }
 
         /* ============ Bandeau infos — filets verticaux, léger accent sur le total ============ */
-        .infos { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 16px; border-top: 1px solid #e4e1ea; border-bottom: 1px solid #e4e1ea; }
-        .infos .cell { padding: 9px 16px; vertical-align: top; border-left: 1px solid #e4e1ea; }
+        .infos { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 8px; border-top: 1px solid #e4e1ea; border-bottom: 1px solid #e4e1ea; }
+        .infos .cell { padding: 6px 16px; vertical-align: top; border-left: 1px solid #e4e1ea; }
         .infos .cell:first-child { border-left: none; padding-left: 0; }
         .info-v { font-size: 12px; margin-top: 4px; color: #19181b; }
         .infos .cell.hl { background: #faf8fe; border-left: 1px solid #e4dcf7; }
         .infos .cell.hl .label { color: #8a4dfd; }
         .infos .cell.hl .info-v { color: #592aa9; font-weight: 600; font-size: 13px; }
 
-        .objet { margin: 0 0 14px; }
+        .objet { margin: 0 0 8px; }
         .objet-text { font-size: 10.5px; color: #494059; margin-top: 3px; }
 
         /* ============ Lignes ============ */
@@ -84,7 +82,7 @@
         table.lines th:first-child, table.lines td:first-child { padding-left: 0; }
         table.lines th:last-child, table.lines td:last-child { padding-right: 0; }
         table.lines th.r, table.lines td.r { text-align: right; }
-        table.lines td { padding: 10px 12px; border-bottom: 1px solid #e4e1ea; }
+        table.lines td { padding: 6px 12px; border-bottom: 1px solid #e4e1ea; }
         .l-title { color: #19181b; font-size: 10.5px; }
         .l-sub { color: #9489a9; font-size: 8.5px; margin-top: 2px; }
         .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 8px; font-weight: 600; white-space: nowrap; }
@@ -92,7 +90,7 @@
         .l-amount { color: #19181b; }
 
         /* ============ Bas : mentions + totaux ============ */
-        .bottom { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        .bottom { width: 100%; border-collapse: collapse; margin-top: 8px; }
         .bottom > td { vertical-align: top; }
         .mentions { width: 50%; padding-right: 24px; }
         .m-block { margin-bottom: 10px; color: #6a5f80; font-size: 9.5px; line-height: 1.55; }
@@ -101,16 +99,15 @@
 
         .tbox { width: 50%; }
         .tbox table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .tbox .row td { padding: 5px 0; font-size: 10.5px; border: none; }
+        .tbox .row td { padding: 4px 0; font-size: 10.5px; border: none; }
         .tbox .row td.k { color: #6a5f80; }
         .tbox .row td.v { text-align: right; color: #19181b; }
-        .tbox .subtotal td { padding-bottom: 9px; border-bottom: 1px solid #e4e1ea; }
-        .tbox .grand { margin-top: 10px; background: #faf8fe; border: 1px solid #e4dcf7; border-radius: 12px; padding: 12px 16px; }
+        .tbox .subtotal td { padding-bottom: 7px; border-bottom: 1px solid #e4e1ea; }
+        .tbox .grand { margin-top: 8px; background: #faf8fe; border: 1px solid #e4dcf7; border-radius: 12px; padding: 10px 16px; }
         .tbox .grand table { width: 100%; border-collapse: separate; border-spacing: 0; }
         .tbox .grand td { padding: 0; border: none; }
         .tbox .grand td.k { font-size: 10px; color: #592aa9; text-transform: uppercase; letter-spacing: 0.07em; }
         .tbox .grand td.v { text-align: right; font-size: 20px; color: #592aa9; font-weight: 600; }
-        .tbox .foot-note { font-size: 8px; color: #9489a9; text-align: right; padding-top: 8px; }
     </style>
 </head>
 <body>
@@ -128,8 +125,7 @@
         <tr>
             <td style="width:55%;">
                 <div><span class="brand-mark">GSC</span><span class="brand-name">{{ $company['name'] }}</span></div>
-                <div class="brand-legal">{{ $company['legal_form'] }} · SIREN {{ $company['siren'] }} · SIRET {{ $company['siret'] }}</div>
-                <div class="brand-sub">{{ $companyAddress }} · {{ $company['website'] }}</div>
+                <div class="brand-legal">{{ $company['legal_form'] }} · SIREN {{ $company['siren'] }} · {{ $companyAddress }}</div>
             </td>
             <td style="width:45%;">
                 <div class="doc-label">Facture interne</div>
@@ -141,21 +137,13 @@
             </td>
         </tr>
         <tr><td colspan="2"><div class="head-rule"></div></td></tr>
-        <tr>
-            <td colspan="2">
-                <div class="head-legal">
-                    {{ $company['name'] }} · {{ $company['legal_form'] }} · NAF/APE {{ $company['naf_code'] }} ({{ $company['naf_label'] }}) · RNA {{ $company['rna'] }} · TVA non applicable
-                </div>
-            </td>
-        </tr>
     </table>
 
     <div class="page-foot">
-        <span class="co">{{ $company['name'] }}</span> · {{ $company['legal_form'] }} · SIREN {{ $company['siren'] }} · SIRET {{ $company['siret'] }} · {{ $companyAddress }} · {{ $company['website'] }}<br>
-        Document de facturation interne {{ $document->numero_document }} — non payable, aucun règlement n'est dû — montants exprimés en euros — généré le {{ now()->format('d/m/Y à H:i') }}
+        <span class="co">{{ $company['name'] }}</span> · SIREN {{ $company['siren'] }} · {{ $document->numero_document }} · document interne non payable
     </div>
 
-    <main>
+    <div class="main">
         <div class="notice">
             <div class="notice-title">Document interne — non payable</div>
             <div class="notice-text">Ce document sert exclusivement à l'imputation budgétaire entre services internes de {{ $company['name'] }}. Il ne constitue pas une facture commerciale et n'appelle aucun règlement.</div>
@@ -291,10 +279,9 @@
                             <tr><td class="k">Total TTC</td><td class="v">{{ $document->montantTtcFormate() }}</td></tr>
                         </table>
                     </div>
-                    <div class="foot-note">Montant non exigible — usage interne uniquement</div>
                 </td>
             </tr>
         </table>
-    </main>
+    </div>
 </body>
 </html>
