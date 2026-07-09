@@ -3,102 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <style>
+        @font-face {
+            font-family: 'Titillium Web'; font-weight: 400; font-style: normal;
+            src: url({{ resource_path('fonts/titillium/TitilliumWeb-Regular.ttf') }}) format('truetype');
+        }
+        @font-face {
+            font-family: 'Titillium Web'; font-weight: 600; font-style: normal;
+            src: url({{ resource_path('fonts/titillium/TitilliumWeb-SemiBold.ttf') }}) format('truetype');
+        }
+        @font-face {
+            font-family: 'Titillium Web'; font-weight: 700; font-style: normal;
+            src: url({{ resource_path('fonts/titillium/TitilliumWeb-Bold.ttf') }}) format('truetype');
+        }
+        @font-face {
+            font-family: 'Titillium Web'; font-weight: 900; font-style: normal;
+            src: url({{ resource_path('fonts/titillium/TitilliumWeb-Black.ttf') }}) format('truetype');
+        }
+
+        /* ============ Tons Material Design 3 — mêmes rôles que l'application ============ */
         @page { margin: 150px 46px 92px; }
         * { box-sizing: border-box; }
-        body { font-family: DejaVu Sans, sans-serif; font-size: 10.5px; color: #2b3040; margin: 0; line-height: 1.45; }
+        body { font-family: 'Titillium Web', DejaVu Sans, sans-serif; font-size: 10.5px; color: #19181b; margin: 0; line-height: 1.45; }
+        b, strong { font-weight: 700; }
 
         /* ============ En-tête répété ============ */
         .page-head { position: fixed; top: -118px; left: 0; right: 0; height: 114px; }
         .page-head td { vertical-align: middle; }
-        .brand-name { font-size: 16px; font-weight: bold; color: #1a1d29; letter-spacing: 0.3px; }
-        .brand-legal { color: #9aa0b3; font-size: 8.5px; margin-top: 1px; }
-        .brand-sub { color: #9aa0b3; font-size: 9px; }
-        .doc-title { font-size: 21px; font-weight: bold; text-align: right; color: #8a4dfd; letter-spacing: 1px; }
-        .doc-num { text-align: right; color: #7a8096; font-size: 10.5px; margin-top: 4px; }
-        .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 8.5px; font-weight: bold; letter-spacing: 0.5px; }
-        .b-valide { background: #e7f7ef; color: #16794c; }
-        .b-attente { background: #fdf4e3; color: #92600a; }
-        .b-refuse { background: #fdeaea; color: #b42318; }
-        .b-brouillon { background: #eef0f4; color: #667085; }
-        .b-archive { background: #eaeaf0; color: #4a4a68; }
-        .b-nonpayable { background: #eef0f4; color: #4a5062; }
-        .head-rule { height: 3px; background: #8a4dfd; border-radius: 3px; margin-top: 10px; }
-        .head-legal { color: #aeb3c1; font-size: 7.5px; margin-top: 6px; letter-spacing: 0.1px; }
+        .brand-name { font-size: 16px; font-weight: 900; color: #19181b; letter-spacing: 0.2px; }
+        .brand-legal { color: #9489a9; font-size: 8.5px; margin-top: 1px; font-weight: 600; }
+        .brand-sub { color: #9489a9; font-size: 9px; }
+        .doc-title { font-size: 21px; font-weight: 900; text-align: right; color: #8a4dfd; letter-spacing: 1px; }
+        .doc-num { text-align: right; color: #494059; font-size: 10.5px; margin-top: 4px; font-weight: 600; }
+        .badge { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 8.5px; font-weight: 700; letter-spacing: 0.5px; vertical-align: middle; }
+        .b-valide { background: #d3f0e0; color: #0f5132; }
+        .b-attente { background: #fdf0d2; color: #7a4e05; }
+        .b-refuse { background: #f9dedc; color: #410e0b; }
+        .b-brouillon { background: #e4e1ea; color: #494059; }
+        .b-archive { background: #eae9ec; color: #37353b; }
+        .b-nonpayable { background: #e4e1ea; color: #494059; }
+        .head-rule { height: 3px; background: #8a4dfd; border-radius: 999px; margin-top: 10px; }
+        .head-legal { color: #9489a9; font-size: 7.5px; margin-top: 6px; letter-spacing: 0.1px; font-weight: 600; }
 
         /* ============ Pied de page répété ============ */
-        .page-foot { position: fixed; bottom: -66px; left: 0; right: 0; text-align: center; color: #aeb3c1; font-size: 7.5px; border-top: 1px solid #edeff4; padding-top: 9px; letter-spacing: 0.2px; line-height: 1.6; }
-        .page-foot strong { color: #7a8096; }
+        .page-foot { position: fixed; bottom: -66px; left: 0; right: 0; text-align: center; color: #9489a9; font-size: 7.5px; border-top: 1px solid #e4e1ea; padding-top: 9px; letter-spacing: 0.2px; line-height: 1.6; }
+        .page-foot strong { color: #494059; }
 
-        /* ============ Bandeau non payable ============ */
-        .notice { background: #f4f1fd; border: 1px solid #ddd4fb; border-radius: 8px; padding: 5px 16px; margin: 0 0 8px; text-align: center; }
-        .notice-title { color: #5c3ac9; font-size: 9.5px; font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase; }
-        .notice-text { color: #6a5aa8; font-size: 8.5px; margin-top: 1px; }
+        /* ============ Bandeau non payable = "primary container" MD3 ============ */
+        .notice { background: #dfd1fa; border: 1px solid #d8bdfa; border-radius: 12px; padding: 5px 16px; margin: 0 0 8px; text-align: center; }
+        .notice-title { color: #14082b; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+        .notice-text { color: #390e8b; font-size: 8.5px; margin-top: 1px; font-weight: 400; }
 
-        /* ============ Bloc émetteur légal ============ */
-        .legal { width: 100%; border-collapse: separate; border-spacing: 0; background: #f8f9fc; border: 1px solid #ebeef5; border-radius: 9px; margin: 0 0 8px; }
+        /* ============ Bloc émetteur légal = "surface container low" MD3 ============ */
+        .legal { width: 100%; border-collapse: separate; border-spacing: 0; background: #f5f4f5; border: 1px solid #e4e1ea; border-radius: 16px; margin: 0 0 8px; }
         .legal td { padding: 8px 16px; vertical-align: top; border: none; }
         .legal .box-label { margin-bottom: 4px; }
-        .legal-name { font-size: 12px; font-weight: bold; color: #1a1d29; margin-bottom: 2px; }
+        .legal-name { font-size: 12px; font-weight: 700; color: #19181b; margin-bottom: 2px; }
         .legal-grid { width: 100%; border-collapse: separate; border-spacing: 0; }
         .legal-grid td { padding: 1px 0; vertical-align: top; border: none; }
-        .legal-k { color: #9aa0b3; font-size: 8.5px; width: 42%; }
-        .legal-v { color: #4a5062; font-size: 9px; font-weight: bold; }
+        .legal-k { color: #9489a9; font-size: 8.5px; width: 42%; font-weight: 600; }
+        .legal-v { color: #494059; font-size: 9px; font-weight: 700; }
 
         /* ============ Parties ============ */
         .parties { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 8px; }
-        .parties .card { vertical-align: top; background: #f8f9fc; border: 1px solid #ebeef5; border-radius: 9px; padding: 9px 16px; }
+        .parties .card { vertical-align: top; background: #f5f4f5; border: 1px solid #e4e1ea; border-radius: 16px; padding: 9px 16px; }
         .parties .gap { width: 20px; }
-        .box-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.09em; color: #9aa0b3; margin-bottom: 4px; font-weight: bold; }
-        .box-name { font-size: 13px; font-weight: bold; color: #1a1d29; margin-bottom: 3px; }
-        .box-line { color: #7a8096; font-size: 9.5px; line-height: 1.45; }
+        .box-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.09em; color: #9489a9; margin-bottom: 4px; font-weight: 700; }
+        .box-name { font-size: 13px; font-weight: 700; color: #19181b; margin-bottom: 3px; }
+        .box-line { color: #494059; font-size: 9.5px; line-height: 1.45; font-weight: 400; }
 
         /* ============ Bandeau infos ============ */
         .infos { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0 0 6px; }
-        .infos .cell { background: #fbfbfe; border: 1px solid #eef0f6; border-radius: 8px; padding: 6px 13px; vertical-align: top; }
+        .infos .cell { background: #f5f4f5; border: 1px solid #e4e1ea; border-radius: 12px; padding: 6px 13px; vertical-align: top; }
         .infos .gap { width: 12px; }
         .infos .cell.hl { background: #8a4dfd; border-color: #8a4dfd; }
-        .info-k { font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em; color: #9aa0b3; font-weight: bold; margin-bottom: 3px; }
-        .info-v { font-size: 12.5px; font-weight: bold; color: #2b3040; }
-        .infos .cell.hl .info-k { color: #cdccff; }
+        .info-k { font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em; color: #9489a9; font-weight: 700; margin-bottom: 3px; }
+        .info-v { font-size: 12.5px; font-weight: 700; color: #19181b; }
+        .infos .cell.hl .info-k { color: #e6dafb; }
         .infos .cell.hl .info-v { color: #fff; }
 
         .objet { margin: 8px 2px 2px; }
-        .objet-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.07em; color: #9aa0b3; font-weight: bold; margin-bottom: 3px; }
-        .objet-text { font-size: 10.5px; color: #4a5062; }
+        .objet-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.07em; color: #9489a9; font-weight: 700; margin-bottom: 3px; }
+        .objet-text { font-size: 10.5px; color: #494059; }
 
         /* ============ Lignes ============ */
         table.lines { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        table.lines th { background: #2b3040; color: #fff; padding: 8px 12px; font-size: 8.5px; text-align: left; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
-        table.lines th:first-child { border-radius: 7px 0 0 0; }
-        table.lines th:last-child { border-radius: 0 7px 0 0; }
+        table.lines th { background: #19181b; color: #fff; padding: 8px 12px; font-size: 8.5px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        table.lines th:first-child { border-radius: 12px 0 0 0; }
+        table.lines th:last-child { border-radius: 0 12px 0 0; }
         table.lines th.r, table.lines td.r { text-align: right; }
-        table.lines td { padding: 9px 12px; border-bottom: 1px solid #edeff4; }
-        table.lines tbody tr:last-child td { border-bottom: 2px solid #dfe2ec; }
-        .l-title { font-weight: bold; color: #1a1d29; font-size: 10.5px; }
-        .l-sub { color: #9aa0b3; font-size: 8.5px; margin-top: 2px; }
-        .tag { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 8px; font-weight: bold; white-space: nowrap; }
-        .num { color: #4a5062; }
+        table.lines td { padding: 9px 12px; border-bottom: 1px solid #e4e1ea; }
+        table.lines tbody tr:last-child td { border-bottom: 2px solid #c9c4d4; }
+        .l-title { font-weight: 700; color: #19181b; font-size: 10.5px; }
+        .l-sub { color: #9489a9; font-size: 8.5px; margin-top: 2px; font-weight: 400; }
+        .tag { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 8px; font-weight: 700; white-space: nowrap; }
+        .num { color: #494059; font-weight: 400; }
 
         /* ============ Bas : mentions + totaux ============ */
         .bottom { width: 100%; border-collapse: collapse; margin-top: 12px; }
         .bottom > td { vertical-align: top; }
         .mentions { width: 50%; padding-right: 24px; }
-        .m-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.07em; color: #9aa0b3; font-weight: bold; margin-bottom: 4px; }
-        .m-block { margin-bottom: 9px; color: #7a8096; font-size: 9.5px; line-height: 1.5; }
-        .m-block.strong { color: #4a5062; font-weight: bold; }
+        .m-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.07em; color: #9489a9; font-weight: 700; margin-bottom: 4px; }
+        .m-block { margin-bottom: 9px; color: #494059; font-size: 9.5px; line-height: 1.5; font-weight: 400; }
+        .m-block.strong { color: #19181b; font-weight: 700; }
 
         .tbox { width: 50%; }
         .tbox table { width: 100%; border-collapse: separate; border-spacing: 0; }
         .tbox .row td { padding: 8px 14px; font-size: 11px; border: none; }
-        .tbox .row td.k { color: #7a8096; }
-        .tbox .row td.v { text-align: right; font-weight: bold; color: #2b3040; }
-        .tbox .subtotal td { border-bottom: 1px solid #edeff4; }
-        .tbox .grand-wrap { margin-top: 6px; background: #8a4dfd; border-radius: 9px; }
+        .tbox .row td.k { color: #494059; font-weight: 600; }
+        .tbox .row td.v { text-align: right; font-weight: 700; color: #19181b; }
+        .tbox .subtotal td { border-bottom: 1px solid #e4e1ea; }
+        .tbox .grand-wrap { margin-top: 6px; background: #8a4dfd; border-radius: 16px; }
         .tbox .grand-wrap table { width: 100%; border-collapse: separate; border-spacing: 0; }
         .tbox .grand-wrap td { padding: 13px 16px; border: none; color: #fff; }
-        .tbox .grand-wrap td.k { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; }
-        .tbox .grand-wrap td.v { text-align: right; font-size: 18px; font-weight: bold; }
-        .tbox .foot-note { font-size: 8px; color: #aeb3c1; text-align: right; padding: 6px 14px 0; }
+        .tbox .grand-wrap td.k { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+        .tbox .grand-wrap td.v { text-align: right; font-size: 18px; font-weight: 900; }
+        .tbox .foot-note { font-size: 8px; color: #9489a9; text-align: right; padding: 6px 14px 0; font-weight: 400; }
     </style>
 </head>
 <body>
@@ -239,7 +258,7 @@
                     <td><span class="tag" style="{{ $l->typeStyle() }}">{{ $l->type_prestation }}</span></td>
                     <td class="r num">{{ rtrim(rtrim(number_format($l->quantite, 2, ',', ' '), '0'), ',') }}{{ $l->estTemps() ? ' h' : '' }}</td>
                     <td class="r num">{{ number_format($l->tarif_unitaire, 2, ',', ' ') }} €</td>
-                    <td class="r" style="font-weight:bold;color:#1a1d29;">{{ number_format($l->montant_ligne, 2, ',', ' ') }} €</td>
+                    <td class="r" style="font-weight:700;color:#19181b;">{{ number_format($l->montant_ligne, 2, ',', ' ') }} €</td>
                 </tr>
             @endforeach
             </tbody>
@@ -259,7 +278,7 @@
                             <div class="m-label">Validation</div>
                             Traitée par {{ $document->validateur->name }} le {{ optional($document->date_validation)->format('d/m/Y à H:i') }}.
                             @if($document->statut === 'Refusé' && $document->motif_refus)
-                                <br><strong style="color:#b42318;">Motif du refus :</strong> {{ $document->motif_refus }}
+                                <br><strong style="color:#b3261e;">Motif du refus :</strong> {{ $document->motif_refus }}
                             @endif
                         </div>
                     @endif

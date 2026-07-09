@@ -66,9 +66,13 @@ class Service extends Model
         return max(0, (float) $this->budget_restant - (float) $this->budget_annuel_courant);
     }
 
-    /** Numéro de compte interne au format IBAN-like, purement cosmétique. */
+    /**
+     * Référence de compte interne, purement cosmétique. Volontairement sans
+     * code pays ni format IBAN/RIB pour ne jamais pouvoir être confondue
+     * avec une véritable coordonnée bancaire.
+     */
     public function numeroCompte(): string
     {
-        return sprintf('FR76 SPCL %04d %s', $this->id, str_pad($this->code, 4, '0'));
+        return sprintf('COMPTE INTERNE N° %s-%04d', strtoupper($this->code), $this->id);
     }
 }

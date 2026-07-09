@@ -1,27 +1,28 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-bs-theme="{{ request()->cookie('theme', 'dark') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accès refusé — Groupe Speed Cloud</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0a0a0a;
-            --surface: #111111;
-            --border: #1e1e1e;
-            --border-2: #2a2a2a;
-            --text: #ffffff;
-            --text-2: #888888;
-            --text-3: #555555;
-            --accent: #8a4dfd;
-            --red: #ef4444;
-            --yellow: #f59e0b;
+        [data-bs-theme="dark"] {
+            --bg: #0f0e10; --surface: #19181b; --border: #37353b; --border-2: #494059;
+            --text: #e5e4e7; --text-2: #c9c4d4; --text-3: #9489a9; --accent: #bea0f8;
+            --red: #f2b8b5; --red-bg: rgba(242,184,181,.12); --red-border: rgba(242,184,181,.28); --red-chip: #f2b8b5;
+        }
+        [data-bs-theme="light"] {
+            --bg: #fcfcfd; --surface: #ffffff; --border: #e4e1ea; --border-2: #c9c4d4;
+            --text: #19181b; --text-2: #494051; --text-3: #796b94; --accent: #8a4dfd;
+            --red: #b3261e; --red-bg: rgba(179,38,30,.06); --red-border: rgba(179,38,30,.2); --red-chip: #b3261e;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -30,7 +31,7 @@
         .bg-glow {
             position: fixed;
             inset: 0;
-            background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(239,68,68,0.06), transparent);
+            background: radial-gradient(ellipse 60% 40% at 50% 0%, var(--red-bg), transparent);
             pointer-events: none;
         }
         .wrap {
@@ -59,7 +60,7 @@
         .logo-name {
             font-size: 18px;
             font-weight: 700;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.02em;
         }
         .card {
             background: var(--surface);
@@ -71,8 +72,8 @@
         .icon-wrap {
             width: 56px;
             height: 56px;
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.2);
+            background: var(--red-bg);
+            border: 1px solid var(--red-border);
             border-radius: 16px;
             display: flex;
             align-items: center;
@@ -161,12 +162,12 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(239,68,68,0.08);
-            border: 1px solid rgba(239,68,68,0.2);
+            background: var(--red-bg);
+            border: 1px solid var(--red-border);
             border-radius: 6px;
             padding: 3px 10px;
             font-size: 12px;
-            color: #f87171;
+            color: var(--red-chip);
             font-family: monospace;
             margin: 4px 0;
         }
@@ -187,7 +188,7 @@
 
     <div class="card">
         <div class="icon-wrap">
-            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#ef4444" stroke-width="2">
+            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="var(--red)" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
         </div>

@@ -1,138 +1,75 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-bs-theme="{{ request()->cookie('theme', 'dark') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion — Groupe Speed Cloud</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0a0a0a;
-            --surface: #111111;
-            --surface-2: #1a1a1a;
-            --border: #1e1e1e;
-            --border-2: #2a2a2a;
-            --text: #ffffff;
-            --text-2: #888888;
-            --text-3: #555555;
-            --accent: #8a4dfd;
-            --accent-bg: rgba(138, 77, 253, 0.12);
-            --red: #ef4444;
+            --font: 'Titillium Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --brand: #8a4dfd; --brand-dark: #592aa9; --brand-container-light: #dfd1fa; --brand-on-container-light: #14082b;
+            --err: #b3261e;
+        }
+        [data-bs-theme="dark"] {
+            --bg: #0f0e10; --surface: #19181b; --surface-2: #1e1d20;
+            --outline: #494059; --outline-variant: #37353b;
+            --text: #e5e4e7; --text-2: #c9c4d4; --text-3: #9489a9;
+            --primary: #bea0f8; --on-primary: #270c5a; --primary-container: #390e8b; --on-primary-container: #dfd1fa;
+            --err-container: #8c1d18; --on-err-container: #f9dedc;
+            --glow: rgba(190,160,248,.18);
+        }
+        [data-bs-theme="light"] {
+            --bg: #fcfcfd; --surface: #ffffff; --surface-2: #f5f4f5;
+            --outline: #c9c4d4; --outline-variant: #e4e1ea;
+            --text: #19181b; --text-2: #494051; --text-3: #796b94;
+            --primary: #8a4dfd; --on-primary: #ffffff; --primary-container: #dfd1fa; --on-primary-container: #14082b;
+            --err-container: #f9dedc; --on-err-container: #410e0b;
+            --glow: rgba(138,77,253,.14);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: var(--bg); color: var(--text); font-family: var(--font);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
         }
         .login-bg {
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(138,77,253,0.10), transparent);
+            position: fixed; inset: 0;
+            background: radial-gradient(ellipse 70% 45% at 50% -10%, var(--glow), transparent);
             pointer-events: none;
         }
-        .login-wrap {
-            width: 100%;
-            max-width: 400px;
-            padding: 24px;
-            position: relative;
-            z-index: 1;
+        .login-wrap { width: 100%; max-width: 420px; padding: 24px; position: relative; z-index: 1; }
+        .login-logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 32px; gap: 14px; }
+        .logo-mark {
+            width: 56px; height: 56px; border-radius: 16px; background: var(--primary); color: var(--on-primary);
+            display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; letter-spacing: -.02em;
+            box-shadow: 0 8px 24px var(--glow);
         }
-        .login-logo {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 32px;
-            gap: 12px;
-        }
-        .logo-icon {
-            width: 44px;
-            height: 44px;
-            background: var(--accent);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 24px rgba(138,77,253,0.45);
-        }
-        .logo-name {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.04em;
-            color: var(--text);
-        }
-        .login-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 32px;
-        }
-        .login-title {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-        .login-subtitle {
-            font-size: 13px;
-            color: var(--text-3);
-            margin-bottom: 28px;
-            line-height: 1.5;
-        }
-        .login-subtitle strong {
-            color: var(--text-2);
-            font-weight: 500;
-        }
+        .logo-name { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); text-align: center; }
+        .login-card { background: var(--surface); border: 1px solid var(--outline-variant); border-radius: 24px; padding: 34px; }
+        .login-title { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); margin-bottom: 6px; }
+        .login-subtitle { font-size: 13.5px; color: var(--text-3); margin-bottom: 28px; line-height: 1.55; }
+        .login-subtitle strong { color: var(--text-2); font-weight: 600; }
         .error-msg {
-            background: rgba(239,68,68,0.08);
-            border: 1px solid rgba(239,68,68,0.2);
-            color: var(--red);
-            border-radius: 10px;
-            padding: 12px 14px;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
+            background: var(--err-container); color: var(--on-err-container); border-radius: 12px;
+            padding: 12px 14px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-weight: 500;
         }
         .btn-google {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            width: 100%;
-            background: var(--surface-2);
-            border: 1px solid var(--border-2);
-            border-radius: 10px;
-            padding: 12px 20px;
-            color: var(--text);
-            font-size: 14px;
-            font-weight: 500;
-            font-family: inherit;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.15s, border-color 0.15s;
+            display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;
+            background: var(--surface); border: 1px solid var(--outline); border-radius: 999px;
+            padding: 13px 20px; color: var(--text); font-size: 14.5px; font-weight: 600; font-family: inherit;
+            cursor: pointer; text-decoration: none; transition: background .15s, border-color .15s, box-shadow .15s;
         }
-        .btn-google:hover {
-            background: #222222;
-            border-color: #333333;
-        }
-        .login-footer {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 11px;
-            color: var(--text-3);
-        }
+        .btn-google:hover { background: var(--surface-2); border-color: var(--text-3); box-shadow: 0 2px 8px var(--glow); }
+        .login-footer { margin-top: 22px; text-align: center; font-size: 11.5px; color: var(--text-3); }
     </style>
 </head>
 <body>
 <div class="login-bg"></div>
 <div class="login-wrap">
     <div class="login-logo">
+        <span class="logo-mark">GSC</span>
         <span class="logo-name">Groupe Speed Cloud</span>
     </div>
 

@@ -103,6 +103,7 @@ class ServiceController extends Controller
     public function update(Request $request, Service $service)
     {
         $data = $this->validateService($request, $service);
+        $ancienManagerId = $service->manager_id;
 
         // Ajuster le budget restant proportionnellement au changement de budget annuel.
         $ancienBudget = (float) $service->budget_annuel_courant;
@@ -111,6 +112,7 @@ class ServiceController extends Controller
 
         $service->update($data);
         $this->promouvoirManager($service);
+        $this->retrograderAncienManagerSiBesoin($ancienManagerId, $service->manager_id);
 
         return redirect()->route('services.index')->with('success', 'Service mis à jour.');
     }
@@ -124,9 +126,29 @@ class ServiceController extends Controller
         }
     }
 
+    /**
+     * Quand un service change de responsable, rétrograde l'ancien manager au
+     * rôle « user » s'il ne gère plus aucun service — pour que le rôle reste
+     * toujours le reflet exact de la réalité (et ne laisse pas quelqu'un
+     * avec un accès manager fantôme, ou l'inverse).
+     */
+    private function retrograderAncienManagerSiBesoin(?int $ancienManagerId, ?int $nouveauManagerId): void
+    {
+        if (! $ancienManagerId || $ancienManagerId === $nouveauManagerId) {
+            return;
+        }
+
+        $ancienManager = User::find($ancienManagerId);
+        if ($ancienManager && $ancienManager->role === 'manager' && $ancienManager->servicesGeres()->doesntExist()) {
+            $ancienManager->update(['role' => 'user']);
+        }
+    }
+
     public function destroy(Service $service)
     {
+        $ancienManagerId = $service->manager_id;
         $service->delete();
+        $this->retrograderAncienManagerSiBesoin($ancienManagerId, null);
 
         return redirect()->route('services.index')->with('success', 'Service supprimé.');
     }

@@ -37,10 +37,16 @@ class User extends Authenticatable
         return $this->hasOne(Personne::class);
     }
 
-    /** Service dont l'utilisateur est le responsable. */
+    /** Service dont l'utilisateur est le responsable (si plusieurs, le premier). */
     public function serviceGere()
     {
         return $this->hasOne(Service::class, 'manager_id');
+    }
+
+    /** Tous les services dont l'utilisateur est responsable. */
+    public function servicesGeres()
+    {
+        return $this->hasMany(Service::class, 'manager_id');
     }
 
     public function appNotifications()
