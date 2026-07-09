@@ -33,7 +33,11 @@ class DocumentWorkflow
         }
     }
 
-    /** Valide un document : passe en « Validé », déduit le budget et notifie le demandeur. */
+    /**
+     * Valide un document : passe en « Validé » et transfère le montant HT
+     * entre les deux services comme un virement bancaire — le destinataire
+     * paie (débit), l'émetteur est crédité du même montant (crédit).
+     */
     public function valider(DocumentInterne $document, User $validateur): void
     {
         DB::transaction(function () use ($document, $validateur) {
@@ -43,15 +47,30 @@ class DocumentWorkflow
                 'date_validation' => now(),
             ]);
 
-            // La consommation budgétaire se fait sur le montant HT.
-            $service = $document->serviceDestinataire()->lockForUpdate()->first();
-            $service->budget_restant = (float) $service->budget_restant - (float) $document->montant_total_ht;
-            $service->save();
+            // Le transfert se fait sur le montant HT.
+            $montant = (float) $document->montant_total_ht;
+            $annee = $document->date_emission->year;
 
-            $budget = $service->budgetPour($document->date_emission->year);
-            if ($budget) {
-                $budget->montant_depense = (float) $budget->montant_depense + (float) $document->montant_total_ht;
-                $budget->save();
+            // Débit : le service destinataire paie la facture.
+            $destinataire = $document->serviceDestinataire()->lockForUpdate()->first();
+            $destinataire->budget_restant = (float) $destinataire->budget_restant - $montant;
+            $destinataire->save();
+
+            $budgetDestinataire = $destinataire->budgetPour($annee);
+            if ($budgetDestinataire) {
+                $budgetDestinataire->montant_depense = (float) $budgetDestinataire->montant_depense + $montant;
+                $budgetDestinataire->save();
+            }
+
+            // Crédit : le service émetteur est payé pour la prestation facturée.
+            $emetteur = $document->serviceEmetteur()->lockForUpdate()->first();
+            $emetteur->budget_restant = (float) $emetteur->budget_restant + $montant;
+            $emetteur->save();
+
+            $budgetEmetteur = $emetteur->budgetPour($annee);
+            if ($budgetEmetteur) {
+                $budgetEmetteur->montant_credite = (float) $budgetEmetteur->montant_credite + $montant;
+                $budgetEmetteur->save();
             }
         });
 

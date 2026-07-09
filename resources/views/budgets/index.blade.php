@@ -30,6 +30,7 @@
                     <th class="text-end" style="width:220px;">Budget initial (€)</th>
                     <th class="text-end">Écart</th>
                     <th class="text-end">Dépensé (€)</th>
+                    <th class="text-end">Crédité (€)</th>
                     <th class="text-end">Restant (€)</th>
                 </tr></thead>
                 <tbody>
@@ -38,8 +39,9 @@
                         $b = $s->budgets->first();
                         $initial = (float) ($b?->montant_initial ?? 0);
                         $depense = (float) ($b?->montant_depense ?? 0);
+                        $credite = (float) ($b?->montant_credite ?? 0);
                     @endphp
-                    <tr class="budget-row" data-original="{{ $initial }}" data-depense="{{ $depense }}">
+                    <tr class="budget-row" data-original="{{ $initial }}" data-depense="{{ $depense }}" data-credite="{{ $credite }}">
                         <td class="fw-semibold">{{ $s->name }}</td>
                         <td><span class="badge bg-secondary">{{ $s->code }}</span></td>
                         <td class="text-end">
@@ -52,7 +54,8 @@
                             <span class="badge bg-secondary-subtle text-secondary ecart-badge">—</span>
                         </td>
                         <td class="text-end text-secondary">{{ number_format($depense, 2, ',', ' ') }} €</td>
-                        <td class="text-end fw-semibold restant-cell">{{ number_format($initial - $depense, 2, ',', ' ') }} €</td>
+                        <td class="text-end text-success">{{ $credite > 0 ? '+'.number_format($credite, 2, ',', ' ').' €' : '—' }}</td>
+                        <td class="text-end fw-semibold restant-cell">{{ number_format($initial + $credite - $depense, 2, ',', ' ') }} €</td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -62,6 +65,7 @@
                         <td class="text-end fw-semibold" id="totalInitial">—</td>
                         <td class="text-end fw-semibold" id="totalEcart">—</td>
                         <td class="text-end fw-semibold" id="totalDepense">—</td>
+                        <td class="text-end fw-semibold" id="totalCredite">—</td>
                         <td class="text-end fw-semibold" id="totalRestant">—</td>
                     </tr>
                 </tfoot>
@@ -81,6 +85,7 @@ function onBudgetInput(input) {
     const row = input.closest('.budget-row');
     const original = parseFloat(row.dataset.original) || 0;
     const depense = parseFloat(row.dataset.depense) || 0;
+    const credite = parseFloat(row.dataset.credite) || 0;
     const value = parseFloat(input.value);
     const current = isNaN(value) ? original : value;
     const delta = current - original;
@@ -97,28 +102,31 @@ function onBudgetInput(input) {
         badge.className = 'badge bg-danger-subtle text-danger ecart-badge';
     }
 
-    row.querySelector('.restant-cell').textContent = fmt(current - depense);
+    row.querySelector('.restant-cell').textContent = fmt(current + credite - depense);
 
     document.getElementById('unsavedHint').style.display = 'inline';
     recalcTotals();
 }
 
 function recalcTotals() {
-    let totalInitial = 0, totalOriginal = 0, totalDepense = 0, totalRestant = 0;
+    let totalInitial = 0, totalOriginal = 0, totalDepense = 0, totalCredite = 0, totalRestant = 0;
     document.querySelectorAll('.budget-row').forEach(row => {
         const original = parseFloat(row.dataset.original) || 0;
         const depense = parseFloat(row.dataset.depense) || 0;
+        const credite = parseFloat(row.dataset.credite) || 0;
         const inputVal = parseFloat(row.querySelector('.budget-input').value);
         const current = isNaN(inputVal) ? original : inputVal;
         totalInitial += current;
         totalOriginal += original;
         totalDepense += depense;
-        totalRestant += current - depense;
+        totalCredite += credite;
+        totalRestant += current + credite - depense;
     });
     const totalDelta = totalInitial - totalOriginal;
 
     document.getElementById('totalInitial').textContent = fmt(totalInitial);
     document.getElementById('totalDepense').textContent = fmt(totalDepense);
+    document.getElementById('totalCredite').textContent = fmt(totalCredite);
     document.getElementById('totalRestant').textContent = fmt(totalRestant);
 
     const totalEcartEl = document.getElementById('totalEcart');
