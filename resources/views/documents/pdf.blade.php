@@ -13,25 +13,31 @@
         }
 
         /* Palette : tokens MD3 de l'app (seed #8a4dfd). Deux graisses seulement : 400 / 600. */
-        @page { margin: 36px 0 46px; }
+        @page { margin: 183px 0 46px; }
         body, div, p, table, td, th { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Titillium Web', DejaVu Sans, sans-serif; font-size: 10px; color: #19181b; line-height: 1.5; font-weight: 400; }
         table { border-collapse: collapse; border-spacing: 0; }
 
         .px { padding-left: 48px; padding-right: 48px; }
 
+        /* ===== Lettre a en-tete fixe : bandeau + ligne de statut, plein bord, sur chaque page ===== */
+        .letterhead { position: fixed; top: -183px; left: 0; right: 0; }
+
         /* ===== Bandeau de marque ===== */
         .masthead { width: 100%; background: #8a4dfd; color: #fff; }
-        .masthead td { padding: 24px 48px 22px; vertical-align: middle; }
-        .mh-brand { font-size: 17px; font-weight: 600; letter-spacing: 0.2px; color: #fff; }
-        .mh-tag { font-size: 8.5px; color: #dfd1fa; margin-top: 2px; letter-spacing: 0.4px; text-transform: uppercase; }
-        .mh-doc { text-align: right; }
-        .mh-doc-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #dfd1fa; font-weight: 600; }
-        .mh-doc-num { font-size: 22px; font-weight: 600; color: #fff; margin-top: 1px; }
+        .masthead td { vertical-align: baseline; }
+        .masthead .lft { text-align: left; padding-left: 48px; }
+        .masthead .rgt { text-align: right; padding-right: 48px; }
+        .masthead .row-k td { padding-top: 24px; }
+        .masthead .row-v td { padding-bottom: 22px; }
+        .mh-k { font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #dfd1fa; font-weight: 600; }
+        .mh-brand { font-size: 18px; font-weight: 600; letter-spacing: 0.2px; color: #fff; }
+        .mh-doc-num { font-size: 18px; font-weight: 600; color: #fff; }
 
         /* ===== Ligne de statut sous le bandeau ===== */
         .statusbar { width: 100%; background: #f4effd; }
-        .statusbar td { padding: 8px 48px; }
+        .statusbar td { padding: 5px 48px 10px; vertical-align: top; }
+        .statusbar td.sb-badges { padding-top: 10px; padding-bottom: 7px; }
         .sb-text { font-size: 8.5px; color: #592aa9; letter-spacing: 0.3px; }
         .sb-text .sep { color: #b39aec; padding: 0 6px; }
         .badge { display: inline-block; padding: 2px 11px; border-radius: 999px; font-size: 8px; font-weight: 600; letter-spacing: 0.4px; }
@@ -47,7 +53,7 @@
         .k { font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.14em; color: #8a4dfd; font-weight: 600; }
 
         /* ===== De / À ===== */
-        .parties { width: 100%; margin-top: 22px; }
+        .parties { width: 100%; margin-top: 0; }
         .parties td { vertical-align: top; }
         .parties .col { width: 44%; }
         .parties .mid { width: 12%; }
@@ -57,9 +63,9 @@
 
         /* ===== Méta ===== */
         .meta { width: 100%; margin-top: 20px; border-top: 1.2px solid #19181b; border-bottom: 1px solid #e4e1ea; }
-        .meta td { padding: 9px 14px 8px; border-right: 1px solid #e4e1ea; }
-        .meta td:first-child { padding-left: 0; }
-        .meta td:last-child { border-right: none; }
+        .meta td { padding: 9px 0 8px; }
+        .meta .mcell { border-left: 1px solid #e4e1ea; padding-left: 14px; }
+        .meta td:first-child .mcell { border-left: none; padding-left: 0; }
         .meta .v { font-size: 12.5px; color: #19181b; margin-top: 2px; font-weight: 600; }
         .meta .v.accent { color: #592aa9; }
 
@@ -76,8 +82,8 @@
         .lines td { padding: 8px 12px; border-bottom: 1px solid #eceaf0; vertical-align: top; }
         .li-t { font-size: 10.5px; color: #19181b; }
         .li-d { font-size: 8.5px; color: #9489a9; margin-top: 1px; }
-        .tag { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 7.5px; font-weight: 600; white-space: nowrap; }
-        .num { color: #494059; font-size: 10px; }
+        .tag { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 7.5px; font-weight: 600; white-space: nowrap; margin-top: 4px; }
+        .num { color: #494059; font-size: 10.5px; }
         .amt { color: #19181b; font-size: 10.5px; font-weight: 600; }
 
         /* ===== Totaux + mentions ===== */
@@ -92,7 +98,9 @@
         .totals .tk { color: #494059; }
         .totals .tv { text-align: right; color: #19181b; }
         .grand { width: 100%; margin-top: -1px; border-top: 1.2px solid #19181b; }
-        .grand td { padding: 10px 0 0; }
+        .grand td { padding: 10px 0 0; vertical-align: top; }
+        /* dompdf ignore vertical-align:baseline entre cellules : delta de baseline 9px/21px mesure = 19px */
+        .grand td.gkc { padding-top: 35px; }
         .grand .gk { font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: #19181b; font-weight: 600; }
         .grand .gv { text-align: right; font-size: 21px; font-weight: 600; color: #8a4dfd; }
 
@@ -119,30 +127,30 @@
         {{ $company['name'] }} · SIREN {{ $company['siren'] }} · {{ $document->numero_document }} · document interne non payable
     </div>
 
-    <table class="masthead">
-        <tr>
-            <td style="width:55%;">
-                <div class="mh-brand">{{ $company['name'] }}</div>
-                <div class="mh-tag">Facturation interne entre services</div>
-            </td>
-            <td style="width:45%;" class="mh-doc">
-                <div class="mh-doc-label">Facture interne</div>
-                <div class="mh-doc-num">{{ $document->numero_document }}</div>
-            </td>
-        </tr>
-    </table>
+    <div class="letterhead">
+        <table class="masthead">
+            <tr class="row-k">
+                <td class="lft" style="width:55%;"><span class="mh-k">Facturation interne entre services</span></td>
+                <td class="rgt" style="width:45%;"><span class="mh-k">Facture interne</span></td>
+            </tr>
+            <tr class="row-v">
+                <td class="lft"><span class="mh-brand">{{ $company['name'] }}</span></td>
+                <td class="rgt"><span class="mh-doc-num">{{ $document->numero_document }}</span></td>
+            </tr>
+        </table>
 
-    <table class="statusbar">
-        <tr>
-            <td style="width:62%;">
-                <span class="sb-text">Document interne — non payable<span class="sep">·</span>imputation budgétaire entre services, aucun règlement n'est dû</span>
-            </td>
-            <td style="width:38%;" class="sb-badges">
-                <span class="badge {{ $badge }}">{{ mb_strtoupper($document->statut) }}</span>
-                <span class="badge b-np">NON PAYABLE</span>
-            </td>
-        </tr>
-    </table>
+        <table class="statusbar">
+            <tr>
+                <td style="width:62%;">
+                    <span class="sb-text">Document interne — non payable<span class="sep">·</span>imputation budgétaire entre services, aucun règlement n'est dû</span>
+                </td>
+                <td style="width:38%;" class="sb-badges">
+                    <span class="badge {{ $badge }}">{{ mb_strtoupper($document->statut) }}</span>
+                    <span class="badge b-np">NON PAYABLE</span>
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <div class="px">
         <table class="parties">
@@ -166,20 +174,28 @@
         <table class="meta">
             <tr>
                 <td style="width:25%;">
-                    <div class="k">Émission</div>
-                    <div class="v">{{ $document->date_emission->format('d/m/Y') }}</div>
+                    <div class="mcell">
+                        <div class="k">Émission</div>
+                        <div class="v">{{ $document->date_emission->format('d/m/Y') }}</div>
+                    </div>
                 </td>
                 <td style="width:25%;">
-                    <div class="k">Échéance</div>
-                    <div class="v">{{ optional($document->date_echeance)->format('d/m/Y') ?? '—' }}</div>
+                    <div class="mcell">
+                        <div class="k">Échéance</div>
+                        <div class="v">{{ optional($document->date_echeance)->format('d/m/Y') ?? '—' }}</div>
+                    </div>
                 </td>
                 <td style="width:22%;">
-                    <div class="k">TVA</div>
-                    <div class="v">{{ $tauxLabel }} %</div>
+                    <div class="mcell">
+                        <div class="k">TVA</div>
+                        <div class="v">{{ $tauxLabel }} %</div>
+                    </div>
                 </td>
                 <td style="width:28%;">
-                    <div class="k">Total TTC</div>
-                    <div class="v accent">{{ $document->montantTtcFormate() }}</div>
+                    <div class="mcell">
+                        <div class="k">Total TTC</div>
+                        <div class="v accent">{{ $document->montantTtcFormate() }}</div>
+                    </div>
                 </td>
             </tr>
         </table>
@@ -249,7 +265,7 @@
                         <tr><td class="tk">TVA ({{ $tauxLabel }} %)</td><td class="tv">{{ $document->montantTvaFormate() }}</td></tr>
                     </table>
                     <table class="grand">
-                        <tr><td class="gk">Total TTC</td><td class="gv">{{ $document->montantTtcFormate() }}</td></tr>
+                        <tr><td class="gk gkc">Total TTC</td><td class="gv">{{ $document->montantTtcFormate() }}</td></tr>
                     </table>
                 </td>
             </tr>
