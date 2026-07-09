@@ -34,7 +34,12 @@
     </div>
     <div class="col-lg-5">
         <div class="card mb-3">
-            <div class="card-header fw-semibold">Budget du service</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Budget du service</span>
+                @if($service)
+                    <a href="{{ route('services.compte', $service) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-bank"></i> Voir le compte</a>
+                @endif
+            </div>
             <div class="card-body">
                 @if($service)
                     <canvas id="budgetChart" height="180"></canvas>

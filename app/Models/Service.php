@@ -65,4 +65,10 @@ class Service extends Model
     {
         return max(0, (float) $this->budget_restant - (float) $this->budget_annuel_courant);
     }
+
+    /** Numéro de compte interne au format IBAN-like, purement cosmétique. */
+    public function numeroCompte(): string
+    {
+        return sprintf('FR76 SPCL %04d %s', $this->id, str_pad($this->code, 4, '0'));
+    }
 }
