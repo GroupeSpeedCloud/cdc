@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DocumentInterne;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ServiceController extends Controller
 {
@@ -13,6 +15,65 @@ class ServiceController extends Controller
         $services = Service::with('manager')->orderBy('name')->get();
 
         return view('services.index', compact('services'));
+    }
+
+    /**
+     * Relevé de compte du service : solde actuel et historique des
+     * mouvements (crédits/débits) issus des factures internes validées,
+     * comme un vrai compte bancaire.
+     */
+    public function compte(Request $request, Service $service)
+    {
+        $user = Auth::user();
+        abort_unless($user->isAdmin() || $service->manager_id === $user->id, 403,
+            'Vous ne pouvez consulter que le compte de votre propre service.');
+
+        $operations = DocumentInterne::whereIn('statut', [DocumentInterne::STATUT_VALIDE, DocumentInterne::STATUT_ARCHIVE])
+            ->where(function ($q) use ($service) {
+                $q->where('service_emetteur_id', $service->id)
+                    ->orWhere('service_destinataire_id', $service->id);
+            })
+            ->with(['serviceEmetteur', 'serviceDestinataire'])
+            ->orderByDesc('date_validation')
+            ->orderByDesc('id')
+            ->get();
+
+        // Le solde actuel du service fait foi ; on reconstitue le solde après
+        // chaque mouvement en remontant le temps depuis cette valeur, afin que
+        // le relevé reste toujours cohérent avec le compte réel.
+        $solde = (float) $service->budget_restant;
+        $mouvements = $operations->map(function (DocumentInterne $doc) use ($service, &$solde) {
+            $estCredit = $doc->service_emetteur_id === $service->id;
+            $montant = (float) $doc->montant_total_ht;
+
+            $ligne = [
+                'document' => $doc,
+                'date' => $doc->date_validation,
+                'contrepartie' => $estCredit ? $doc->serviceDestinataire : $doc->serviceEmetteur,
+                'libelle' => $estCredit ? 'Facturation émise' : 'Paiement de facture',
+                'credit' => $estCredit ? $montant : null,
+                'debit' => $estCredit ? null : $montant,
+                'solde_apres' => $solde,
+            ];
+
+            $solde -= $estCredit ? $montant : -$montant;
+
+            return $ligne;
+        });
+
+        $soldeOuverture = $solde;
+        $totalCredits = $mouvements->sum('credit');
+        $totalDebits = $mouvements->sum('debit');
+
+        $annees = $mouvements->pluck('date')->filter()->map(fn ($d) => $d->year)->unique()->sortDesc()->values();
+        $annee = (int) $request->input('annee', 0);
+        if ($annee) {
+            $mouvements = $mouvements->filter(fn ($m) => $m['date'] && $m['date']->year === $annee)->values();
+        }
+
+        return view('services.compte', compact(
+            'service', 'mouvements', 'soldeOuverture', 'totalCredits', 'totalDebits', 'annees', 'annee'
+        ));
     }
 
     public function create()

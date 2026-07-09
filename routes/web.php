@@ -42,6 +42,9 @@ Route::middleware(['auth', 'restrict.domain'])->group(function () {
     Route::resource('personnes', PersonneController::class)->except(['show'])
         ->middleware('role:admin,manager');
 
+    // Compte bancaire d'un service (admin sur tous, manager sur le sien)
+    Route::get('services/{service}/compte', [ServiceController::class, 'compte'])->name('services.compte');
+
     // Notifications
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/tout-lire', [NotificationController::class, 'toutLire'])->name('notifications.toutLire');

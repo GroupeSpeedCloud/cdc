@@ -30,6 +30,7 @@
                         <small class="text-secondary">{{ $s->pourcentageConsomme() }}%</small>
                     </td>
                     <td class="text-end">
+                        <a href="{{ route('services.compte', $s) }}" class="btn btn-sm btn-outline-secondary" title="Voir le compte"><i class="bi bi-bank"></i></a>
                         <a href="{{ route('services.edit', $s) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
                         <form method="POST" action="{{ route('services.destroy', $s) }}" class="d-inline" onsubmit="return confirm('Supprimer ce service ?')">@csrf @method('DELETE')
                             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
